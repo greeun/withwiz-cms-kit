@@ -1,0 +1,124 @@
+{
+  "name": "@withwiz/pms",
+  "version": "0.1.0",
+  "description": "Performance Management System - CMS framework for web admin panels",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    },
+    "./components": {
+      "types": "./dist/components/index.d.ts",
+      "import": "./dist/components/index.mjs",
+      "require": "./dist/components/index.js"
+    },
+    "./components/image-drop-zone.css": "./dist/components/image-drop-zone.css",
+    "./components/toggle-switch.css": "./dist/components/toggle-switch.css",
+    "./hooks": {
+      "types": "./dist/hooks/index.d.ts",
+      "import": "./dist/hooks/index.mjs",
+      "require": "./dist/hooks/index.js"
+    },
+    "./infrastructure": {
+      "types": "./dist/infrastructure/index.d.ts",
+      "import": "./dist/infrastructure/index.mjs",
+      "require": "./dist/infrastructure/index.js"
+    },
+    "./infrastructure/middleware": {
+      "types": "./dist/infrastructure/middleware/index.d.ts",
+      "import": "./dist/infrastructure/middleware/index.mjs",
+      "require": "./dist/infrastructure/middleware/index.js"
+    },
+    "./services": {
+      "types": "./dist/services/index.d.ts",
+      "import": "./dist/services/index.mjs",
+      "require": "./dist/services/index.js"
+    },
+    "./types": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/types/index.mjs",
+      "require": "./dist/types/index.js"
+    },
+    "./utils": {
+      "types": "./dist/utils/index.d.ts",
+      "import": "./dist/utils/index.mjs",
+      "require": "./dist/utils/index.js"
+    },
+    "./validators": {
+      "types": "./dist/validators/index.d.ts",
+      "import": "./dist/validators/index.mjs",
+      "require": "./dist/validators/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build"
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.23.1",
+    "@tiptap/react": "^3.23.1"
+  },
+  "peerDependencies": {
+    "@aws-sdk/client-s3": ">=3",
+    "@tanstack/react-virtual": ">=3",
+    "@withwiz/toolkit": "file:../withwiz-toolkit",
+    "clsx": ">=2",
+    "isomorphic-dompurify": ">=2",
+    "next": ">=15",
+    "react": ">=18",
+    "sharp": ">=0.33",
+    "sonner": ">=2",
+    "tailwind-merge": ">=3",
+    "zod": ">=4"
+  },
+  "peerDependenciesMeta": {
+    "@aws-sdk/client-s3": {
+      "optional": true
+    },
+    "@tanstack/react-virtual": {
+      "optional": true
+    },
+    "isomorphic-dompurify": {
+      "optional": true
+    },
+    "sharp": {
+      "optional": true
+    },
+    "sonner": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@aws-sdk/client-s3": "^3.1045.0",
+    "@tanstack/react-virtual": "^3.13.24",
+    "@testing-library/react": "^16.3.2",
+    "@types/node": "^25.6.2",
+    "@types/react": "^19.2.14",
+    "@vitejs/plugin-react": "^6.0.1",
+    "@withwiz/toolkit": "file:../withwiz-toolkit",
+    "clsx": "^2.1.1",
+    "isomorphic-dompurify": "^2.30.0",
+    "jsdom": "^29.1.1",
+    "next": "^16.2.6",
+    "react": "^19.2.6",
+    "react-dom": "^19.2.6",
+    "sharp": "~0.34.5",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.5.0",
+    "tsup": "^8.5.1",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.5",
+    "zod": "^4.4.3"
+  }
+}

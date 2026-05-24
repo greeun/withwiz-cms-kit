@@ -1,0 +1,115 @@
+/* ═══ Shared Drag-and-Drop Upload States ═══ */
+
+/* Drag-over visual feedback */
+.af-upload-zone.is-drag-over,
+.nbe-ed-img-up.is-drag-over,
+.nbe-img-upload.is-drag-over,
+.admin-cover-upload.is-drag-over,
+.pm-poster-upload.is-drag-over,
+.rm-pu.is-drag-over,
+.rm-ce-iup.is-drag-over,
+.rm-gal-grid.is-drag-over {
+  border-color: #8c7444 !important;
+  border-style: dashed !important;
+  background: rgba(201, 169, 110, 0.08) !important;
+  box-shadow: inset 0 0 0 2px rgba(201, 169, 110, 0.15);
+  transition: all 0.15s ease;
+}
+
+/* Uploading / Resizing state */
+.af-upload-zone.is-uploading,
+.nbe-ed-img-up.is-uploading,
+.nbe-img-upload.is-uploading,
+.admin-cover-upload.is-uploading,
+.pm-poster-upload.is-uploading,
+.rm-pu.is-uploading,
+.rm-ce-iup.is-uploading,
+.af-upload-zone.is-resizing,
+.nbe-ed-img-up.is-resizing,
+.nbe-img-upload.is-resizing,
+.admin-cover-upload.is-resizing,
+.pm-poster-upload.is-resizing,
+.rm-pu.is-resizing,
+.rm-ce-iup.is-resizing {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Upload spinner */
+.dz-upload-spinner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: #8c7444;
+}
+
+.dz-upload-spinner::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border: 2px solid #e8e0d0;
+  border-top-color: #8c7444;
+  border-radius: 50%;
+  animation: dz-spin 0.6s linear infinite;
+}
+
+@keyframes dz-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Error message */
+.dz-error {
+  font-size: 11px;
+  color: #d44;
+  margin-top: 4px;
+  padding: 4px 8px;
+  background: #fef5f5;
+  border: 1px solid #f0c0c0;
+  border-radius: 4px;
+}
+
+/* Drag hint text */
+.dz-drag-hint {
+  font-size: 12px;
+  color: #8c7444;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+/* Placeholder with guide */
+.dz-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  text-align: center;
+}
+
+.dz-placeholder-icon {
+  font-size: 24px;
+  color: #aaa;
+  line-height: 1;
+}
+
+.dz-placeholder-text {
+  font-size: 13px;
+  color: #888;
+}
+
+.dz-placeholder-guide {
+  font-size: 11px;
+  color: #bbb;
+  line-height: 1.5;
+}
+
+/* Gallery drop zone add button state */
+.rm-gal-add.dz-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}

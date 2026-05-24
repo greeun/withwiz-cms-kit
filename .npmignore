@@ -1,0 +1,6 @@
+src
+tests
+docs
+tsup.config.ts
+tsconfig.json
+.DS_Store
