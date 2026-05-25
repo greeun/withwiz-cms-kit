@@ -5,7 +5,7 @@
 401 응답 시 `/api/admin/auth/refresh` 로 자동 쿠키 갱신 후 **1회 재시도** 하는 fetch 래퍼. 갱신 실패 시 `/admin/login` 으로 리다이렉트합니다.
 
 ```ts
-import { adminFetch } from '@withwiz/pms/utils';
+import { adminFetch } from '@withwiz/cms-kit/utils';
 
 const res = await adminFetch('/api/admin/news', { method: 'POST', body: JSON.stringify(form) });
 ```

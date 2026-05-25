@@ -1,16 +1,16 @@
 import { beforeEach } from 'vitest';
 import {
   resolveClientIdentity,
-  setPmsConfig,
-  resetPmsConfig,
-} from '@withwiz/pms/config';
+  setCmsConfig,
+  resetCmsConfig,
+} from '@withwiz/cms-kit/config';
 
-describe('rate-limit client identity (PMS-RLI / §4.6 S4)', () => {
+describe('rate-limit client identity (CMS-RLI / §4.6 S4)', () => {
   beforeEach(() => {
-    resetPmsConfig();
+    resetCmsConfig();
   });
 
-  it('PMS-RLI-01: anti-spoof — identity NOT rotatable purely via x-forwarded-for', () => {
+  it('CMS-RLI-01: anti-spoof — identity NOT rotatable purely via x-forwarded-for', () => {
     // Two requests differing ONLY in the x-forwarded-for header value, no
     // consumer trusted-proxy config set.
     const a = new Headers({ 'x-forwarded-for': '1.2.3.4' });
@@ -24,8 +24,8 @@ describe('rate-limit client identity (PMS-RLI / §4.6 S4)', () => {
     expect(idA).toBe(idB);
   });
 
-  it('PMS-RLI-02: consumer-injected extractor is honored', () => {
-    setPmsConfig({
+  it('CMS-RLI-02: consumer-injected extractor is honored', () => {
+    setCmsConfig({
       rateLimit: {
         identityExtractor: () => 'CONSUMER-ID',
       },
@@ -38,10 +38,10 @@ describe('rate-limit client identity (PMS-RLI / §4.6 S4)', () => {
     expect(resolveClientIdentity(h2)).toBe('CONSUMER-ID');
   });
 
-  it('PMS-RLI-03: consumer extractor can use real proxy topology', () => {
+  it('CMS-RLI-03: consumer extractor can use real proxy topology', () => {
     // A consumer who knows they sit behind exactly one trusted proxy may take
     // the LAST x-forwarded-for hop — proving the strategy is fully overridable.
-    setPmsConfig({
+    setCmsConfig({
       rateLimit: {
         identityExtractor: (headers) => {
           const xff = headers.get('x-forwarded-for');
@@ -56,7 +56,7 @@ describe('rate-limit client identity (PMS-RLI / §4.6 S4)', () => {
     expect(resolveClientIdentity(h)).toBe('203.0.113.7');
   });
 
-  it('PMS-RLI-04: no 127.0.0.1 magic default leak', () => {
+  it('CMS-RLI-04: no 127.0.0.1 magic default leak', () => {
     const h = new Headers(); // no XFF, no override
     const id = resolveClientIdentity(h);
     expect(id).not.toBe('127.0.0.1');

@@ -24,13 +24,13 @@ vi.mock('next/dynamic', () => ({
   default: () => () => null,
 }));
 
-vi.mock('@withwiz/pms/utils/admin-fetch', () => ({
+vi.mock('@withwiz/cms-kit/utils/admin-fetch', () => ({
   adminFetch: adminFetchMock,
 }));
 
 import { render, screen, waitFor } from '@testing-library/react';
-import AdminShell from '@withwiz/pms/components/AdminShell';
-import { resetPmsConfig, setPmsConfig } from '@withwiz/pms/config';
+import AdminShell from '@withwiz/cms-kit/components/AdminShell';
+import { resetCmsConfig, setCmsConfig } from '@withwiz/cms-kit/config';
 
 const OLD_NAV = [
   'Performances',
@@ -40,11 +40,11 @@ const OLD_NAV = [
   'Dashboard',
 ];
 
-describe('AdminShell consumer config (PMS-ASC / §4.1 C1/C2)', () => {
+describe('AdminShell consumer config (CMS-ASC / §4.1 C1/C2)', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
 
   beforeEach(() => {
-    resetPmsConfig();
+    resetCmsConfig();
     adminFetchMock.mockReset();
     replaceMock.mockReset();
     // authenticated: /me returns ok so the shell body (not the loading
@@ -61,10 +61,10 @@ describe('AdminShell consumer config (PMS-ASC / §4.1 C1/C2)', () => {
 
   afterEach(() => {
     warnSpy.mockRestore();
-    resetPmsConfig();
+    resetCmsConfig();
   });
 
-  it('PMS-ASC-01: injected brand + nav rendered exactly; no old hardcoded ones', async () => {
+  it('CMS-ASC-01: injected brand + nav rendered exactly; no old hardcoded ones', async () => {
     const { container } = render(
       <AdminShell
         brandLabel="ACME Corp"
@@ -96,8 +96,8 @@ describe('AdminShell consumer config (PMS-ASC / §4.1 C1/C2)', () => {
     }
   });
 
-  it('PMS-ASC-02: brand/nav via §5 setPmsConfig (no props)', async () => {
-    setPmsConfig({
+  it('CMS-ASC-02: brand/nav via §5 setCmsConfig (no props)', async () => {
+    setCmsConfig({
       brand: {
         brandLabel: 'Configured Brand',
         navItems: [{ label: 'Only', href: '/only', glyph: 'O' }],
@@ -116,7 +116,7 @@ describe('AdminShell consumer config (PMS-ASC / §4.1 C1/C2)', () => {
     expect(container.innerHTML).not.toContain('DTS BALLET');
   });
 
-  it('PMS-ASC-03: unconfigured = safe neutral render + exactly one namespaced warn', async () => {
+  it('CMS-ASC-03: unconfigured = safe neutral render + exactly one namespaced warn', async () => {
     const { container } = render(
       <AdminShell>
         <div>safe-child</div>
@@ -135,10 +135,10 @@ describe('AdminShell consumer config (PMS-ASC / §4.1 C1/C2)', () => {
     // empty nav list, no nav links rendered.
     expect(container.querySelectorAll('.admin-sidebar-nav a').length).toBe(0);
 
-    // (b) exactly one @withwiz/pms-namespaced warn naming the missing config.
+    // (b) exactly one @withwiz/cms-kit-namespaced warn naming the missing config.
     expect(warnSpy).toHaveBeenCalledTimes(1);
     const msg = String(warnSpy.mock.calls[0][0]);
-    expect(msg).toContain('@withwiz/pms');
+    expect(msg).toContain('@withwiz/cms-kit');
     expect(msg.toLowerCase()).toMatch(/nav|navigation|brand/);
   });
 });

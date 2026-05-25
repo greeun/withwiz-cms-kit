@@ -17,7 +17,7 @@ import { resolveStorageConfig, warnOnceMissingConfig } from '../config';
  *  - 미설정(unconfigured) 기본값: 어떤 prefix 도 *silently drop 하지 않는다*.
  *    하드코딩 `news/`-only regex 와 달리 모든 inline 이미지의 host 이후
  *    path 를 수집한다 (orphan 방지). 정밀 cleanup 을 위해 prefix/base 설정을
- *    권장하는 `@withwiz/pms:` warn 을 1회 발행한다.
+ *    권장하는 `@withwiz/cms-kit:` warn 을 1회 발행한다.
  */
 
 const IMG_SRC_REGEX = /<img[^>]+src=["']([^"']+)["']/gi;
@@ -75,7 +75,7 @@ export function extractR2KeysFromHtml(...htmlContents: (string | null)[]): strin
       'storage.inlinePrefix',
       'storage inline-image key prefix/publicBaseUrl is not configured. ' +
         'Collecting ALL inline <img> paths to avoid silently orphaning ' +
-        'non-default-prefix objects. Inject `setPmsConfig({ storage: { ' +
+        'non-default-prefix objects. Inject `setCmsConfig({ storage: { ' +
         'inlineKeyPrefixes } })` or `{ storage: { publicBaseUrl } }` for ' +
         'precise R2 cleanup.',
     );

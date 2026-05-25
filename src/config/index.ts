@@ -1,5 +1,5 @@
 /**
- * @withwiz/pms — 중앙 설정/주입 경계 (spec.md §5).
+ * @withwiz/cms-kit — 중앙 설정/주입 경계 (spec.md §5).
  *
  * 모든 외부 자원/소비자 종속 값(brand/nav, route map, JWT, sanitizer 신뢰
  * origin, R2 prefix 규칙, rate-limit identity 추출)은 이 모듈을 통해서만
@@ -11,8 +11,8 @@
  *    > 내장 기본값.
  *  - lazy / point-of-use: 모듈 import 만으로는 절대 throw 하지 않는다. 실패/
  *    경고는 자원을 *사용*할 때 발생한다 (prisma proxy 와 동일).
- *  - safe-default 존재 → `@withwiz/pms:` 네임스페이스 warn 1회(설정명 명시) 후
- *    기본값 사용. safe-default 없음(JWT 서명 비밀) → `@withwiz/pms:`
+ *  - safe-default 존재 → `@withwiz/cms-kit:` 네임스페이스 warn 1회(설정명 명시) 후
+ *    기본값 사용. safe-default 없음(JWT 서명 비밀) → `@withwiz/cms-kit:`
  *    네임스페이스 error 로 point-of-use fail-fast.
  *  - 환경변수 읽기는 이 모듈 안에서만 발생한다 (이번 스프린트가 라우팅하는
  *    표면 한정 — spec.md §4.2 전체 sweep 은 Sprint 2).
@@ -23,7 +23,7 @@
 // ──────────────────────────────────────────────────────────────────────────
 
 /** 사이드바 네비게이션 항목 (label + href + 접힘 글리프) */
-export interface PmsNavItem {
+export interface CmsNavItem {
   /** 펼친 상태에서 보이는 라벨 */
   label: string;
   /** 링크 대상 경로 */
@@ -33,7 +33,7 @@ export interface PmsNavItem {
 }
 
 /** brand / navigation 설정 */
-export interface PmsBrandConfig {
+export interface CmsBrandConfig {
   /** 브랜드 라벨 (사이드바 홈 링크 텍스트) */
   brandLabel?: string;
   /** 브랜드 홈 링크 href (사이트 보기) */
@@ -41,11 +41,11 @@ export interface PmsBrandConfig {
   /** admin 링크 대상 */
   adminHref?: string;
   /** 순서 있는 nav 항목 목록 */
-  navItems?: PmsNavItem[];
+  navItems?: CmsNavItem[];
 }
 
 /** auth/route 엔드포인트 맵 */
-export interface PmsRouteConfig {
+export interface CmsRouteConfig {
   /** 로그인 페이지 경로 */
   loginPath?: string;
   /** 로그인 후 리다이렉트 대상 (홈/대시보드) */
@@ -61,7 +61,7 @@ export interface PmsRouteConfig {
 }
 
 /** JWT 설정 (서명 비밀에는 안전한 기본값이 없음 — fail-fast) */
-export interface PmsJwtConfig {
+export interface CmsJwtConfig {
   /** HMAC 서명 비밀 (필수, 안전한 기본값 없음) */
   secret?: string;
   /** access token 만료 (기본 '2h') */
@@ -73,13 +73,29 @@ export interface PmsJwtConfig {
 }
 
 /** sanitizer 설정 */
-export interface PmsSanitizerConfig {
+export interface CmsSanitizerConfig {
   /** 신뢰 iframe origin prefix 목록 (기본 = YouTube/Vimeo) */
   trustedIframeOrigins?: readonly string[];
 }
 
-/** R2/storage inline-key 추출 설정 */
-export interface PmsStorageConfig {
+/**
+ * R2 자격 증명 설정. 모든 항목 안전한 기본값이 없음 — credentials 누락 시
+ * point-of-use(`uploadToR2`/`deleteFromR2`/`getClient`) 에서 namespaced
+ * fail-fast. 부분 설정 가능 (예: bucketName 만 inject, 나머지는 legacy env).
+ */
+export interface CmsR2CredentialsConfig {
+  /** Cloudflare R2 계정 ID (endpoint host 구성에 사용) */
+  accountId?: string;
+  /** R2 access key ID */
+  accessKeyId?: string;
+  /** R2 secret access key */
+  secretAccessKey?: string;
+  /** R2 버킷 이름 */
+  bucketName?: string;
+}
+
+/** R2/storage 설정 */
+export interface CmsStorageConfig {
   /**
    * inline `<img src>` 에서 storage key 로 인정할 최상위 prefix 목록.
    * 미설정 시 origin/base 기반의 안전 기본 동작(아무 prefix 도 silent drop
@@ -88,31 +104,36 @@ export interface PmsStorageConfig {
    */
   inlineKeyPrefixes?: readonly string[];
   /**
-   * storage 공개 base URL/origin. 지정 시 이 origin 으로 시작하는 모든
-   * inline `<img src>` 의 path 가 폴더 무관하게 key 로 수집된다.
+   * storage 공개 base URL/origin. 지정 시:
+   *  - inline `<img src>` 의 path 가 폴더 무관하게 key 로 수집된다 (r2-helpers).
+   *  - 업로드 결과 public URL 의 prefix 로 사용된다 (r2-storage).
+   * 미설정 시 r2-storage 는 legacy `R2_PUBLIC_URL` env, 그것도 없으면
+   * `https://${bucketName}.r2.dev` 로 fallback 한다.
    */
   publicBaseUrl?: string;
+  /** R2 자격 증명 (계정/키/버킷). 미주입 시 legacy R2_* 환경변수 fallback. */
+  r2?: CmsR2CredentialsConfig;
 }
 
 /** rate-limit client-identity / IP 추출 전략 */
-export type PmsIdentityExtractor = (headers: Headers) => string;
+export type CmsIdentityExtractor = (headers: Headers) => string;
 
 /** rate-limit 설정 */
-export interface PmsRateLimitConfig {
+export interface CmsRateLimitConfig {
   /** consumer 가 주입하는 client-identity 추출 함수 */
-  identityExtractor?: PmsIdentityExtractor;
+  identityExtractor?: CmsIdentityExtractor;
   /** rate-limit 활성화 (기본: legacy RATE_LIMIT_ENABLED env, 그 외 true) */
   enabled?: boolean;
 }
 
 /** 전체 §5 설정 */
-export interface PmsConfig {
-  brand?: PmsBrandConfig;
-  routes?: PmsRouteConfig;
-  jwt?: PmsJwtConfig;
-  sanitizer?: PmsSanitizerConfig;
-  storage?: PmsStorageConfig;
-  rateLimit?: PmsRateLimitConfig;
+export interface CmsConfig {
+  brand?: CmsBrandConfig;
+  routes?: CmsRouteConfig;
+  jwt?: CmsJwtConfig;
+  sanitizer?: CmsSanitizerConfig;
+  storage?: CmsStorageConfig;
+  rateLimit?: CmsRateLimitConfig;
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -126,11 +147,11 @@ export interface PmsConfig {
 // route appears as a single grep-matchable literal in src/** (AC-4.1.2 /
 // CHK-41-2 / the canonical CHK-41-3 guard, which scopes its scan to exclude
 // this designated boundary module). Consumers override every one via
-// `setPmsConfig({ routes: { ... } })`.
+// `setCmsConfig({ routes: { ... } })`.
 const _A = '/' + 'admin';
 const _API_A = '/api' + _A;
 const _AUTH = _API_A + '/' + 'auth';
-const DEFAULT_ROUTES: Required<PmsRouteConfig> = {
+const DEFAULT_ROUTES: Required<CmsRouteConfig> = {
   loginPath: _A + '/' + 'login',
   postLoginRedirect: _A + '/' + 'dashboard',
   meEndpoint: _AUTH + '/' + 'me',
@@ -157,13 +178,13 @@ export const JWT_SECRET_MIN_LENGTH = 32;
 // 설정 저장소 + 주입 API (prisma 패턴)
 // ──────────────────────────────────────────────────────────────────────────
 
-let _config: PmsConfig = {};
+let _config: CmsConfig = {};
 
 /**
  * 전체 §5 설정을 주입한다 (prisma 의 `setPrismaClient` 와 동형).
  * 부분 주입을 병합하며, 같은 키 재주입 시 새 값이 우선한다.
  */
-export function setPmsConfig(config: PmsConfig): void {
+export function setCmsConfig(config: CmsConfig): void {
   _config = {
     ..._config,
     ...config,
@@ -171,19 +192,23 @@ export function setPmsConfig(config: PmsConfig): void {
     routes: { ..._config.routes, ...config.routes },
     jwt: { ..._config.jwt, ...config.jwt },
     sanitizer: { ..._config.sanitizer, ...config.sanitizer },
-    storage: { ..._config.storage, ...config.storage },
+    storage: {
+      ..._config.storage,
+      ...config.storage,
+      r2: { ..._config.storage?.r2, ...config.storage?.r2 },
+    },
     rateLimit: { ..._config.rateLimit, ...config.rateLimit },
   };
 }
 
 /** 주입된 설정을 모두 비운다 (테스트/재초기화 용도). */
-export function resetPmsConfig(): void {
+export function resetCmsConfig(): void {
   _config = {};
   _warnedKeys.clear();
 }
 
 /** 현재 병합된 raw 설정 (디버깅/테스트 용). */
-export function getPmsConfig(): PmsConfig {
+export function getCmsConfig(): CmsConfig {
   return _config;
 }
 
@@ -191,11 +216,11 @@ export function getPmsConfig(): PmsConfig {
 // warn-once / namespaced 진단
 // ──────────────────────────────────────────────────────────────────────────
 
-const NS = '@withwiz/pms:';
+const NS = '@withwiz/cms-kit:';
 const _warnedKeys = new Set<string>();
 
 /**
- * 같은 미설정 표면에 대해 정확히 1회만 `@withwiz/pms:` 네임스페이스 warn 을
+ * 같은 미설정 표면에 대해 정확히 1회만 `@withwiz/cms-kit:` 네임스페이스 warn 을
  * 발행한다 (spec.md §5/B4). 메시지는 누락된 설정명을 반드시 포함한다.
  */
 export function warnOnceMissingConfig(key: string, message: string): void {
@@ -206,7 +231,7 @@ export function warnOnceMissingConfig(key: string, message: string): void {
   console.warn(`${NS} ${message}`);
 }
 
-/** `@withwiz/pms:` 네임스페이스 fail-fast 에러를 만든다. */
+/** `@withwiz/cms-kit:` 네임스페이스 fail-fast 에러를 만든다. */
 export function namespacedError(message: string): Error {
   return new Error(`${NS} ${message}`);
 }
@@ -226,7 +251,7 @@ export function resolveBrandConfig(suppliedViaProps = false): {
   brandLabel: string | null;
   brandHref: string;
   adminHref: string;
-  navItems: PmsNavItem[];
+  navItems: CmsNavItem[];
 } {
   const b = _config.brand ?? {};
   const navConfigured = Array.isArray(b.navItems);
@@ -236,7 +261,7 @@ export function resolveBrandConfig(suppliedViaProps = false): {
     warnOnceMissingConfig(
       'brand.nav',
       'brand/navigation is not configured. Rendering a neutral empty admin shell. ' +
-        'Inject `setPmsConfig({ brand: { brandLabel, navItems } })` to supply brand and navigation.',
+        'Inject `setCmsConfig({ brand: { brandLabel, navItems } })` to supply brand and navigation.',
     );
   }
 
@@ -244,12 +269,12 @@ export function resolveBrandConfig(suppliedViaProps = false): {
     brandLabel: brandConfigured ? (b.brandLabel as string) : null,
     brandHref: b.brandHref ?? '/',
     adminHref: b.adminHref ?? _A,
-    navItems: navConfigured ? (b.navItems as PmsNavItem[]) : [],
+    navItems: navConfigured ? (b.navItems as CmsNavItem[]) : [],
   };
 }
 
 /** route/endpoint 맵을 해석한다 (모든 항목 safe-default 존재). */
-export function resolveRouteConfig(): Required<PmsRouteConfig> {
+export function resolveRouteConfig(): Required<CmsRouteConfig> {
   const r = _config.routes ?? {};
   return {
     loginPath: r.loginPath ?? DEFAULT_ROUTES.loginPath,
@@ -288,7 +313,7 @@ export function resolveJwtConfig(): {
   if (secret === undefined || secret === null || secret === '') {
     throw namespacedError(
       'JWT signing secret is missing. There is NO safe default for a signing ' +
-        'secret. Inject `setPmsConfig({ jwt: { secret } })` or set the ' +
+        'secret. Inject `setCmsConfig({ jwt: { secret } })` or set the ' +
         '`JWT_SECRET` environment variable.',
     );
   }
@@ -327,6 +352,66 @@ export function resolveStorageConfig(): {
 }
 
 /**
+ * R2 자격 증명을 해석한다.
+ *
+ * 우선순위(필드별 독립): inject(`storage.r2.*`) > legacy env(`R2_*`) > null.
+ * 안전한 기본값이 없으므로 누락 필드는 null 로 반환되고, 실제 호출자
+ * (`r2-storage`) 가 point-of-use 에서 namespaced fail-fast 한다 — 즉
+ * import 만으로는 절대 throw 하지 않는다 (lazy 정책).
+ *
+ * legacy env 매핑:
+ *  - accountId       ← `R2_ACCOUNT_ID`
+ *  - accessKeyId     ← `R2_ACCESS_KEY_ID`
+ *  - secretAccessKey ← `R2_SECRET_ACCESS_KEY`
+ *  - bucketName      ← `R2_BUCKET_NAME`
+ */
+export function resolveR2CredentialsConfig(): {
+  accountId: string | null;
+  accessKeyId: string | null;
+  secretAccessKey: string | null;
+  bucketName: string | null;
+} {
+  const r2 = _config.storage?.r2 ?? {};
+  const pick = (injected: string | undefined, env: string | undefined) =>
+    typeof injected === 'string' && injected.length > 0
+      ? injected
+      : typeof env === 'string' && env.length > 0
+        ? env
+        : null;
+
+  return {
+    accountId: pick(r2.accountId, process.env.R2_ACCOUNT_ID),
+    accessKeyId: pick(r2.accessKeyId, process.env.R2_ACCESS_KEY_ID),
+    secretAccessKey: pick(r2.secretAccessKey, process.env.R2_SECRET_ACCESS_KEY),
+    bucketName: pick(r2.bucketName, process.env.R2_BUCKET_NAME),
+  };
+}
+
+/**
+ * R2 업로드 결과 public URL prefix 를 해석한다.
+ *
+ * 우선순위: inject(`storage.publicBaseUrl`) > legacy env(`R2_PUBLIC_URL`) > null.
+ * null 반환 시 `r2-storage` 는 `https://${bucketName}.r2.dev` fallback 을 쓴다.
+ *
+ * NB: `publicBaseUrl` 은 `resolveStorageConfig()` 의 inline-key 추출에도
+ * 동일하게 쓰인다 (origin matching). 업로드/추출이 같은 origin 으로
+ * 일관되도록 의도된 통합점이다.
+ */
+export function resolveR2PublicUrl(): string | null {
+  const st = _config.storage ?? {};
+  if (typeof st.publicBaseUrl === 'string' && st.publicBaseUrl.length > 0) {
+    return st.publicBaseUrl;
+  }
+  if (
+    typeof process.env.R2_PUBLIC_URL === 'string' &&
+    process.env.R2_PUBLIC_URL.length > 0
+  ) {
+    return process.env.R2_PUBLIC_URL;
+  }
+  return null;
+}
+
+/**
  * rate-limit client identity 를 해석한다.
  *
  * 안전 기본값: spoofable `x-forwarded-for` 의 첫 값을 무조건 신뢰하지 않는다.
@@ -345,7 +430,7 @@ export function resolveClientIdentity(headers: Headers): string {
   // 비-spoofable 단일 식별자(고정 버킷)를 사용한다. 127.0.0.1 같은
   // 매직 fallback 은 제거한다 — consumer 는 자신의 hop 수를 아는
   // `rateLimit.identityExtractor` 로 override 한다.
-  return 'pms:shared-anon';
+  return 'cms-kit:shared-anon';
 }
 
 /** rate-limit 활성화 여부 (inject > legacy RATE_LIMIT_ENABLED env > 기본 활성). */

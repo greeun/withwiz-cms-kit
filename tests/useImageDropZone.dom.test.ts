@@ -1,18 +1,18 @@
 import { vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-vi.mock('@withwiz/pms/utils/admin-fetch', () => ({
+vi.mock('@withwiz/cms-kit/utils/admin-fetch', () => ({
   adminFetch: vi.fn(),
 }));
 
-vi.mock('@withwiz/pms/utils/image-resize', () => ({
+vi.mock('@withwiz/cms-kit/utils/image-resize', () => ({
   resizeImageIfNeeded: vi.fn(),
   validateImageSize: vi.fn().mockReturnValue(null),
 }));
 
-import { useImageDropZone } from '@withwiz/pms/hooks/useImageDropZone';
-import { adminFetch } from '@withwiz/pms/utils/admin-fetch';
-import { resizeImageIfNeeded } from '@withwiz/pms/utils/image-resize';
+import { useImageDropZone } from '@withwiz/cms-kit/hooks/useImageDropZone';
+import { adminFetch } from '@withwiz/cms-kit/utils/admin-fetch';
+import { resizeImageIfNeeded } from '@withwiz/cms-kit/utils/image-resize';
 
 const mockAdminFetch = vi.mocked(adminFetch);
 const mockResize = vi.mocked(resizeImageIfNeeded);
@@ -48,7 +48,7 @@ describe('useImageDropZone 훅', () => {
     }));
   });
 
-  it('PMS-UIDZ-01: 초기 상태 - isDragOver=false, isUploading=false, error=null', () => {
+  it('CMS-UIDZ-01: 초기 상태 - isDragOver=false, isUploading=false, error=null', () => {
     const { result } = renderHook(() =>
       useImageDropZone({ onUpload: vi.fn() }),
     );
@@ -58,7 +58,7 @@ describe('useImageDropZone 훅', () => {
     expect(result.current.error).toBeNull();
   });
 
-  it('PMS-UIDZ-02: 유효한 이미지 파일 → onUpload 호출 (URL 포함)', async () => {
+  it('CMS-UIDZ-02: 유효한 이미지 파일 → onUpload 호출 (URL 포함)', async () => {
     const onUpload = vi.fn();
     const file = createMockFile('photo.jpg', 1024, 'image/jpeg');
 
@@ -84,7 +84,7 @@ describe('useImageDropZone 훅', () => {
     });
   });
 
-  it('PMS-UIDZ-03: 지원하지 않는 파일 형식 → error 설정', async () => {
+  it('CMS-UIDZ-03: 지원하지 않는 파일 형식 → error 설정', async () => {
     const file = createMockFile('doc.pdf', 1024, 'application/pdf');
 
     const { result } = renderHook(() =>
@@ -98,7 +98,7 @@ describe('useImageDropZone 훅', () => {
     expect(result.current.error).toContain('지원하지 않는 파일 형식');
   });
 
-  it('PMS-UIDZ-04: maxFiles 초과 시 잘라내기 후 처음 N개만 업로드', async () => {
+  it('CMS-UIDZ-04: maxFiles 초과 시 잘라내기 후 처음 N개만 업로드', async () => {
     const onUpload = vi.fn();
     const files = [
       createMockFile('a.jpg', 1024, 'image/jpeg'),
@@ -127,7 +127,7 @@ describe('useImageDropZone 훅', () => {
     expect(mockAdminFetch).toHaveBeenCalledTimes(2);
   });
 
-  it('PMS-UIDZ-05: disabled=true → handleFileInput 아무 동작 안 함', async () => {
+  it('CMS-UIDZ-05: disabled=true → handleFileInput 아무 동작 안 함', async () => {
     const onUpload = vi.fn();
     const file = createMockFile('photo.jpg', 1024, 'image/jpeg');
 
@@ -143,7 +143,7 @@ describe('useImageDropZone 훅', () => {
     expect(mockAdminFetch).not.toHaveBeenCalled();
   });
 
-  it('PMS-UIDZ-06: dragHandlers 존재 확인', () => {
+  it('CMS-UIDZ-06: dragHandlers 존재 확인', () => {
     const { result } = renderHook(() =>
       useImageDropZone({ onUpload: vi.fn() }),
     );
@@ -155,10 +155,10 @@ describe('useImageDropZone 훅', () => {
     expect(typeof result.current.dragHandlers.onDrop).toBe('function');
   });
 
-  it('PMS-UIDZ-07: configured upload endpoint used (§4.1 C2)', async () => {
-    const { setPmsConfig, resetPmsConfig } = await import('@withwiz/pms/config');
-    resetPmsConfig();
-    setPmsConfig({ routes: { uploadEndpoint: '/custom/files/upload' } });
+  it('CMS-UIDZ-07: configured upload endpoint used (§4.1 C2)', async () => {
+    const { setCmsConfig, resetCmsConfig } = await import('@withwiz/cms-kit/config');
+    resetCmsConfig();
+    setCmsConfig({ routes: { uploadEndpoint: '/custom/files/upload' } });
 
     const onUpload = vi.fn();
     const file = createMockFile('photo.jpg', 1024, 'image/jpeg');
@@ -179,6 +179,6 @@ describe('useImageDropZone 훅', () => {
     expect(url).toBe('/custom/files/upload');
     expect(String(url)).not.toContain('/api/admin/upload');
 
-    resetPmsConfig();
+    resetCmsConfig();
   });
 });

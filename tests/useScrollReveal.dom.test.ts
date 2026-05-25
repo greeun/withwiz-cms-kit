@@ -29,10 +29,10 @@ beforeEach(() => {
   vi.stubGlobal('IntersectionObserver', MockIntersectionObserver);
 });
 
-import { useScrollReveal, useScrollRevealAll } from '@withwiz/pms/hooks/useScrollReveal';
+import { useScrollReveal, useScrollRevealAll } from '@withwiz/cms-kit/hooks/useScrollReveal';
 
 describe('useScrollReveal 훅', () => {
-  it('PMS-SR-01: ref 요소에 scroll-reveal 클래스 추가', () => {
+  it('CMS-SR-01: ref 요소에 scroll-reveal 클래스 추가', () => {
     const div = document.createElement('div');
     const { result } = renderHook(() => useScrollReveal<HTMLDivElement>());
 
@@ -53,7 +53,7 @@ describe('useScrollReveal 훅', () => {
     unmount();
   });
 
-  it('PMS-SR-02: IntersectionObserver 교차 시 scroll-reveal--visible 클래스 추가', () => {
+  it('CMS-SR-02: IntersectionObserver 교차 시 scroll-reveal--visible 클래스 추가', () => {
     const div = document.createElement('div');
 
     renderHook(() => {
@@ -74,7 +74,7 @@ describe('useScrollReveal 훅', () => {
     expect(observerInstance.unobserve).toHaveBeenCalledWith(div);
   });
 
-  it('PMS-SR-03: 언마운트 시 observer disconnect 호출', () => {
+  it('CMS-SR-03: 언마운트 시 observer disconnect 호출', () => {
     const div = document.createElement('div');
 
     const { unmount } = renderHook(() => {
@@ -89,7 +89,7 @@ describe('useScrollReveal 훅', () => {
 });
 
 describe('useScrollRevealAll 훅', () => {
-  it('PMS-SR-04: 선택자로 요소 선택 후 observe 호출', () => {
+  it('CMS-SR-04: 선택자로 요소 선택 후 observe 호출', () => {
     const div1 = document.createElement('div');
     div1.classList.add('reveal-item');
     const div2 = document.createElement('div');
@@ -107,7 +107,7 @@ describe('useScrollRevealAll 훅', () => {
     document.body.removeChild(div2);
   });
 
-  it('PMS-SR-05: 언마운트 시 observer disconnect 호출', () => {
+  it('CMS-SR-05: 언마운트 시 observer disconnect 호출', () => {
     const div = document.createElement('div');
     div.classList.add('reveal-cleanup');
     document.body.appendChild(div);

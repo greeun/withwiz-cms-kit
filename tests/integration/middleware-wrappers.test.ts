@@ -22,14 +22,14 @@ describe('createInMemoryLimiter 동작 테스트', () => {
     };
   }
 
-  it('PMS-MW-01: 제한 내 요청 허용', async () => {
+  it('CMS-MW-01: 제한 내 요청 허용', async () => {
     const limiter = createInMemoryLimiter(3, 60_000);
     const r1 = await limiter.check('user-1');
     expect(r1.success).toBe(true);
     expect(r1.remaining).toBe(2);
   });
 
-  it('PMS-MW-02: 제한 초과 요청 차단', async () => {
+  it('CMS-MW-02: 제한 초과 요청 차단', async () => {
     const limiter = createInMemoryLimiter(2, 60_000);
     await limiter.check('user-1'); // 1
     await limiter.check('user-1'); // 2
@@ -38,7 +38,7 @@ describe('createInMemoryLimiter 동작 테스트', () => {
     expect(r3.remaining).toBe(0);
   });
 
-  it('PMS-MW-03: 윈도우 만료 후 리셋', async () => {
+  it('CMS-MW-03: 윈도우 만료 후 리셋', async () => {
     const limiter = createInMemoryLimiter(1, 100); // 100ms 윈도우
     await limiter.check('user-1'); // 1
     const r2 = await limiter.check('user-1'); // 2 (초과)
@@ -51,7 +51,7 @@ describe('createInMemoryLimiter 동작 테스트', () => {
     expect(r3.remaining).toBe(0);
   });
 
-  it('PMS-MW-04: 서로 다른 식별자는 독립 카운팅', async () => {
+  it('CMS-MW-04: 서로 다른 식별자는 독립 카운팅', async () => {
     const limiter = createInMemoryLimiter(1, 60_000);
     const r1 = await limiter.check('user-1');
     const r2 = await limiter.check('user-2');
@@ -64,7 +64,7 @@ describe('createInMemoryLimiter 동작 테스트', () => {
     expect(r4.success).toBe(false);
   });
 
-  it('PMS-MW-05: config.limit 값 확인', () => {
+  it('CMS-MW-05: config.limit 값 확인', () => {
     const limiter = createInMemoryLimiter(120, 60_000);
     expect(limiter.config.limit).toBe(120);
   });
@@ -75,7 +75,7 @@ describe('withPublicApi/withAdminApi 래퍼 타입 호환', () => {
     vi.resetModules();
   });
 
-  it('PMS-MW-06: wrappers 모듈이 withPublicApi, withAdminApi를 export', async () => {
+  it('CMS-MW-06: wrappers 모듈이 withPublicApi, withAdminApi를 export', async () => {
     // toolkit 의존성 mock
     vi.doMock('@withwiz/toolkit/next/middleware/wrappers', () => ({
       withPublicApi: vi.fn((handler: any) => handler),
@@ -88,7 +88,7 @@ describe('withPublicApi/withAdminApi 래퍼 타입 호환', () => {
       setRateLimitAdapter: vi.fn(),
     }));
 
-    const mod = await import('@withwiz/pms/infrastructure/middleware/wrappers');
+    const mod = await import('@withwiz/cms-kit/infrastructure/middleware/wrappers');
     expect(typeof mod.withPublicApi).toBe('function');
     expect(typeof mod.withAdminApi).toBe('function');
     expect(typeof mod.withAuthApi).toBe('function');

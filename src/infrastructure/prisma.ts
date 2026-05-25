@@ -9,7 +9,7 @@ export function setPrismaClient(client: any) {
 export function getPrisma(): any {
   if (!_prisma) {
     throw new Error(
-      '@withwiz/pms: Prisma client not initialized. Call setPrismaClient() first.'
+      '@withwiz/cms-kit: Prisma client not initialized. Call setPrismaClient() first.'
     );
   }
   return _prisma;

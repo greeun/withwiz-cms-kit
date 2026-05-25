@@ -1,12 +1,12 @@
 import { vi, beforeEach } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 
-vi.mock('@withwiz/pms/utils/admin-fetch', () => ({
+vi.mock('@withwiz/cms-kit/utils/admin-fetch', () => ({
   adminFetch: vi.fn(),
 }));
 
-import { useAdminList } from '@withwiz/pms/hooks/useAdminList';
-import { adminFetch } from '@withwiz/pms/utils/admin-fetch';
+import { useAdminList } from '@withwiz/cms-kit/hooks/useAdminList';
+import { adminFetch } from '@withwiz/cms-kit/utils/admin-fetch';
 
 const mockAdminFetch = vi.mocked(adminFetch);
 
@@ -32,7 +32,7 @@ describe('useAdminList 훅', () => {
     vi.clearAllMocks();
   });
 
-  it('PMS-UAL-01: 초기 상태 - initialItems 및 defaultSortKey 설정', () => {
+  it('CMS-UAL-01: 초기 상태 - initialItems 및 defaultSortKey 설정', () => {
     const { result } = renderHook(() =>
       useAdminList<TestItem, 'createdAt' | 'title'>({
         initialItems,
@@ -46,7 +46,7 @@ describe('useAdminList 훅', () => {
     expect(result.current.searchQuery).toBe('');
   });
 
-  it('PMS-UAL-02: fetchList가 올바른 쿼리 파라미터로 API 호출', async () => {
+  it('CMS-UAL-02: fetchList가 올바른 쿼리 파라미터로 API 호출', async () => {
     mockAdminFetch.mockResolvedValue(createMockResponse([{ id: '3', title: 'New' }]));
 
     const { result } = renderHook(() =>
@@ -65,7 +65,7 @@ describe('useAdminList 훅', () => {
     expect(result.current.items).toEqual([{ id: '3', title: 'New' }]);
   });
 
-  it('PMS-UAL-03: setSortKey 변경 시 재요청', async () => {
+  it('CMS-UAL-03: setSortKey 변경 시 재요청', async () => {
     mockAdminFetch.mockResolvedValue(createMockResponse([{ id: '4', title: 'Sorted' }]));
 
     const { result } = renderHook(() =>
@@ -84,7 +84,7 @@ describe('useAdminList 훅', () => {
     expect(mockAdminFetch).toHaveBeenCalledWith('/api/admin/items?limit=100&sortBy=title');
   });
 
-  it('PMS-UAL-04: setSearchQuery 상태 업데이트', () => {
+  it('CMS-UAL-04: setSearchQuery 상태 업데이트', () => {
     const { result } = renderHook(() =>
       useAdminList<TestItem, 'createdAt'>({
         initialItems,
@@ -100,7 +100,7 @@ describe('useAdminList 훅', () => {
     expect(result.current.searchQuery).toBe('발레');
   });
 
-  it('PMS-UAL-05: setFilterValue 상태 변경', () => {
+  it('CMS-UAL-05: setFilterValue 상태 변경', () => {
     const { result } = renderHook(() =>
       useAdminList<TestItem, 'createdAt'>({
         initialItems,
@@ -119,7 +119,7 @@ describe('useAdminList 훅', () => {
     expect(result.current.filterValue).toBe('draft');
   });
 
-  it('PMS-UAL-06: normalizeItem이 가져온 항목을 변환', async () => {
+  it('CMS-UAL-06: normalizeItem이 가져온 항목을 변환', async () => {
     mockAdminFetch.mockResolvedValue({
       ok: true,
       json: async () => ({
@@ -149,7 +149,7 @@ describe('useAdminList 훅', () => {
     expect(result.current.items).toEqual([{ id: '5', title: 'RAW' }]);
   });
 
-  it('PMS-UAL-07: fetch 실패 시 기존 items 유지 (크래시 없음)', async () => {
+  it('CMS-UAL-07: fetch 실패 시 기존 items 유지 (크래시 없음)', async () => {
     mockAdminFetch.mockRejectedValue(new Error('Network error'));
 
     const { result } = renderHook(() =>

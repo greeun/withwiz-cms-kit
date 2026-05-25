@@ -15,19 +15,19 @@ vi.mock('sharp', () => ({
   default: vi.fn(() => mockSharpInstance),
 }));
 
-import { generateImageVariants } from '@withwiz/pms/utils/image-variants';
+import { generateImageVariants } from '@withwiz/cms-kit/utils/image-variants';
 
 describe('generateImageVariants', () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it('PMS-IMV-01: GIF 입력 → 빈 배열 반환', async () => {
+  it('CMS-IMV-01: GIF 입력 → 빈 배열 반환', async () => {
     const result = await generateImageVariants(Buffer.from('gif'), 'news/test', 'image/gif');
     expect(result).toEqual([]);
   });
 
-  it('PMS-IMV-02: 정상 이미지 → lg/md/sm/thumb variant 생성', async () => {
+  it('CMS-IMV-02: 정상 이미지 → lg/md/sm/thumb variant 생성', async () => {
     mockMetadata.mockResolvedValue({ width: 3000 });
     const result = await generateImageVariants(Buffer.from('img'), 'news/test', 'image/jpeg');
     const sizes = result.map((v) => v.size);
@@ -37,7 +37,7 @@ describe('generateImageVariants', () => {
     expect(sizes).toContain('thumb');
   });
 
-  it('PMS-IMV-03: 원본보다 큰 사이즈 스킵 (thumb 제외)', async () => {
+  it('CMS-IMV-03: 원본보다 큰 사이즈 스킵 (thumb 제외)', async () => {
     // 원본 width=500 → lg(1920), md(960) 스킵, sm(480) 스킵 (480 < 500이므로 포함)
     // thumb(240)은 항상 생성
     mockMetadata.mockResolvedValue({ width: 500 });
@@ -48,7 +48,7 @@ describe('generateImageVariants', () => {
     expect(sizes).toContain('thumb');
   });
 
-  it('PMS-IMV-04: key 패턴 - {baseKey}-{size}.webp', async () => {
+  it('CMS-IMV-04: key 패턴 - {baseKey}-{size}.webp', async () => {
     mockMetadata.mockResolvedValue({ width: 3000 });
     const result = await generateImageVariants(Buffer.from('img'), 'news/photo', 'image/jpeg');
     for (const v of result) {
@@ -56,7 +56,7 @@ describe('generateImageVariants', () => {
     }
   });
 
-  it('PMS-IMV-05: contentType 항상 image/webp', async () => {
+  it('CMS-IMV-05: contentType 항상 image/webp', async () => {
     mockMetadata.mockResolvedValue({ width: 3000 });
     const result = await generateImageVariants(Buffer.from('img'), 'news/photo', 'image/png');
     for (const v of result) {

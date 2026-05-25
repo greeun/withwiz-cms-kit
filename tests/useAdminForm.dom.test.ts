@@ -1,6 +1,6 @@
 import { vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
-import { useAdminForm } from '@withwiz/pms/hooks/useAdminForm';
+import { useAdminForm } from '@withwiz/cms-kit/hooks/useAdminForm';
 
 interface TestForm {
   title: string;
@@ -10,13 +10,13 @@ interface TestForm {
 const emptyForm: TestForm = { title: '', content: '' };
 
 describe('useAdminForm hook', () => {
-  it('PMS-UF-01: 초기 상태 - tab=list, selectedId=null', () => {
+  it('CMS-UF-01: 초기 상태 - tab=list, selectedId=null', () => {
     const { result } = renderHook(() => useAdminForm(emptyForm));
     expect(result.current.tab).toBe('list');
     expect(result.current.selectedId).toBeNull();
   });
 
-  it('PMS-UF-02: addNew() → isNew=true, tab=edit, selectedId=null', () => {
+  it('CMS-UF-02: addNew() → isNew=true, tab=edit, selectedId=null', () => {
     const { result } = renderHook(() => useAdminForm(emptyForm));
     act(() => {
       result.current.addNew({ title: '', content: '' });
@@ -26,7 +26,7 @@ describe('useAdminForm hook', () => {
     expect(result.current.selectedId).toBeNull();
   });
 
-  it('PMS-UF-03: startEdit(id) → isNew=false, loading=true, selectedId=id', () => {
+  it('CMS-UF-03: startEdit(id) → isNew=false, loading=true, selectedId=id', () => {
     const { result } = renderHook(() => useAdminForm(emptyForm));
     act(() => {
       result.current.startEdit('test-id');
@@ -37,7 +37,7 @@ describe('useAdminForm hook', () => {
     expect(result.current.tab).toBe('edit');
   });
 
-  it('PMS-UF-04: backToList() → tab=list, selectedId=null', () => {
+  it('CMS-UF-04: backToList() → tab=list, selectedId=null', () => {
     const { result } = renderHook(() => useAdminForm(emptyForm));
     act(() => {
       result.current.startEdit('test-id');
@@ -49,7 +49,7 @@ describe('useAdminForm hook', () => {
     expect(result.current.selectedId).toBeNull();
   });
 
-  it('PMS-UF-05: updateField(title, new) → form.title 변경', () => {
+  it('CMS-UF-05: updateField(title, new) → form.title 변경', () => {
     const { result } = renderHook(() => useAdminForm(emptyForm));
     act(() => {
       result.current.updateField('title', 'New Title');
@@ -57,7 +57,7 @@ describe('useAdminForm hook', () => {
     expect(result.current.form.title).toBe('New Title');
   });
 
-  it('PMS-UF-06: updateField 동일 값 → 참조 동일 (리렌더 방지)', () => {
+  it('CMS-UF-06: updateField 동일 값 → 참조 동일 (리렌더 방지)', () => {
     const { result } = renderHook(() => useAdminForm(emptyForm));
     act(() => {
       result.current.updateField('title', 'Same');
@@ -69,7 +69,7 @@ describe('useAdminForm hook', () => {
     expect(result.current.form).toBe(formRef);
   });
 
-  it('PMS-UF-07: mobilePv 초기값 false, setMobilePv 동작', () => {
+  it('CMS-UF-07: mobilePv 초기값 false, setMobilePv 동작', () => {
     const { result } = renderHook(() => useAdminForm(emptyForm));
     expect(result.current.mobilePv).toBe(false);
     act(() => {

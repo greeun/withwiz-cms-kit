@@ -1,12 +1,16 @@
 import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
 import { logError, logInfo } from '@withwiz/toolkit/core/logger/logger';
-import { namespacedError } from '../config';
+import {
+  namespacedError,
+  resolveR2CredentialsConfig,
+  resolveR2PublicUrl,
+} from '../config';
 
 /**
  * storage object key 를 검증/정규화한다 (spec.md §4.6 / Sprint 1 S5).
  *
  * caller/user 파생 key 가 의도된 namespace 를 탈출(path traversal /
- * absolute / prefix-escape)하지 못하도록 한다. 위험 key 는 `@withwiz/pms:`
+ * absolute / prefix-escape)하지 못하도록 한다. 위험 key 는 `@withwiz/cms-kit:`
  * 네임스페이스 에러로 즉시 거부한다. 양성(benign) key 는 *바이트 동일하게*
  * 통과시킨다 (blanket reject 아님 — 정규화로 인한 mangling 없음).
  *
@@ -53,28 +57,64 @@ export function sanitizeStorageKey(key: string): string {
 }
 
 let client: S3Client | null = null;
+// 자격증명/엔드포인트가 바뀌면 캐시된 S3Client 를 무효화하기 위한 스냅샷.
+// 같은 프로세스 내에서 `setCmsConfig` 가 재호출되거나 R2_* env 가 바뀐 경우
+// 다음 호출에서 새 클라이언트가 만들어진다.
+let clientSnapshot: string | null = null;
+
+function requireR2Credentials(): {
+  accountId: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucketName: string;
+} {
+  const c = resolveR2CredentialsConfig();
+  const missing: string[] = [];
+  if (!c.accountId) missing.push('accountId');
+  if (!c.accessKeyId) missing.push('accessKeyId');
+  if (!c.secretAccessKey) missing.push('secretAccessKey');
+  if (!c.bucketName) missing.push('bucketName');
+  if (missing.length > 0) {
+    throw namespacedError(
+      `R2 credentials are missing: ${missing.join(', ')}. ` +
+        'Inject `setCmsConfig({ storage: { r2: { accountId, accessKeyId, secretAccessKey, bucketName } } })` ' +
+        'or set the legacy R2_ACCOUNT_ID / R2_ACCESS_KEY_ID / R2_SECRET_ACCESS_KEY / R2_BUCKET_NAME ' +
+        'environment variables. There is no safe default for storage credentials.',
+    );
+  }
+  return c as {
+    accountId: string;
+    accessKeyId: string;
+    secretAccessKey: string;
+    bucketName: string;
+  };
+}
 
 function getClient(): S3Client {
-  if (!client) {
+  const c = requireR2Credentials();
+  const snapshot = `${c.accountId}|${c.accessKeyId}`;
+  if (!client || clientSnapshot !== snapshot) {
     client = new S3Client({
       region: 'auto',
-      endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+      endpoint: `https://${c.accountId}.r2.cloudflarestorage.com`,
       credentials: {
-        accessKeyId: process.env.R2_ACCESS_KEY_ID!,
-        secretAccessKey: process.env.R2_SECRET_ACCESS_KEY!,
+        accessKeyId: c.accessKeyId,
+        secretAccessKey: c.secretAccessKey,
       },
     });
+    clientSnapshot = snapshot;
   }
   return client;
 }
 
 export function isR2Enabled(): boolean {
-  return !!(
-    process.env.R2_ACCOUNT_ID &&
-    process.env.R2_ACCESS_KEY_ID &&
-    process.env.R2_SECRET_ACCESS_KEY &&
-    process.env.R2_BUCKET_NAME
-  );
+  const c = resolveR2CredentialsConfig();
+  return !!(c.accountId && c.accessKeyId && c.secretAccessKey && c.bucketName);
+}
+
+function buildPublicUrl(key: string, bucket: string): string {
+  const base = resolveR2PublicUrl();
+  return base ? `${base}/${key}` : `https://${bucket}.r2.dev/${key}`;
 }
 
 export async function uploadToR2(
@@ -84,7 +124,7 @@ export async function uploadToR2(
 ): Promise<{ url: string; key: string; size: number }> {
   const safeKey = sanitizeStorageKey(key);
   const s3 = getClient();
-  const bucket = process.env.R2_BUCKET_NAME!;
+  const { bucketName: bucket } = requireR2Credentials();
 
   await s3.send(
     new PutObjectCommand({
@@ -95,11 +135,7 @@ export async function uploadToR2(
     }),
   );
 
-  const publicUrl = process.env.R2_PUBLIC_URL
-    ? `${process.env.R2_PUBLIC_URL}/${safeKey}`
-    : `https://${bucket}.r2.dev/${safeKey}`;
-
-  return { url: publicUrl, key: safeKey, size: buffer.length };
+  return { url: buildPublicUrl(safeKey, bucket), key: safeKey, size: buffer.length };
 }
 
 export interface ImageVariantUrls {
@@ -131,15 +167,13 @@ export async function uploadImageWithVariants(
 
   try {
     const imageVariants = await generateImageVariants(originalBuffer, baseKey, originalContentType);
+    const { bucketName: bucket } = requireR2Credentials();
 
     await Promise.all(
       imageVariants.map(async (v) => {
         try {
           await uploadToR2(v.key, v.buffer, v.contentType);
-          const publicUrl = process.env.R2_PUBLIC_URL
-            ? `${process.env.R2_PUBLIC_URL}/${v.key}`
-            : `https://${process.env.R2_BUCKET_NAME}.r2.dev/${v.key}`;
-          variants[v.size] = publicUrl;
+          variants[v.size] = buildPublicUrl(v.key, bucket);
           variantKeys.push(v.key);
         } catch (err) {
           logError(`[image-variant] Failed to upload variant ${v.key}`, {
@@ -172,9 +206,10 @@ export async function uploadImageWithVariants(
 export async function deleteFromR2(key: string): Promise<void> {
   const safeKey = sanitizeStorageKey(key);
   const s3 = getClient();
+  const { bucketName: bucket } = requireR2Credentials();
   await s3.send(
     new DeleteObjectCommand({
-      Bucket: process.env.R2_BUCKET_NAME!,
+      Bucket: bucket,
       Key: safeKey,
     }),
   );

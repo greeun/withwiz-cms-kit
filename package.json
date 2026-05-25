@@ -1,7 +1,7 @@
 {
-  "name": "@withwiz/pms",
+  "name": "@withwiz/cms-kit",
   "version": "0.1.0",
-  "description": "Performance Management System - CMS framework for web admin panels",
+  "description": "CMS Kit - reusable CMS framework for web admin panels",
   "license": "MIT",
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
@@ -53,6 +53,116 @@
       "types": "./dist/validators/index.d.ts",
       "import": "./dist/validators/index.mjs",
       "require": "./dist/validators/index.js"
+    },
+    "./components/AdminManagerBase": {
+      "types": "./dist/components/AdminManagerBase.d.ts",
+      "import": "./dist/components/AdminManagerBase.mjs",
+      "require": "./dist/components/AdminManagerBase.js"
+    },
+    "./components/AdminManagerConfig": {
+      "types": "./dist/components/AdminManagerConfig.d.ts",
+      "import": "./dist/components/AdminManagerConfig.mjs",
+      "require": "./dist/components/AdminManagerConfig.js"
+    },
+    "./components/AdminShell": {
+      "types": "./dist/components/AdminShell.d.ts",
+      "import": "./dist/components/AdminShell.mjs",
+      "require": "./dist/components/AdminShell.js"
+    },
+    "./components/JsonLd": {
+      "types": "./dist/components/JsonLd.d.ts",
+      "import": "./dist/components/JsonLd.mjs",
+      "require": "./dist/components/JsonLd.js"
+    },
+    "./components/ResizableImage": {
+      "types": "./dist/components/ResizableImage.d.ts",
+      "import": "./dist/components/ResizableImage.mjs",
+      "require": "./dist/components/ResizableImage.js"
+    },
+    "./components/ToggleSwitch": {
+      "types": "./dist/components/ToggleSwitch.d.ts",
+      "import": "./dist/components/ToggleSwitch.mjs",
+      "require": "./dist/components/ToggleSwitch.js"
+    },
+    "./hooks/useImageDropZone": {
+      "types": "./dist/hooks/useImageDropZone.d.ts",
+      "import": "./dist/hooks/useImageDropZone.mjs",
+      "require": "./dist/hooks/useImageDropZone.js"
+    },
+    "./hooks/useScrollReveal": {
+      "types": "./dist/hooks/useScrollReveal.d.ts",
+      "import": "./dist/hooks/useScrollReveal.mjs",
+      "require": "./dist/hooks/useScrollReveal.js"
+    },
+    "./infrastructure/middleware/wrappers": {
+      "types": "./dist/infrastructure/middleware/wrappers.d.ts",
+      "import": "./dist/infrastructure/middleware/wrappers.mjs",
+      "require": "./dist/infrastructure/middleware/wrappers.js"
+    },
+    "./infrastructure/prisma": {
+      "types": "./dist/infrastructure/prisma.d.ts",
+      "import": "./dist/infrastructure/prisma.mjs",
+      "require": "./dist/infrastructure/prisma.js"
+    },
+    "./types/common": {
+      "types": "./dist/types/common.d.ts",
+      "import": "./dist/types/common.mjs",
+      "require": "./dist/types/common.js"
+    },
+    "./utils/admin-fetch": {
+      "types": "./dist/utils/admin-fetch.d.ts",
+      "import": "./dist/utils/admin-fetch.mjs",
+      "require": "./dist/utils/admin-fetch.js"
+    },
+    "./utils/api-helpers": {
+      "types": "./dist/utils/api-helpers.d.ts",
+      "import": "./dist/utils/api-helpers.mjs",
+      "require": "./dist/utils/api-helpers.js"
+    },
+    "./utils/date": {
+      "types": "./dist/utils/date.d.ts",
+      "import": "./dist/utils/date.mjs",
+      "require": "./dist/utils/date.js"
+    },
+    "./utils/html-sanitizer": {
+      "types": "./dist/utils/html-sanitizer.d.ts",
+      "import": "./dist/utils/html-sanitizer.mjs",
+      "require": "./dist/utils/html-sanitizer.js"
+    },
+    "./utils/image-variant-utils": {
+      "types": "./dist/utils/image-variant-utils.d.ts",
+      "import": "./dist/utils/image-variant-utils.mjs",
+      "require": "./dist/utils/image-variant-utils.js"
+    },
+    "./utils/image-variants": {
+      "types": "./dist/utils/image-variants.d.ts",
+      "import": "./dist/utils/image-variants.mjs",
+      "require": "./dist/utils/image-variants.js"
+    },
+    "./utils/jwt": {
+      "types": "./dist/utils/jwt.d.ts",
+      "import": "./dist/utils/jwt.mjs",
+      "require": "./dist/utils/jwt.js"
+    },
+    "./utils/r2-helpers": {
+      "types": "./dist/utils/r2-helpers.d.ts",
+      "import": "./dist/utils/r2-helpers.mjs",
+      "require": "./dist/utils/r2-helpers.js"
+    },
+    "./utils/r2-storage": {
+      "types": "./dist/utils/r2-storage.d.ts",
+      "import": "./dist/utils/r2-storage.mjs",
+      "require": "./dist/utils/r2-storage.js"
+    },
+    "./utils/route-params": {
+      "types": "./dist/utils/route-params.d.ts",
+      "import": "./dist/utils/route-params.mjs",
+      "require": "./dist/utils/route-params.js"
+    },
+    "./validators/shared": {
+      "types": "./dist/validators/shared.d.ts",
+      "import": "./dist/validators/shared.mjs",
+      "require": "./dist/validators/shared.js"
     }
   },
   "files": [
