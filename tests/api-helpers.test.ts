@@ -13,29 +13,29 @@ vi.mock('next/server', () => {
   };
 });
 
-import { parseSortKey, validateIds, validateAndParse } from '@withwiz/pms/utils/api-helpers';
+import { parseSortKey, validateIds, validateAndParse } from '@withwiz/cms-kit/utils/api-helpers';
 
 describe('parseSortKey', () => {
   const validKeys = ['title', 'createdAt', 'views'] as const;
 
-  it('PMS-AH-01: 유효 키 → 그대로 반환', () => {
+  it('CMS-AH-01: 유효 키 → 그대로 반환', () => {
     const params = new URLSearchParams('sortBy=title');
     expect(parseSortKey(params, validKeys, 'createdAt')).toBe('title');
   });
 
-  it('PMS-AH-02: 무효 키 → defaultKey', () => {
+  it('CMS-AH-02: 무효 키 → defaultKey', () => {
     const params = new URLSearchParams('sortBy=hacked');
     expect(parseSortKey(params, validKeys, 'createdAt')).toBe('createdAt');
   });
 
-  it('PMS-AH-03: searchParams에 sort 없음 → defaultKey', () => {
+  it('CMS-AH-03: searchParams에 sort 없음 → defaultKey', () => {
     const params = new URLSearchParams();
     expect(parseSortKey(params, validKeys, 'createdAt')).toBe('createdAt');
   });
 });
 
 describe('validateIds', () => {
-  it('PMS-AH-04: 유효 배열 → { valid: true, ids }', () => {
+  it('CMS-AH-04: 유효 배열 → { valid: true, ids }', () => {
     const result = validateIds(['id1', 'id2']);
     expect(result.valid).toBe(true);
     if (result.valid) {
@@ -43,17 +43,17 @@ describe('validateIds', () => {
     }
   });
 
-  it('PMS-AH-05: 빈 배열 → { valid: false }', () => {
+  it('CMS-AH-05: 빈 배열 → { valid: false }', () => {
     const result = validateIds([]);
     expect(result.valid).toBe(false);
   });
 
-  it('PMS-AH-06: null → { valid: false }', () => {
+  it('CMS-AH-06: null → { valid: false }', () => {
     const result = validateIds(null);
     expect(result.valid).toBe(false);
   });
 
-  it('PMS-AH-07: 비배열 → { valid: false }', () => {
+  it('CMS-AH-07: 비배열 → { valid: false }', () => {
     const result = validateIds('not-array');
     expect(result.valid).toBe(false);
   });
@@ -62,7 +62,7 @@ describe('validateIds', () => {
 describe('validateAndParse', () => {
   const schema = z.object({ name: z.string().min(1) });
 
-  it('PMS-AH-08: Zod 통과 → { success: true, data }', () => {
+  it('CMS-AH-08: Zod 통과 → { success: true, data }', () => {
     const result = validateAndParse(schema, { name: 'John' });
     expect(result.success).toBe(true);
     if (result.success) {
@@ -70,7 +70,7 @@ describe('validateAndParse', () => {
     }
   });
 
-  it('PMS-AH-09: Zod 실패 → { success: false, response }', () => {
+  it('CMS-AH-09: Zod 실패 → { success: false, response }', () => {
     const result = validateAndParse(schema, { name: '' });
     expect(result.success).toBe(false);
     if (!result.success) {

@@ -1,17 +1,17 @@
 import { render } from '@testing-library/react';
-import { JsonLd } from '@withwiz/pms/components/JsonLd';
+import { JsonLd } from '@withwiz/cms-kit/components/JsonLd';
 
 const U2028 = String.fromCharCode(0x2028);
 const U2029 = String.fromCharCode(0x2029);
 
 describe('JsonLd 컴포넌트', () => {
-  it('PMS-JL-01: <script type="application/ld+json"> 태그 렌더링', () => {
+  it('CMS-JL-01: <script type="application/ld+json"> 태그 렌더링', () => {
     const { container } = render(<JsonLd data={{ '@type': 'Organization' }} />);
     const script = container.querySelector('script[type="application/ld+json"]');
     expect(script).not.toBeNull();
   });
 
-  it('PMS-JL-02: breakout-safe escaping + JSON.parse round-trip (revised §4.6)', () => {
+  it('CMS-JL-02: breakout-safe escaping + JSON.parse round-trip (revised §4.6)', () => {
     // Single fixture carrying ALL breakout payload kinds simultaneously:
     // a </script> substring, a <!-- substring, literal < / > / &, and the
     // raw U+2028 and U+2029 code points.
@@ -43,7 +43,7 @@ describe('JsonLd 컴포넌트', () => {
     expect(JSON.parse(text)).toEqual(data);
   });
 
-  it('PMS-JL-03: 중첩 객체 처리', () => {
+  it('CMS-JL-03: 중첩 객체 처리', () => {
     const data = {
       '@type': 'Event',
       location: {
@@ -58,7 +58,7 @@ describe('JsonLd 컴포넌트', () => {
     expect(parsed.location.address.addressLocality).toBe('서울');
   });
 
-  it('PMS-JL-04: 특수 문자 포함 값 처리', () => {
+  it('CMS-JL-04: 특수 문자 포함 값 처리', () => {
     const data = {
       name: 'Ballet "Swan Lake" <2024>',
       description: "공연 & 전시 '특별'",

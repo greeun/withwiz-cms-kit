@@ -3,7 +3,7 @@
 ## 디렉터리 구조
 
 ```
-packages/pms/src/
+src/
 ├── components/       # React 컴포넌트 (어드민 UI)
 │   ├── AdminShell.tsx           # 인증 + 사이드바 + 레이아웃
 │   ├── AdminManagerBase.tsx     # 목록/편집/프리뷰 스캐폴드
@@ -53,7 +53,7 @@ packages/pms/src/
                │ imports
                ▼
 ┌──────────────────────────────┐
-│  @withwiz/pms                │
+│  @withwiz/cms-kit                │
 │  - components / hooks        │
 │  - infrastructure / services │
 │  - utils / validators        │
@@ -67,7 +67,7 @@ packages/pms/src/
 └──────────────────────────────┘
 ```
 
-- `@withwiz/pms` 는 `src/` 를 참조하지 않습니다. 프로젝트 독립 유지가 핵심 원칙입니다.
+- `@withwiz/cms-kit` 는 `src/` 를 참조하지 않습니다. 프로젝트 독립 유지가 핵심 원칙입니다.
 - Prisma 클라이언트는 **의존성 주입 방식**으로 전달합니다 (`infrastructure/prisma.ts` 의 `setPrismaClient`). 패키지가 특정 Prisma 스키마에 묶이지 않도록 한 설계입니다.
 
 ## Prisma 의존성 주입
@@ -77,7 +77,7 @@ packages/pms/src/
 ```ts
 // src/lib/prisma.ts (프로젝트 측)
 import { PrismaClient } from '@prisma/client';
-import { setPrismaClient } from '@withwiz/pms/infrastructure';
+import { setPrismaClient } from '@withwiz/cms-kit/infrastructure';
 
 const prisma = new PrismaClient();
 setPrismaClient(prisma);
@@ -87,23 +87,23 @@ export { prisma };
 이후 패키지 내부에서는 `prisma` proxy 를 통해 접근합니다:
 
 ```ts
-import { prisma } from '@withwiz/pms/infrastructure';
+import { prisma } from '@withwiz/cms-kit/infrastructure';
 // prisma.news.findMany() → 주입된 실제 클라이언트로 위임
 ```
 
 주입 전에 호출하면 `Error('Prisma client not initialized')` 를 던집니다.
 
-## 설정/주입 경계 (`@withwiz/pms` config boundary)
+## 설정/주입 경계 (`@withwiz/cms-kit` config boundary)
 
 패키지는 소비자 고유 값(brand/nav, route/endpoint map, JWT 비밀, sanitizer
 신뢰 origin, R2 inline-key prefix, rate-limit identity)을 하드코딩하지
-않습니다. 모두 중앙 설정 경계(`src/config`, `@withwiz/pms/utils` 를 통해
+않습니다. 모두 중앙 설정 경계(`src/config`, `@withwiz/cms-kit/utils` 를 통해
 re-export)를 거칩니다. Prisma DI 패턴과 동형입니다.
 
 ```ts
-import { setPmsConfig } from '@withwiz/pms/utils';
+import { setCmsConfig } from '@withwiz/cms-kit/utils';
 
-setPmsConfig({
+setCmsConfig({
   brand: { brandLabel: 'ACME', navItems: [{ label: 'Home', href: '/x', glyph: 'H' }] },
   routes: { loginPath: '/signin', uploadEndpoint: '/files/upload' },
   jwt: { secret: process.env.MY_JWT_SECRET },
@@ -121,8 +121,8 @@ setPmsConfig({
 - **lazy/point-of-use**: 서브패스 import 만으로는 throw 하지 않습니다. 실패/
   경고는 자원 *사용* 시점에 발생합니다.
 - safe-default 존재(빈 nav, 기본 토큰 만료, 기본 신뢰 origin 등) →
-  `@withwiz/pms:` 네임스페이스 warn 1회(누락 설정명 명시) 후 기본값 사용.
-- safe-default 없음(**JWT 서명 비밀**) → `@withwiz/pms:` 네임스페이스
+  `@withwiz/cms-kit:` 네임스페이스 warn 1회(누락 설정명 명시) 후 기본값 사용.
+- safe-default 없음(**JWT 서명 비밀**) → `@withwiz/cms-kit:` 네임스페이스
   에러로 즉시 fail-fast.
 - 기존 환경변수만 설정하고 props 를 그대로 넘기던 소비자는 동작이 변하지
   않습니다(하위 호환).
@@ -150,7 +150,7 @@ setPmsConfig({
 `peerDependencies.zod` 는 `>=4` 입니다(기존 `>=3` 은 부정직 — `src/
 validators/shared.ts` 가 `z.url()` / `{ error }` 등 Zod 4 API 사용).
 Zod 3 소비자는 매니페스트에서 명시적으로 제외됩니다(조용한 런타임 깨짐 대신
-정직한 제외). dev/test Zod 는 `^4.4.3` 이며 `PMS-SV-01..12` 가 그대로
+정직한 제외). dev/test Zod 는 `^4.4.3` 이며 `CMS-SV-01..12` 가 그대로
 통과합니다.
 
 ## Next.js 타입 호환 레이어

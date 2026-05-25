@@ -1,10 +1,10 @@
 [English](./README.md) | [한국어](./README.ko.md)
 
-# @withwiz/pms
+# @withwiz/cms-kit
 
 **Performance Management System** — a CMS framework package for building web admin panels with Next.js and React.
 
-`@withwiz/pms` consolidates the common admin layer (infrastructure, base services, shared UI components, hooks, utilities, and validators) used across Withwiz projects. Domain-specific code (news, performances, artists, etc.) stays in your application's `src/`, while this package provides the reusable scaffolding underneath.
+`@withwiz/cms-kit` consolidates the common admin layer (infrastructure, base services, shared UI components, hooks, utilities, and validators) used across Withwiz projects. Domain-specific code (news, performances, artists, etc.) stays in your application's `src/`, while this package provides the reusable scaffolding underneath.
 
 ## Features
 
@@ -15,7 +15,7 @@
 - **Image pipeline** — automatic `lg` / `md` / `sm` / `thumb` WebP variant generation on R2 upload
 - **Shared hooks** — `useAdminList`, `useAdminForm`, `useImageDropZone`, `useScrollReveal`
 - **Security hardening** — DOMPurify-based sanitization, JSON-LD escaping, fail-fast JWT secret policy, safe rate-limit identity extraction
-- **Config boundary** — explicit `setPmsConfig` injection for brand, routes, JWT, sanitizer, storage, and rate-limit identity
+- **Config boundary** — explicit `setCmsConfig` injection for brand, routes, JWT, sanitizer, storage, and rate-limit identity
 
 ## Tech Stack
 
@@ -33,7 +33,7 @@ This package is typically consumed via the `file:` protocol from a monorepo root
 ```json
 {
   "dependencies": {
-    "@withwiz/pms": "file:packages/pms"
+    "@withwiz/cms-kit": "file:packages/cms-kit"
   }
 }
 ```
@@ -44,15 +44,15 @@ This package is typically consumed via the `file:` protocol from a monorepo root
 
 | Path | Description |
 |---|---|
-| `@withwiz/pms` | Full barrel export |
-| `@withwiz/pms/components` | `AdminShell`, `AdminManagerBase`, `ImageDropUpload`, `ToggleSwitch`, … |
-| `@withwiz/pms/hooks` | `useAdminList`, `useAdminForm`, `useImageDropZone`, `useScrollReveal` |
-| `@withwiz/pms/infrastructure` | Prisma proxy, middleware wrappers |
-| `@withwiz/pms/infrastructure/middleware` | `withPublicApi` / `withAuthApi` / `withAdminApi` |
-| `@withwiz/pms/services` | `base-service`, pagination |
-| `@withwiz/pms/types` | `PaginatedResult`, `SortOrder` |
-| `@withwiz/pms/utils` | `adminFetch`, `r2-storage`, `image-variants`, `jwt`, `date`, `html-sanitizer` |
-| `@withwiz/pms/validators` | `slugSchema`, `optionalUrlSchema` |
+| `@withwiz/cms-kit` | Full barrel export |
+| `@withwiz/cms-kit/components` | `AdminShell`, `AdminManagerBase`, `ImageDropUpload`, `ToggleSwitch`, … |
+| `@withwiz/cms-kit/hooks` | `useAdminList`, `useAdminForm`, `useImageDropZone`, `useScrollReveal` |
+| `@withwiz/cms-kit/infrastructure` | Prisma proxy, middleware wrappers |
+| `@withwiz/cms-kit/infrastructure/middleware` | `withPublicApi` / `withAuthApi` / `withAdminApi` |
+| `@withwiz/cms-kit/services` | `base-service`, pagination |
+| `@withwiz/cms-kit/types` | `PaginatedResult`, `SortOrder` |
+| `@withwiz/cms-kit/utils` | `adminFetch`, `r2-storage`, `image-variants`, `jwt`, `date`, `html-sanitizer` |
+| `@withwiz/cms-kit/validators` | `slugSchema`, `optionalUrlSchema` |
 
 ## Usage
 
@@ -63,7 +63,7 @@ The package does not know your Prisma schema; inject the client during applicati
 ```ts
 // src/lib/prisma.ts
 import { PrismaClient } from '@prisma/client';
-import { setPrismaClient } from '@withwiz/pms/infrastructure';
+import { setPrismaClient } from '@withwiz/cms-kit/infrastructure';
 
 const prisma = new PrismaClient();
 setPrismaClient(prisma);
@@ -77,9 +77,9 @@ Calling the proxy before injection throws `Error('Prisma client not initialized'
 Consumer-specific values (brand, routes, JWT secret, trusted sanitizer origins, storage public URL, rate-limit identity) are injected — never hard-coded.
 
 ```ts
-import { setPmsConfig } from '@withwiz/pms/utils';
+import { setCmsConfig } from '@withwiz/cms-kit/utils';
 
-setPmsConfig({
+setCmsConfig({
   brand: { brandLabel: 'ACME', navItems: [{ label: 'Home', href: '/x', glyph: 'H' }] },
   routes: { loginPath: '/signin', uploadEndpoint: '/files/upload' },
   jwt: { secret: process.env.MY_JWT_SECRET },
@@ -111,9 +111,9 @@ npm run test:watch  # vitest in watch mode
 
 ## Dependency Rules
 
-- `src/` (your app) → `@withwiz/pms/*` ✓
-- `@withwiz/pms` → `@withwiz/toolkit/*` ✓
-- `@withwiz/pms` → `src/` ✗ (keep the package independent)
+- `src/` (your app) → `@withwiz/cms-kit/*` ✓
+- `@withwiz/cms-kit` → `@withwiz/toolkit/*` ✓
+- `@withwiz/cms-kit` → `src/` ✗ (keep the package independent)
 
 See [docs/architecture.md](./docs/architecture.md) for the full layering diagram.
 

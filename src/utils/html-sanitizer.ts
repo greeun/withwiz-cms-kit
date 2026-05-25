@@ -224,7 +224,7 @@ export function createSanitizer(
  * 리치 HTML 콘텐츠에서 위험한 요소와 속성을 제거한다.
  * 기본 안전 설정으로 동작한다 (하위 호환, I1). 호스트별 신뢰 origin 확장은
  * `createSanitizer({ trustedIframeOrigins: [...] })` 또는 §5
- * `setPmsConfig({ sanitizer: { trustedIframeOrigins } })` 로 한다.
+ * `setCmsConfig({ sanitizer: { trustedIframeOrigins } })` 로 한다.
  */
 export function sanitizeHtmlContent(
   html: string | null | undefined,

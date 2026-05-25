@@ -14,7 +14,7 @@ import {
   deleteR2Keys,          // R2 키 일괄 삭제
   type PaginatedResult,
   type SortOrder,
-} from '@withwiz/pms/services';
+} from '@withwiz/cms-kit/services';
 ```
 
 ## 페이지네이션
@@ -37,7 +37,7 @@ buildPaginatedResult(items, total, page, limit); // PaginatedResult<T>
 기본 상수와 파라미터:
 
 ```ts
-import { DEFAULT_PAGE, DEFAULT_LIMIT, parseSortParam, type ListParams } from '@withwiz/pms/services';
+import { DEFAULT_PAGE, DEFAULT_LIMIT, parseSortParam, type ListParams } from '@withwiz/cms-kit/services';
 
 interface ListParams {
   page?: number;     // default 1
@@ -65,7 +65,7 @@ import {
   DEFAULT_LIMIT,
   type ListParams,
   type PaginatedResult,
-} from '@withwiz/pms/services';
+} from '@withwiz/cms-kit/services';
 
 export async function listNews(params: ListParams): Promise<PaginatedResult<NewsItem>> {
   const page = params.page ?? 1;
@@ -96,7 +96,7 @@ export async function createNews(input: NewsInput) {
 Tiptap HTML 에 포함된 이미지 URL 은 수정/삭제 시 고아 R2 객체를 남길 수 있습니다. `collectR2Keys` 는 *이전 HTML* 과 *새 HTML* 을 비교해 삭제할 키만 추립니다.
 
 ```ts
-import { prisma, collectR2Keys, deleteR2Keys, sanitizeHtmlContent } from '@withwiz/pms/services';
+import { prisma, collectR2Keys, deleteR2Keys, sanitizeHtmlContent } from '@withwiz/cms-kit/services';
 
 export async function updateNews(id: string, input: NewsInput) {
   const prev = await prisma.news.findUniqueOrThrow({ where: { id } });

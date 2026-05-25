@@ -17,19 +17,20 @@ export { resizeImageIfNeeded, validateImageSize } from './image-resize';
 // §5 config/injection boundary (re-exported through an existing subpath so
 // consumers can inject without a new tsup entrypoint — I2/I5 preserved).
 export {
-  setPmsConfig,
-  resetPmsConfig,
-  getPmsConfig,
+  setCmsConfig,
+  resetCmsConfig,
+  getCmsConfig,
   JWT_SECRET_MIN_LENGTH,
 } from '../config';
 export type {
-  PmsConfig,
-  PmsNavItem,
-  PmsBrandConfig,
-  PmsRouteConfig,
-  PmsJwtConfig,
-  PmsSanitizerConfig,
-  PmsStorageConfig,
-  PmsRateLimitConfig,
-  PmsIdentityExtractor,
+  CmsConfig,
+  CmsNavItem,
+  CmsBrandConfig,
+  CmsRouteConfig,
+  CmsJwtConfig,
+  CmsSanitizerConfig,
+  CmsStorageConfig,
+  CmsR2CredentialsConfig,
+  CmsRateLimitConfig,
+  CmsIdentityExtractor,
 } from '../config';

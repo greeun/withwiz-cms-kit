@@ -18,7 +18,7 @@ prisma: Proxy;  // 지연 평가 — getPrisma() 를 경유
 ```ts
 // src/lib/prisma.ts
 import { PrismaClient } from '@prisma/client';
-import { setPrismaClient } from '@withwiz/pms/infrastructure';
+import { setPrismaClient } from '@withwiz/cms-kit/infrastructure';
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 export const prisma = globalForPrisma.prisma ?? new PrismaClient();
@@ -27,9 +27,9 @@ if (process.env.NODE_ENV !== 'production') globalForPrisma.prisma = prisma;
 setPrismaClient(prisma);
 ```
 
-주입 전에 `@withwiz/pms` 의 `prisma` proxy 에 접근하면 즉시 에러를 던집니다:
+주입 전에 `@withwiz/cms-kit` 의 `prisma` proxy 에 접근하면 즉시 에러를 던집니다:
 ```
-Error: @withwiz/pms: Prisma client not initialized. Call setPrismaClient() first.
+Error: @withwiz/cms-kit: Prisma client not initialized. Call setPrismaClient() first.
 ```
 
 ## 미들웨어 래퍼
@@ -45,7 +45,7 @@ import {
   type IApiContext,
   type IUser,
   type TApiHandler,
-} from '@withwiz/pms/infrastructure/middleware';
+} from '@withwiz/cms-kit/infrastructure/middleware';
 ```
 
 | 래퍼 | 용도 | 특징 |
@@ -59,7 +59,7 @@ import {
 
 ```ts
 // src/app/api/admin/news/route.ts
-import { withAdminApi } from '@withwiz/pms/infrastructure/middleware';
+import { withAdminApi } from '@withwiz/cms-kit/infrastructure/middleware';
 import { NextResponse } from 'next/server';
 
 export const GET = withAdminApi(async (req, ctx) => {

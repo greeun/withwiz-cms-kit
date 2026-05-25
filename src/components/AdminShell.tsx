@@ -13,7 +13,7 @@ import { adminFetch } from "../utils/admin-fetch";
 import {
   resolveBrandConfig,
   resolveRouteConfig,
-  type PmsNavItem,
+  type CmsNavItem,
 } from "../config";
 
 interface AdminUser {
@@ -27,8 +27,8 @@ interface AdminUser {
  * AdminShell props (spec.md §4.1 / Sprint 1 C1/C2).
  *
  * brand/nav/route 는 더 이상 하드코딩되지 않는다. 우선순위:
- * props > §5 config boundary (`setPmsConfig`) > 안전 중립 기본값
- * (빈 nav + 1회 `@withwiz/pms:` warn, route 는 레거시 기본 경로).
+ * props > §5 config boundary (`setCmsConfig`) > 안전 중립 기본값
+ * (빈 nav + 1회 `@withwiz/cms-kit:` warn, route 는 레거시 기본 경로).
  */
 export interface AdminShellProps {
   children: React.ReactNode;
@@ -39,7 +39,7 @@ export interface AdminShellProps {
   /** admin 링크 href. */
   adminHref?: string;
   /** 순서 있는 nav 항목 목록 (label/href/glyph). */
-  navItems?: PmsNavItem[];
+  navItems?: CmsNavItem[];
   /** 로그인 페이지 경로 (라우트 가드/리다이렉트). */
   loginPath?: string;
   /** "현재 사용자" 엔드포인트. */
@@ -64,7 +64,7 @@ export default function AdminShell({
   routerRef.current = router;
 
   // props > §5 config boundary > safe default. The single
-  // @withwiz/pms-namespaced warn-once fires ONLY when neither props NOR §5
+  // @withwiz/cms-kit-namespaced warn-once fires ONLY when neither props NOR §5
   // config supply brand/nav (props are a valid injection — suppress warn).
   const brandSuppliedViaProps =
     brandLabel !== undefined || navItems !== undefined;
@@ -74,7 +74,7 @@ export default function AdminShell({
     brandLabel ?? brandCfg.brandLabel ?? null;
   const resolvedBrandHref = brandHref ?? brandCfg.brandHref;
   const resolvedAdminHref = adminHref ?? brandCfg.adminHref;
-  const resolvedNav: PmsNavItem[] = navItems ?? brandCfg.navItems;
+  const resolvedNav: CmsNavItem[] = navItems ?? brandCfg.navItems;
   const resolvedLoginPath = loginPath ?? routeCfg.loginPath;
   const resolvedMeEndpoint = meEndpoint ?? routeCfg.meEndpoint;
   const resolvedLogoutEndpoint = logoutEndpoint ?? routeCfg.logoutEndpoint;

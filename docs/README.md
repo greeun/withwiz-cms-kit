@@ -1,4 +1,4 @@
-# @withwiz/pms
+# @withwiz/cms-kit
 
 Performance Management System — 웹 어드민 패널을 위한 CMS 프레임워크 패키지.
 
@@ -20,7 +20,7 @@ Performance Management System — 웹 어드민 패널을 위한 CMS 프레임�
 ```json
 {
   "dependencies": {
-    "@withwiz/pms": "file:packages/pms"
+    "@withwiz/cms-kit": "file:packages/cms-kit"
   }
 }
 ```
@@ -31,21 +31,21 @@ Performance Management System — 웹 어드민 패널을 위한 CMS 프레임�
 
 | 경로 | 설명 |
 |---|---|
-| `@withwiz/pms` | 전체 barrel export |
-| `@withwiz/pms/components` | AdminShell, AdminManagerBase, ImageDropUpload, ToggleSwitch 등 |
-| `@withwiz/pms/hooks` | useAdminList, useAdminForm, useImageDropZone, useScrollReveal |
-| `@withwiz/pms/infrastructure` | prisma proxy, middleware wrappers |
-| `@withwiz/pms/infrastructure/middleware` | withPublicApi/withAuthApi/withAdminApi |
-| `@withwiz/pms/services` | base-service, pagination |
-| `@withwiz/pms/types` | PaginatedResult, SortOrder |
-| `@withwiz/pms/utils` | adminFetch, r2-storage, image-variants, jwt, date, html-sanitizer |
-| `@withwiz/pms/validators` | slugSchema, optionalUrlSchema |
+| `@withwiz/cms-kit` | 전체 barrel export |
+| `@withwiz/cms-kit/components` | AdminShell, AdminManagerBase, ImageDropUpload, ToggleSwitch 등 |
+| `@withwiz/cms-kit/hooks` | useAdminList, useAdminForm, useImageDropZone, useScrollReveal |
+| `@withwiz/cms-kit/infrastructure` | prisma proxy, middleware wrappers |
+| `@withwiz/cms-kit/infrastructure/middleware` | withPublicApi/withAuthApi/withAdminApi |
+| `@withwiz/cms-kit/services` | base-service, pagination |
+| `@withwiz/cms-kit/types` | PaginatedResult, SortOrder |
+| `@withwiz/cms-kit/utils` | adminFetch, r2-storage, image-variants, jwt, date, html-sanitizer |
+| `@withwiz/cms-kit/validators` | slugSchema, optionalUrlSchema |
 
 ## 의존성 규칙
 
-- `src/` → `@withwiz/pms/*` (허용)
-- `@withwiz/pms` → `@withwiz/toolkit/*` (허용, 하위 의존)
-- `@withwiz/pms` → `src/` (금지 — 독립 패키지 유지)
+- `src/` → `@withwiz/cms-kit/*` (허용)
+- `@withwiz/cms-kit` → `@withwiz/toolkit/*` (허용, 하위 의존)
+- `@withwiz/cms-kit` → `src/` (금지 — 독립 패키지 유지)
 
 자세한 내용은 [architecture.md](./architecture.md) 참고.
 

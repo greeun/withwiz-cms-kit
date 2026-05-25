@@ -1,8 +1,8 @@
 import { vi, beforeEach } from 'vitest';
 
 describe('adminFetch', () => {
-  let adminFetch: typeof import('@withwiz/pms/utils/admin-fetch').adminFetch;
-  let getAuthHeaders: typeof import('@withwiz/pms/utils/admin-fetch').getAuthHeaders;
+  let adminFetch: typeof import('@withwiz/cms-kit/utils/admin-fetch').adminFetch;
+  let getAuthHeaders: typeof import('@withwiz/cms-kit/utils/admin-fetch').getAuthHeaders;
 
   const originalLocation = window.location;
 
@@ -17,7 +17,7 @@ describe('adminFetch', () => {
       configurable: true,
     });
 
-    const mod = await import('@withwiz/pms/utils/admin-fetch');
+    const mod = await import('@withwiz/cms-kit/utils/admin-fetch');
     adminFetch = mod.adminFetch;
     getAuthHeaders = mod.getAuthHeaders;
   });
@@ -30,7 +30,7 @@ describe('adminFetch', () => {
     });
   });
 
-  it('PMS-AF-01: 정상 200 응답 → 그대로 반환', async () => {
+  it('CMS-AF-01: 정상 200 응답 → 그대로 반환', async () => {
     const mockResponse = new Response(JSON.stringify({ ok: true }), { status: 200 });
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(mockResponse);
 
@@ -38,7 +38,7 @@ describe('adminFetch', () => {
     expect(res.status).toBe(200);
   });
 
-  it('PMS-AF-02: 401 → refresh 성공 → 재시도', async () => {
+  it('CMS-AF-02: 401 → refresh 성공 → 재시도', async () => {
     const unauthorizedResponse = new Response('', { status: 401 });
     const refreshResponse = new Response(JSON.stringify({ success: true }), { status: 200 });
     const retryResponse = new Response(JSON.stringify({ data: 'ok' }), { status: 200 });
@@ -53,7 +53,7 @@ describe('adminFetch', () => {
     expect(res.status).toBe(200);
   });
 
-  it('PMS-AF-03: 401 → refresh 실패 → 로그인 리다이렉트', async () => {
+  it('CMS-AF-03: 401 → refresh 실패 → 로그인 리다이렉트', async () => {
     const unauthorizedResponse = new Response('', { status: 401 });
     const refreshFailResponse = new Response(JSON.stringify({ success: false }), { status: 401 });
 
@@ -66,7 +66,7 @@ describe('adminFetch', () => {
     expect(window.location.href).toBe('/admin/login');
   });
 
-  it('PMS-AF-04: 500 에러 → 그대로 반환', async () => {
+  it('CMS-AF-04: 500 에러 → 그대로 반환', async () => {
     const errorResponse = new Response('Server Error', { status: 500 });
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(errorResponse);
 
@@ -74,7 +74,7 @@ describe('adminFetch', () => {
     expect(res.status).toBe(500);
   });
 
-  it('PMS-AF-05: 동시 다중 401 → refresh 중복 방지 (mutex)', async () => {
+  it('CMS-AF-05: 동시 다중 401 → refresh 중복 방지 (mutex)', async () => {
     const unauthorizedResponse = () => new Response('', { status: 401 });
     const refreshResponse = new Response(JSON.stringify({ success: true }), { status: 200 });
     const retryResponse = () => new Response(JSON.stringify({ ok: true }), { status: 200 });
@@ -98,14 +98,14 @@ describe('adminFetch', () => {
     expect(refreshCallCount).toBeLessThanOrEqual(2);
   });
 
-  it('PMS-AF-06: getAuthHeaders deprecated → 빈 객체', () => {
+  it('CMS-AF-06: getAuthHeaders deprecated → 빈 객체', () => {
     expect(getAuthHeaders()).toEqual({});
   });
 
-  it('PMS-AF-07: configured refresh + login endpoints used (§4.1 C2)', async () => {
-    const { setPmsConfig, resetPmsConfig } = await import('@withwiz/pms/config');
-    resetPmsConfig();
-    setPmsConfig({
+  it('CMS-AF-07: configured refresh + login endpoints used (§4.1 C2)', async () => {
+    const { setCmsConfig, resetCmsConfig } = await import('@withwiz/cms-kit/config');
+    resetCmsConfig();
+    setCmsConfig({
       routes: {
         refreshEndpoint: '/custom/api/token/refresh',
         loginPath: '/custom/signin',
@@ -137,6 +137,6 @@ describe('adminFetch', () => {
     // login redirect target is the configured one.
     expect(window.location.href).toBe('/custom/signin');
 
-    resetPmsConfig();
+    resetCmsConfig();
   });
 });

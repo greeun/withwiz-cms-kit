@@ -3,7 +3,7 @@
 공통 Zod 스키마. 도메인 검증 스키마(`src/lib/validators/*`)에서 조합해 사용합니다.
 
 ```ts
-import { slugSchema, optionalUrlSchema } from '@withwiz/pms/validators';
+import { slugSchema, optionalUrlSchema } from '@withwiz/cms-kit/validators';
 ```
 
 ## `slugSchema`
@@ -40,7 +40,7 @@ optionalUrlSchema = safeUrl.optional().or(z.literal(''));
 ```ts
 // src/lib/validators/news.ts
 import { z } from 'zod';
-import { slugSchema, optionalUrlSchema } from '@withwiz/pms/validators';
+import { slugSchema, optionalUrlSchema } from '@withwiz/cms-kit/validators';
 
 export const newsInputSchema = z.object({
   title: z.string().min(1).max(200),

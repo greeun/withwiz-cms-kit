@@ -2,7 +2,7 @@ import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 
 /**
- * PMS-NCL — canonical "no consumer-specific literal" guard (spec.md §4.1 /
+ * CMS-NCL — canonical "no consumer-specific literal" guard (spec.md §4.1 /
  * AC-4.1.3 / Sprint 1 C5).
  *
  * This test IS the machine definition of the grep rule (regression-caught in
@@ -54,10 +54,10 @@ function isCommentLine(line: string): boolean {
   return t.startsWith('//') || t.startsWith('*') || t.startsWith('/*');
 }
 
-describe('no consumer-specific literals in src/** (PMS-NCL)', () => {
+describe('no consumer-specific literals in src/** (CMS-NCL)', () => {
   const files = listSourceFiles(SRC_ROOT);
 
-  it('PMS-NCL-01: scans src/** recursively (sanity: many files found)', () => {
+  it('CMS-NCL-01: scans src/** recursively (sanity: many files found)', () => {
     expect(files.length).toBeGreaterThan(20);
     expect(files.some((f) => f.endsWith('config/index.ts'))).toBe(true);
     expect(files.some((f) => f.endsWith('components/AdminShell.tsx'))).toBe(
@@ -65,7 +65,7 @@ describe('no consumer-specific literals in src/** (PMS-NCL)', () => {
     );
   });
 
-  it('PMS-NCL-02: no brand token (DTS BALLET / Dance Theater / Shahar) anywhere', () => {
+  it('CMS-NCL-02: no brand token (DTS BALLET / Dance Theater / Shahar) anywhere', () => {
     const offenders: string[] = [];
     for (const f of files) {
       const content = readFileSync(f, 'utf8');
@@ -78,7 +78,7 @@ describe('no consumer-specific literals in src/** (PMS-NCL)', () => {
     expect(offenders).toEqual([]);
   });
 
-  it('PMS-NCL-03: no hardcoded admin-route literal in CODE', () => {
+  it('CMS-NCL-03: no hardcoded admin-route literal in CODE', () => {
     const offenders: string[] = [];
     for (const f of files) {
       const lines = readFileSync(f, 'utf8').split('\n');

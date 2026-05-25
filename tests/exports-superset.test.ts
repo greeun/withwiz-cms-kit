@@ -3,7 +3,7 @@ import { resolve } from 'node:path';
 import ts from 'typescript';
 
 /**
- * PMS-EXP — I1 public-export superset (spec.md §3 I1 / CHK-I1).
+ * CMS-EXP — I1 public-export superset (spec.md §3 I1 / CHK-I1).
  *
  * For each of the 9 code barrels, EVERY name in baseline-exports.json must
  * still be exported (SUPERSET: new names allowed, none of the baseline names
@@ -66,17 +66,17 @@ function exportedNames(srcRel: string): Set<string> {
   return new Set(names);
 }
 
-describe('exports superset vs baseline (PMS-EXP)', () => {
+describe('exports superset vs baseline (CMS-EXP)', () => {
   for (const [subpath, srcRel] of Object.entries(SUBPATH_TO_SRC)) {
     const names = baseline[subpath] as string[];
-    it(`PMS-EXP: ${subpath} (${names.length} baseline names) all still exported`, () => {
+    it(`CMS-EXP: ${subpath} (${names.length} baseline names) all still exported`, () => {
       const exported = exportedNames(srcRel);
       const missing = names.filter((n) => !exported.has(n));
       expect(missing).toEqual([]);
     });
   }
 
-  it('PMS-EXP-TOUCHED: sprint-touched baseline names remain (compatible shape)', () => {
+  it('CMS-EXP-TOUCHED: sprint-touched baseline names remain (compatible shape)', () => {
     const utils = exportedNames(SUBPATH_TO_SRC['./utils']);
     const components = exportedNames(SUBPATH_TO_SRC['./components']);
     const validators = exportedNames(SUBPATH_TO_SRC['./validators']);
@@ -94,7 +94,7 @@ describe('exports superset vs baseline (PMS-EXP)', () => {
       'parseSortKey',
       // additive (superset — allowed):
       'createSanitizer',
-      'setPmsConfig',
+      'setCmsConfig',
     ]) {
       expect(utils.has(n)).toBe(true);
     }

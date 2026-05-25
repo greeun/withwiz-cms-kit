@@ -5,9 +5,9 @@ describe('Prisma 서비스 플로우 통합 테스트', () => {
     vi.resetModules();
   });
 
-  it('PMS-PSF-01: setPrismaClient 후 서비스 모듈에서 동일 인스턴스 접근', async () => {
+  it('CMS-PSF-01: setPrismaClient 후 서비스 모듈에서 동일 인스턴스 접근', async () => {
     const { setPrismaClient, getPrisma } = await import(
-      '@withwiz/pms/infrastructure/prisma'
+      '@withwiz/cms-kit/infrastructure/prisma'
     );
 
     const mockClient = {
@@ -21,9 +21,9 @@ describe('Prisma 서비스 플로우 통합 테스트', () => {
     expect(client.user).toBe(mockClient.user);
   });
 
-  it('PMS-PSF-02: Proxy가 설정된 클라이언트로 메서드 호출 위임', async () => {
+  it('CMS-PSF-02: Proxy가 설정된 클라이언트로 메서드 호출 위임', async () => {
     const { setPrismaClient, prisma } = await import(
-      '@withwiz/pms/infrastructure/prisma'
+      '@withwiz/cms-kit/infrastructure/prisma'
     );
 
     const mockFindMany = vi.fn().mockResolvedValue([{ id: '1', name: 'Test' }]);
@@ -36,9 +36,9 @@ describe('Prisma 서비스 플로우 통합 테스트', () => {
     expect(result).toEqual([{ id: '1', name: 'Test' }]);
   });
 
-  it('PMS-PSF-03: 여러 번 setPrismaClient → 마지막 클라이언트 사용', async () => {
+  it('CMS-PSF-03: 여러 번 setPrismaClient → 마지막 클라이언트 사용', async () => {
     const { setPrismaClient, getPrisma, prisma } = await import(
-      '@withwiz/pms/infrastructure/prisma'
+      '@withwiz/cms-kit/infrastructure/prisma'
     );
 
     const first = { version: 1, user: { findMany: vi.fn() } };
@@ -52,14 +52,14 @@ describe('Prisma 서비스 플로우 통합 테스트', () => {
     expect(prisma.version).toBe(2);
   });
 
-  it('PMS-PSF-04: 초기화 전 prisma proxy 접근 → Error throw', async () => {
-    const { prisma } = await import('@withwiz/pms/infrastructure/prisma');
+  it('CMS-PSF-04: 초기화 전 prisma proxy 접근 → Error throw', async () => {
+    const { prisma } = await import('@withwiz/cms-kit/infrastructure/prisma');
     expect(() => prisma.user).toThrow('Prisma client not initialized');
   });
 
-  it('PMS-PSF-05: Proxy를 통한 다양한 모델 접근', async () => {
+  it('CMS-PSF-05: Proxy를 통한 다양한 모델 접근', async () => {
     const { setPrismaClient, prisma } = await import(
-      '@withwiz/pms/infrastructure/prisma'
+      '@withwiz/cms-kit/infrastructure/prisma'
     );
 
     const mockClient = {

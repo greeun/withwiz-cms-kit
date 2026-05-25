@@ -5,7 +5,7 @@
 어드민 전체 셸. 인증 체크, 사이드바(접기/너비 드래그), 모바일 오버레이, 토스트(sonner) 를 제공합니다.
 
 ```tsx
-import { AdminShell } from '@withwiz/pms/components';
+import { AdminShell } from '@withwiz/cms-kit/components';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   return <AdminShell>{children}</AdminShell>;
@@ -57,7 +57,7 @@ interface AdminManagerConfig<TItem extends { id: string }, TForm extends object>
 ### 사용 예
 
 ```tsx
-import { AdminManagerBase, type AdminManagerConfig } from '@withwiz/pms/components';
+import { AdminManagerBase, type AdminManagerConfig } from '@withwiz/cms-kit/components';
 
 const newsConfig: AdminManagerConfig<NewsItem, NewsForm> = {
   meta: { appTitle: '댄스시어터샤하르', pageTitle: '뉴스 관리', ... },
@@ -111,7 +111,7 @@ Tiptap `Image` 확장. 드래그 핸들로 너비 조정이 가능하며, 변경
 SEO 구조화 데이터 주입. React 서버 컴포넌트에서 사용해 `<script type="application/ld+json">` 을 렌더합니다.
 
 ```tsx
-import { JsonLd } from '@withwiz/pms/components';
+import { JsonLd } from '@withwiz/cms-kit/components';
 
 <JsonLd data={{ '@context': 'https://schema.org', '@type': 'Organization', ... }} />
 ```
