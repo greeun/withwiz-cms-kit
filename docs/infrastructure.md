@@ -81,9 +81,9 @@ export const GET = withAdminApi(async (req, ctx) => {
 환경변수:
 - `RATE_LIMIT_ENABLED=false` — 비활성화 (테스트 환경에서 사용)
 
-클라이언트 IP 추출 순서:
-1. `x-forwarded-for` 의 첫 엔트리
-2. `x-real-ip`
-3. `127.0.0.1`
+클라이언트 식별자(identity) 추출은 §5 config boundary 의 `resolveClientIdentity` 를 통해 결정됩니다.
+
+- consumer 가 `setCmsConfig({ rateLimit: { identityExtractor } })` 로 자신의 proxy topology 를 반영한 추출기를 주입하면 그것을 사용합니다.
+- 미설정 시 안전 기본값(헤더만 바꾸어 회전할 수 없는 식별자)을 사용합니다. spoofable 한 `x-forwarded-for` 첫 값 무조건 신뢰 및 `127.0.0.1` 매직 fallback 은 제거되었습니다.
 
 > **주의:** In-memory 구현은 단일 프로세스 전용입니다. 멀티 인스턴스 배포 시 Redis 등 공유 백엔드 어댑터로 교체가 필요합니다.

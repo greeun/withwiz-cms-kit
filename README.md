@@ -28,7 +28,21 @@
 
 ## Installation
 
-This package is typically consumed via the `file:` protocol from a monorepo root.
+```bash
+npm install @withwiz/cms-kit
+# or
+pnpm add @withwiz/cms-kit
+# or
+yarn add @withwiz/cms-kit
+```
+
+`@withwiz/toolkit` is a peer dependency (`>=0.7.1`). Depending on your package manager and resolution strategy, you may need to install it explicitly:
+
+```bash
+npm install @withwiz/toolkit
+```
+
+For monorepo development the `file:` protocol is also supported:
 
 ```json
 {
@@ -37,8 +51,6 @@ This package is typically consumed via the `file:` protocol from a monorepo root
   }
 }
 ```
-
-`@withwiz/toolkit` is pulled in transitively — no separate install required.
 
 ## Entry Points
 

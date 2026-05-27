@@ -1,8 +1,31 @@
 {
   "name": "@withwiz/cms-kit",
   "version": "0.1.0",
-  "description": "CMS Kit - reusable CMS framework for web admin panels",
+  "description": "Reusable CMS framework for Next.js + React admin panels — AdminShell, AdminManagerBase, middleware wrappers, image pipeline, and shared admin utilities.",
   "license": "MIT",
+  "author": "withwiz <ss@withwiz.com>",
+  "homepage": "https://github.com/greeun/withwiz-cms-kit#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/greeun/withwiz-cms-kit.git"
+  },
+  "bugs": {
+    "url": "https://github.com/greeun/withwiz-cms-kit/issues"
+  },
+  "keywords": [
+    "cms",
+    "admin",
+    "admin-panel",
+    "nextjs",
+    "react",
+    "tiptap",
+    "prisma",
+    "r2",
+    "withwiz"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "main": "./dist/index.js",
   "module": "./dist/index.mjs",
   "types": "./dist/index.d.ts",
@@ -182,7 +205,7 @@
   "peerDependencies": {
     "@aws-sdk/client-s3": ">=3",
     "@tanstack/react-virtual": ">=3",
-    "@withwiz/toolkit": "file:../withwiz-toolkit",
+    "@withwiz/toolkit": ">=0.7.1",
     "clsx": ">=2",
     "isomorphic-dompurify": ">=2",
     "next": ">=15",
@@ -216,7 +239,7 @@
     "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
     "@vitejs/plugin-react": "^6.0.1",
-    "@withwiz/toolkit": "file:../withwiz-toolkit",
+    "@withwiz/toolkit": "^0.7.1",
     "clsx": "^2.1.1",
     "isomorphic-dompurify": "^2.30.0",
     "jsdom": "^29.1.1",
