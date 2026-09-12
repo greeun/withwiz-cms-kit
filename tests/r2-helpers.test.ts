@@ -79,12 +79,74 @@ describe('extractR2KeysFromHtml', () => {
   it('CMS-R2-12: inlineKeyPrefixes 규칙으로도 구동 가능', () => {
     resetCmsConfig();
     setCmsConfig({ storage: { inlineKeyPrefixes: ['performances/'] } });
+    // 상대 경로는 같은 origin 으로 간주되어 prefix 규칙만 적용된다.
     const html =
-      '<img src="https://cdn.r2.dev/performances/x.jpg">' +
-      '<img src="https://cdn.r2.dev/news/y.jpg">';
+      '<img src="/performances/x.jpg">' +
+      '<img src="/news/y.jpg">';
     const keys = extractR2KeysFromHtml(html);
     expect(keys).toContain('performances/x.jpg');
     expect(keys).not.toContain('news/y.jpg'); // not in configured prefix set
+  });
+
+  // ── 호스트 검증 (편집 권한자가 외부 <img> 로 타인의 객체를 지우지 못하게) ──
+
+  it('CMS-R2-13: 외부 호스트의 그럴듯한 경로는 수집하지 않는다 (publicBaseUrl 설정)', () => {
+    const html =
+      '<img src="https://attacker.example/news/victim.jpg">' +
+      '<img src="http://cdn.r2.dev/news/plain-http.jpg">' +
+      '<img src="//cdn.r2.dev/news/protocol-relative.jpg">';
+    expect(extractR2KeysFromHtml(html)).toEqual([]);
+  });
+
+  it('CMS-R2-14: base 접두 혼동(https://cdn.r2.dev.evil) 을 거부한다', () => {
+    const html =
+      '<img src="https://cdn.r2.dev.evil.example/news/a.jpg">' +
+      '<img src="https://cdn.r2.devX/news/b.jpg">';
+    expect(extractR2KeysFromHtml(html)).toEqual([]);
+  });
+
+  it('CMS-R2-15: inlineKeyPrefixes 만 설정해도 외부 호스트는 거부된다', () => {
+    resetCmsConfig();
+    setCmsConfig({ storage: { inlineKeyPrefixes: ['news/'] } });
+    const html = '<img src="https://attacker.example/news/victim.jpg">';
+    expect(extractR2KeysFromHtml(html)).toEqual([]);
+  });
+
+  it('CMS-R2-16: 미설정 기본값에서도 외부 호스트는 거부되고 상대 경로는 수집된다', () => {
+    resetCmsConfig();
+    const html =
+      '<img src="https://attacker.example/news/victim.jpg">' +
+      '<img src="/news/relative.jpg">';
+    expect(extractR2KeysFromHtml(html)).toEqual(['news/relative.jpg']);
+  });
+
+  it('CMS-R2-17: legacy R2_PUBLIC_URL 과 <bucket>.r2.dev origin 은 허용된다', () => {
+    resetCmsConfig();
+    const prevUrl = process.env.R2_PUBLIC_URL;
+    const prevBucket = process.env.R2_BUCKET_NAME;
+    process.env.R2_PUBLIC_URL = 'https://pub.example.com/';
+    process.env.R2_BUCKET_NAME = 'my-bucket';
+    try {
+      const html =
+        '<img src="https://pub.example.com/news/a.jpg">' +
+        '<img src="https://my-bucket.r2.dev/news/b.jpg">' +
+        '<img src="https://other-bucket.r2.dev/news/c.jpg">';
+      const keys = extractR2KeysFromHtml(html);
+      expect(keys).toEqual(['news/a.jpg', 'news/b.jpg']);
+    } finally {
+      if (prevUrl === undefined) delete process.env.R2_PUBLIC_URL;
+      else process.env.R2_PUBLIC_URL = prevUrl;
+      if (prevBucket === undefined) delete process.env.R2_BUCKET_NAME;
+      else process.env.R2_BUCKET_NAME = prevBucket;
+    }
+  });
+
+  it('CMS-R2-18: query/fragment 는 key 에서 제거되고 base 자체는 key 가 아니다', () => {
+    const html =
+      '<img src="https://cdn.r2.dev/news/a.jpg?v=2#x">' +
+      '<img src="https://cdn.r2.dev">' +
+      '<img src="https://cdn.r2.dev/">';
+    expect(extractR2KeysFromHtml(html)).toEqual(['news/a.jpg']);
   });
 });
 

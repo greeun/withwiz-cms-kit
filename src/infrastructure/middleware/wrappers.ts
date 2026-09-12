@@ -8,11 +8,23 @@ import {
 import { setRateLimitAdapter } from '@withwiz/toolkit/next/middleware/rate-limit';
 import { resolveClientIdentity, resolveRateLimitEnabled } from '../../config';
 
+/** 만료 항목 정리를 시도하기 전까지 허용하는 store 크기. */
+const PRUNE_THRESHOLD = 10_000;
+
 function createInMemoryLimiter(limit: number, windowMs: number) {
   const store = new Map<string, { count: number; resetAt: number }>();
+  // 식별자가 다양(실제 IP 기반)해지면 만료된 항목이 무한히 쌓이므로,
+  // 일정 크기를 넘길 때 만료 항목을 정리한다 (메모리 고갈 방지).
+  const prune = (now: number) => {
+    if (store.size < PRUNE_THRESHOLD) return;
+    for (const [k, v] of store) {
+      if (now > v.resetAt) store.delete(k);
+    }
+  };
   return {
     check: async (identifier: string) => {
       const now = Date.now();
+      prune(now);
       const entry = store.get(identifier);
       if (!entry || now > entry.resetAt) {
         store.set(identifier, { count: 1, resetAt: now + windowMs });
@@ -34,7 +46,9 @@ function createInMemoryLimiter(limit: number, windowMs: number) {
  * `127.0.0.1` 매직 fallback 도 쓰지 않는다. 식별자 추출은 §5 config
  * boundary 의 `resolveClientIdentity` 로 위임되며, consumer 가 자신의 proxy
  * topology / trusted hop 수를 아는 `rateLimit.identityExtractor` 를 주입하면
- * 그것이 사용된다. 미설정 시 안전 기본값(헤더만 바꿔 회전 불가)을 쓴다.
+ * 그것이 사용된다. 미설정 시 안전 기본값(헤더만 바꿔 회전 불가)을 쓰되,
+ * 그 값은 전역 단일 버킷이므로 `resolveRateLimitEnabled` 가 rate-limit 을
+ * 비활성화하고 1회 경고한다 (한 클라이언트가 전체를 잠그는 self-DoS 방지).
  *
  * NOTE: import-time `setRateLimitAdapter(...)` 무조건 호출 자체의 제거는
  * §4.3 / Sprint 2 범위다. Sprint 1 은 §4.6 보안 결함(identity 추출)만 고치고

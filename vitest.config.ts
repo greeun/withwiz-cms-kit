@@ -43,6 +43,11 @@ const cmsKitAlias = [
   },
 ];
 
+// @withwiz/toolkit 의 ESM 청크는 `next/server` 를 확장자 없이 import 한다.
+// next 는 exports 맵이 없어 Node ESM 로더가 `next/server.js` 로 해석하지
+// 못하므로, toolkit 을 Vite 파이프라인에서 인라인 변환해 해석시킨다.
+const inlineToolkit = { deps: { inline: [/@withwiz\/toolkit/] } };
+
 const setupFiles = [
   './tests-harness/env-setup.ts',
   './tests/setup.ts',
@@ -63,6 +68,7 @@ export default defineConfig({
           name: 'cms-kit',
           globals: true,
           environment: 'node',
+          server: inlineToolkit,
           setupFiles,
           include: ['tests/**/*.test.{ts,tsx}'],
           exclude: ['**/*.dom.test.*', '**/node_modules/**'],
@@ -75,6 +81,7 @@ export default defineConfig({
           name: 'cms-kit-dom',
           globals: true,
           environment: 'jsdom',
+          server: inlineToolkit,
           setupFiles,
           include: ['tests/**/*.dom.test.{ts,tsx}'],
           exclude: ['**/node_modules/**'],
