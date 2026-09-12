@@ -163,30 +163,54 @@ function dompurifySanitize(
     options.ALLOWED_ATTR = Array.from(flat);
   }
 
-  const purifyWithHook = purify as DOMPurifyLike & {
-    addHook?: (hook: string, cb: (node: Element) => void) => void;
-    removeHook?: (hook: string) => void;
-  };
-  if (typeof purifyWithHook.addHook === 'function') {
-    purifyWithHook.addHook('uponSanitizeElement', (node) => {
-      if (node.nodeName && node.nodeName.toLowerCase() === 'iframe') {
-        const src = (node as Element).getAttribute?.('src') ?? '';
-        const trusted = trustedOrigins.some((origin) =>
-          src.startsWith(origin),
-        );
-        if (!trusted) {
-          (node as Element).remove?.();
-        }
-      }
-    });
-  }
+  ensureIframeHook(purify);
+  // sanitize 는 동기이므로 호출 동안만 활성 origin 을 노출한다.
+  activeTrustedOrigins = trustedOrigins;
   try {
     return purify.sanitize(html, options);
   } finally {
-    if (typeof purifyWithHook.removeHook === 'function') {
-      purifyWithHook.removeHook('uponSanitizeElement');
-    }
+    activeTrustedOrigins = null;
   }
+}
+
+type DOMPurifyWithHooks = DOMPurifyLike & {
+  addHook?: (hook: string, cb: (node: Element) => void) => void;
+};
+
+/**
+ * 현재 sanitize 호출이 신뢰하는 iframe origin. 호출 밖(null)에서는 훅이
+ * 아무것도 하지 않는다 — consumer 가 같은 DOMPurify 인스턴스를 직접 쓸 때
+ * 우리 정책이 끼어들지 않도록.
+ */
+let activeTrustedOrigins: readonly string[] | null = null;
+
+/** 인스턴스별로 훅을 1회만 등록했는지 추적. */
+const hookedInstances = new WeakSet<object>();
+
+/**
+ * iframe origin 검증 훅을 인스턴스당 한 번만 등록한다.
+ *
+ * 이전 구현은 호출마다 addHook/removeHook 을 반복했는데, DOMPurify 의
+ * `removeHook('uponSanitizeElement')` 는 *같은 종류의 훅을 모두* 제거하므로
+ * consumer 가 공유 인스턴스에 등록한 훅까지 지워 버렸다. 이제 우리 훅은
+ * 한 번 등록된 뒤 그대로 남고, consumer 훅도 건드리지 않는다.
+ */
+function ensureIframeHook(purify: DOMPurifyLike): void {
+  const p = purify as DOMPurifyWithHooks;
+  if (typeof p.addHook !== 'function') return;
+  if (hookedInstances.has(p)) return;
+  hookedInstances.add(p);
+  p.addHook('uponSanitizeElement', (node) => {
+    const origins = activeTrustedOrigins;
+    if (!origins) return;
+    if (node.nodeName && node.nodeName.toLowerCase() === 'iframe') {
+      const src = (node as Element).getAttribute?.('src') ?? '';
+      const trusted = origins.some((origin) => src.startsWith(origin));
+      if (!trusted) {
+        (node as Element).remove?.();
+      }
+    }
+  });
 }
 
 // ── Public API ──

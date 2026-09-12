@@ -121,3 +121,32 @@ describe('sanitizeHtmlContent', () => {
     expect(result).not.toContain('<applet');
   });
 });
+
+describe('sanitizer hook isolation (CMS-H-HOOK)', () => {
+  it('CMS-H-HOOK-01: consumer 가 등록한 DOMPurify 훅이 sanitize 이후에도 살아 있다', async () => {
+    const mod = await import('isomorphic-dompurify');
+    const purify = (mod as any).default ?? mod;
+    let consumerCalls = 0;
+    const consumerHook = () => {
+      consumerCalls++;
+    };
+    purify.addHook('uponSanitizeElement', consumerHook);
+    try {
+      sanitizeHtmlContent('<p>a</p>');
+      const afterFirst = consumerCalls;
+      expect(afterFirst).toBeGreaterThan(0);
+      // 이전 구현은 여기서 removeHook 으로 consumer 훅까지 지웠다.
+      sanitizeHtmlContent('<p>b</p>');
+      expect(consumerCalls).toBeGreaterThan(afterFirst);
+    } finally {
+      purify.removeHook('uponSanitizeElement', consumerHook);
+    }
+  });
+
+  it('CMS-H-HOOK-02: 반복 호출에도 iframe origin 정책이 유지된다', () => {
+    for (let i = 0; i < 3; i++) {
+      expect(sanitizeHtmlContent('<iframe src="https://evil.com/x"></iframe>')).not.toContain('<iframe');
+      expect(sanitizeHtmlContent('<iframe src="https://www.youtube.com/embed/a"></iframe>')).toContain('<iframe');
+    }
+  });
+});

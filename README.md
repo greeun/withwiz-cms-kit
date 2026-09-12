@@ -89,7 +89,7 @@ Calling the proxy before injection throws `Error('Prisma client not initialized'
 Consumer-specific values (brand, routes, JWT secret, trusted sanitizer origins, storage public URL, rate-limit identity) are injected — never hard-coded.
 
 ```ts
-import { setCmsConfig } from '@withwiz/cms-kit/utils';
+import { setCmsConfig, createForwardedIdentityExtractor } from '@withwiz/cms-kit/utils';
 
 setCmsConfig({
   brand: { brandLabel: 'ACME', navItems: [{ label: 'Home', href: '/x', glyph: 'H' }] },
@@ -97,7 +97,9 @@ setCmsConfig({
   jwt: { secret: process.env.MY_JWT_SECRET },
   sanitizer: { trustedIframeOrigins: ['https://www.loom.com/'] },
   storage: { publicBaseUrl: 'https://cdn.example.com' },
-  rateLimit: { identityExtractor: (h) => myTrustedClientIp(h) },
+  // Required to enable rate limiting: without an identity extractor every
+  // anonymous request would share one bucket (self-DoS), so it stays disabled.
+  rateLimit: { identityExtractor: createForwardedIdentityExtractor({ trustedHops: 1 }) },
 });
 ```
 
