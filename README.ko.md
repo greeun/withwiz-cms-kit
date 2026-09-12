@@ -89,7 +89,7 @@ export { prisma };
 소비자 고유 값(brand, route, JWT 시크릿, 신뢰 새니타이저 origin, 스토리지 공개 URL, rate-limit identity)은 하드코딩하지 않고 모두 주입합니다.
 
 ```ts
-import { setCmsConfig } from '@withwiz/cms-kit/utils';
+import { setCmsConfig, createForwardedIdentityExtractor } from '@withwiz/cms-kit/utils';
 
 setCmsConfig({
   brand: { brandLabel: 'ACME', navItems: [{ label: 'Home', href: '/x', glyph: 'H' }] },
@@ -97,7 +97,9 @@ setCmsConfig({
   jwt: { secret: process.env.MY_JWT_SECRET },
   sanitizer: { trustedIframeOrigins: ['https://www.loom.com/'] },
   storage: { publicBaseUrl: 'https://cdn.example.com' },
-  rateLimit: { identityExtractor: (h) => myTrustedClientIp(h) },
+  // rate limit 활성화에 필수: 추출기가 없으면 모든 비로그인 요청이 하나의
+  // 버킷을 공유해 self-DoS 가 되므로 제한이 비활성 상태로 유지됩니다.
+  rateLimit: { identityExtractor: createForwardedIdentityExtractor({ trustedHops: 1 }) },
 });
 ```
 

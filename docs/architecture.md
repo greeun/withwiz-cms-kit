@@ -139,11 +139,19 @@ setCmsConfig({
   선택). `process.env.JWT_SECRET!` non-null 단정 제거.
 - **rate-limit identity**: spoofable `x-forwarded-for` 첫 값 무조건 신뢰 및
   `127.0.0.1` 매직 fallback 제거. 안전 기본(헤더만 바꿔 회전 불가) +
-  `rateLimit.identityExtractor` 주입 override. (import-time
-  `setRateLimitAdapter` 무조건 호출 제거는 후속 단계 — 멀티 인스턴스 캐비엇은
-  아래 Next.js 레이어 절 참조.)
+  `rateLimit.identityExtractor` 주입 override. 미주입 시 기본 식별자는 전역
+  단일 버킷이라 self-DoS 가 되므로 rate-limit 을 비활성화하고 1회 경고한다.
+  `createForwardedIdentityExtractor({ trustedHops })` 로 주입하면 활성화.
+  (import-time `setRateLimitAdapter` 무조건 호출 제거는 후속 단계 — 멀티
+  인스턴스 캐비엇은 아래 Next.js 레이어 절 참조.)
 - **storage key**: traversal(`../`)/absolute(`/x`)/backslash/control/
   prefix-escape key 거부. 양성 key 는 바이트 동일 통과.
+- **inline image host 검증**: `extractR2KeysFromHtml` 은 절대 URL 을 우리
+  스토리지 origin(`storage.publicBaseUrl` / `R2_PUBLIC_URL` /
+  `https://<bucket>.r2.dev`)일 때만 key 로 인정한다. 외부 호스트의 그럴듯한
+  경로(`https://attacker/news/x.jpg`)로 타인의 객체를 삭제시키는 경로를 차단.
+- **sanitizer hook 격리**: iframe origin 훅은 DOMPurify 인스턴스당 1회만
+  등록하고 `removeHook` 을 호출하지 않는다 (consumer 훅 보존).
 
 ## Zod 지원 범위
 

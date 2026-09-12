@@ -9,5 +9,5 @@ logs/
 coverage/
 .turbo/
 .claude/
-.axt-profile.json
+.axt-profile.json*
 tests-harness/

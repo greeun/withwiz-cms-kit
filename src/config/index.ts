@@ -412,6 +412,19 @@ export function resolveR2PublicUrl(): string | null {
 }
 
 /**
+ * 미주입 시 사용되는 고정 identity. 모든 비로그인 요청이 이 하나의 버킷을
+ * 공유하므로, 이 값이 실제 rate-limit 키로 쓰이면 한 클라이언트가 전체
+ * 사용자를 잠글 수 있다(self-DoS). 그래서 `resolveRateLimitEnabled` 는
+ * 추출기가 주입되지 않은 동안 rate-limit 자체를 비활성화한다(아래 참조).
+ */
+export const SHARED_ANON_IDENTITY = 'cms-kit:shared-anon';
+
+/** identityExtractor 주입 여부. */
+export function hasIdentityExtractor(): boolean {
+  return typeof _config.rateLimit?.identityExtractor === 'function';
+}
+
+/**
  * rate-limit client identity 를 해석한다.
  *
  * 안전 기본값: spoofable `x-forwarded-for` 의 첫 값을 무조건 신뢰하지 않는다.
@@ -419,23 +432,108 @@ export function resolveR2PublicUrl(): string | null {
  * `x-forwarded-for` 만 바꿔서 identity 를 회전시킬 수 없도록 안정적이고
  * 헤더-비의존적인 식별자를 반환한다. consumer 주입 추출기가 있으면 그것을
  * 그대로 사용한다.
+ *
+ * 주의: 미주입 상태의 고정 식별자는 전역 단일 버킷이므로 실제 제한 키로는
+ * 쓰이지 않는다 — `resolveRateLimitEnabled()` 가 false 를 돌려 rate-limit 을
+ * 비활성화하고 1회 경고한다. 보호를 켜려면 `createForwardedIdentityExtractor`
+ * 등으로 자신의 proxy topology 에 맞는 추출기를 주입해야 한다.
  */
 export function resolveClientIdentity(headers: Headers): string {
   const rl = _config.rateLimit ?? {};
   if (typeof rl.identityExtractor === 'function') {
     return rl.identityExtractor(headers);
   }
-  // 안전 기본: XFF 를 무조건 신뢰하지 않는다. proxy topology 를 모르므로
-  // 어떤 단일 client 가 헤더만 바꿔 무한 회전하는 것을 막기 위해, 신뢰 가능한
-  // 비-spoofable 단일 식별자(고정 버킷)를 사용한다. 127.0.0.1 같은
-  // 매직 fallback 은 제거한다 — consumer 는 자신의 hop 수를 아는
-  // `rateLimit.identityExtractor` 로 override 한다.
-  return 'cms-kit:shared-anon';
+  return SHARED_ANON_IDENTITY;
 }
 
-/** rate-limit 활성화 여부 (inject > legacy RATE_LIMIT_ENABLED env > 기본 활성). */
+/**
+ * rate-limit 활성화 여부.
+ *
+ * 우선순위: inject(`rateLimit.enabled`) > legacy `RATE_LIMIT_ENABLED` env >
+ * 기본 활성. 단, identityExtractor 가 주입되지 않았으면 비로그인 요청이 모두
+ * 하나의 버킷을 공유해 서비스 거부가 되므로 **비활성화** 하고 1회 경고한다.
+ * consumer 가 `enabled: true` 를 명시하면 공유 버킷을 감수하는 것으로 보고
+ * 경고만 남긴 채 활성화한다.
+ */
 export function resolveRateLimitEnabled(): boolean {
   const rl = _config.rateLimit ?? {};
+  if (rl.enabled === false) return false;
+
+  if (!hasIdentityExtractor()) {
+    if (rl.enabled === true) {
+      warnOnceMissingConfig(
+        'rateLimit.identityExtractor.forced',
+        'rateLimit.enabled is true but no rateLimit.identityExtractor is injected. ' +
+          'Every anonymous request shares ONE rate-limit bucket, so a single client ' +
+          'can lock out everyone. Inject `setCmsConfig({ rateLimit: { identityExtractor } })` ' +
+          '(e.g. createForwardedIdentityExtractor({ trustedHops: 1 })).',
+      );
+      return process.env.RATE_LIMIT_ENABLED !== 'false';
+    }
+    warnOnceMissingConfig(
+      'rateLimit.identityExtractor',
+      'rateLimit.identityExtractor is not configured. Rate limiting is DISABLED ' +
+        'to avoid a shared anonymous bucket (self-DoS). Inject ' +
+        '`setCmsConfig({ rateLimit: { identityExtractor } })` — e.g. ' +
+        '`createForwardedIdentityExtractor({ trustedHops: 1 })` — to enable it.',
+    );
+    return false;
+  }
+
   if (typeof rl.enabled === 'boolean') return rl.enabled;
   return process.env.RATE_LIMIT_ENABLED !== 'false';
+}
+
+/** `createForwardedIdentityExtractor` 옵션 */
+export interface ForwardedIdentityOptions {
+  /**
+   * 요청이 거치는 신뢰 프록시(hop) 수. `x-forwarded-for` 는 각 프록시가 값을
+   * 뒤에 덧붙이므로, 마지막 N 번째 값이 첫 신뢰 프록시가 본 클라이언트 주소다.
+   * 기본 1 (단일 리버스 프록시/로드밸런서).
+   */
+  trustedHops?: number;
+  /**
+   * `x-forwarded-for` 가 없을 때 순서대로 확인할 헤더 이름 목록.
+   * 기본 `['x-real-ip']`. 프록시가 덮어쓰는 헤더만 지정해야 한다.
+   */
+  fallbackHeaders?: readonly string[];
+}
+
+/**
+ * 신뢰 프록시 수를 아는 consumer 용 identity 추출기 팩토리.
+ *
+ * `x-forwarded-for` 의 값들 중 클라이언트가 조작할 수 없는 위치(뒤에서
+ * `trustedHops` 번째)를 사용한다. 값이 부족하면(프록시를 거치지 않은 직접
+ * 요청 등) 마지막 값을, 헤더가 전혀 없으면 fallback 헤더를, 그것도 없으면
+ * 고정 식별자를 돌려준다.
+ *
+ * @example
+ * setCmsConfig({
+ *   rateLimit: { identityExtractor: createForwardedIdentityExtractor({ trustedHops: 1 }) },
+ * });
+ */
+export function createForwardedIdentityExtractor(
+  options: ForwardedIdentityOptions = {},
+): CmsIdentityExtractor {
+  const hops = Math.max(1, Math.floor(options.trustedHops ?? 1));
+  const fallbacks = options.fallbackHeaders ?? ['x-real-ip'];
+
+  return (headers: Headers): string => {
+    const xff = headers.get('x-forwarded-for');
+    if (xff) {
+      const parts = xff
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      if (parts.length > 0) {
+        const idx = Math.max(0, parts.length - hops);
+        return parts[idx];
+      }
+    }
+    for (const name of fallbacks) {
+      const v = headers.get(name);
+      if (v && v.trim().length > 0) return v.trim();
+    }
+    return SHARED_ANON_IDENTITY;
+  };
 }
