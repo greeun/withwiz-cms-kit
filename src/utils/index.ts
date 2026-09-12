@@ -21,8 +21,12 @@ export {
   resetCmsConfig,
   getCmsConfig,
   JWT_SECRET_MIN_LENGTH,
+  createForwardedIdentityExtractor,
+  hasIdentityExtractor,
+  SHARED_ANON_IDENTITY,
 } from '../config';
 export type {
+  ForwardedIdentityOptions,
   CmsConfig,
   CmsNavItem,
   CmsBrandConfig,

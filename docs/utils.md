@@ -124,3 +124,5 @@ extractR2KeysFromHtml(html: string): string[];
 collectR2Keys(prevHtml: string, nextHtml: string): string[];   // prev 에만 있는 키
 deleteR2Keys(keys: string[]): Promise<void>;
 ```
+
+**호스트 검증:** 절대 URL 은 우리 스토리지의 공개 origin 으로 시작할 때만 키로 인정합니다. 인정되는 base 는 `storage.publicBaseUrl`, legacy `R2_PUBLIC_URL`, 자격 증명에서 유도한 `https://<bucket>.r2.dev` 이며, 비교는 경계(`base` 또는 `base/…`)를 지킵니다. 상대 경로(`/news/x.jpg`)는 같은 origin 으로 간주합니다. 외부 호스트를 가리키는 `<img src="https://attacker.example/news/x.jpg">` 는 경로가 그럴듯해도 수집하지 않으므로, 편집 권한자가 본문에 외부 이미지를 넣는 것만으로 다른 글의 객체를 삭제시킬 수 없습니다. `inlineKeyPrefixes` 는 호스트 검증을 통과한 키에 추가로 적용됩니다.
