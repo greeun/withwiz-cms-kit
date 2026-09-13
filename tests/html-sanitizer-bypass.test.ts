@@ -30,6 +30,12 @@ import { sanitizeHtmlContent, createSanitizer } from '@withwiz/cms-kit/utils/htm
  * href, whereas DOMPurify decodes the entity, recognizes the URL scheme and
  * strips it. The assertion that this payload's `javascript:` is gone can ONLY
  * pass if the DOM path is active.
+ *
+ * NOTE (fix/security-sanitizer): "regex fallback" above means the PRE-FIX
+ * regex, reproduced inline in CMS-HBP-DOMPROOF. The current regex path
+ * decodes entities before the protocol check and also neutralizes this
+ * payload; both paths are verified separately in html-sanitizer-paths.test.ts
+ * via `createSanitizer({ purify })`.
  */
 
 function assertAbsent(out: string | null, tokens: string[]): void {
