@@ -106,6 +106,18 @@ export default function AdminShell({
 
   const isLoginPage = pathname === resolvedLoginPath;
 
+  // 현재 페이지 nav 링크: 경로가 href 와 같거나 `href/` 로 시작하는 항목 중
+  // 가장 긴 href 하나. 경로 경계를 지켜 /admin/newsletter 는 /admin/news 가 아니다.
+  const currentNavHref = pathname
+    ? resolvedNav.reduce<string | null>((best, item) => {
+        const matches =
+          pathname === item.href || pathname.startsWith(`${item.href}/`);
+        return matches && (best === null || item.href.length > best.length)
+          ? item.href
+          : best;
+      }, null)
+    : null;
+
   useEffect(() => {
     if (isLoginPage) {
       setChecking(false);
@@ -238,17 +250,21 @@ export default function AdminShell({
           <div className="admin-sidebar-user">{user.email}</div>
         )}
         <nav className="admin-sidebar-nav">
-          {resolvedNav.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className="admin-sidebar-link"
-              title={item.label}
-              onClick={() => setMobileOpen(false)}
-            >
-              {collapsed ? item.glyph : item.label}
-            </Link>
-          ))}
+          {resolvedNav.map((item) => {
+            const isCurrent = item.href === currentNavHref;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={`admin-sidebar-link${isCurrent ? " active" : ""}`}
+                aria-current={isCurrent ? "page" : undefined}
+                title={item.label}
+                onClick={() => setMobileOpen(false)}
+              >
+                {collapsed ? item.glyph : item.label}
+              </Link>
+            );
+          })}
         </nav>
         <div className="admin-sidebar-footer">
           <button className="admin-sidebar-logout" onClick={handleLogout} title="로그아웃">
