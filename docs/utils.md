@@ -32,7 +32,11 @@ Tiptap 에디터가 생성한 HTML 을 서버 저장 전 새니타이즈. 허용
 
 ```ts
 sanitizeHtmlContent(html: string): string;
+createSanitizer({ trustedIframeOrigins?, allowedTags?, allowedAttributes?, purify? });
 ```
+
+- `purify` 에 DOMPurify 인스턴스를 넘기면 동적 로딩(`require('isomorphic-dompurify')`) 대신 그 인스턴스를 씁니다. `null` 은 정규식 경로를 강제하고, 지정하지 않으면 동적 로딩을 시도합니다. Next.js Turbopack 서버 번들처럼 `require` 가 항상 실패하는 환경에서는 인스턴스를 주입해야 DOMPurify 경로로 동작합니다.
+- 두 경로 모두 블록 에디터 데이터 주석(`<!-- abe-blocks:... -->`, `<!-- pme-data:... -->`, `<!-- rme-data:... -->`, `<!-- nbe-cta-start -->` 등)과 `target` 속성을 보존합니다.
 
 ## `api-response` / `api-helpers` / `route-params`
 

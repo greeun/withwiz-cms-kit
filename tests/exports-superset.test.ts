@@ -95,6 +95,7 @@ describe('exports superset vs baseline (CMS-EXP)', () => {
       // additive (superset — allowed):
       'createSanitizer',
       'setCmsConfig',
+      'DOMPurifyLike',
     ]) {
       expect(utils.has(n)).toBe(true);
     }

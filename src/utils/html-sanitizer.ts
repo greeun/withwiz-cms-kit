@@ -8,7 +8,13 @@
  *   allowlist 새니타이저 — 손수 만든 regex 가 아님). 동적으로 로드한다.
  * - fallback: regex 기반 새니타이저는 *방어 심층(defense-in-depth)* 으로만
  *   남겨둔다 (optional dep 미설치 시). 더 이상 1차 경로가 아니다.
- * - `createSanitizer(config)` 로 신뢰 iframe origin 을 주입할 수 있다.
+ *   단, 번들러가 `require` 를 항상 실패하는 stub 으로 바꾸는 환경(Next.js
+ *   Turbopack 서버 번들 등)에서는 동적 로딩이 실패해 이 경로로 동작하므로,
+ *   호스트는 `createSanitizer({ purify: DOMPurify })` 로 인스턴스를 주입한다.
+ * - `createSanitizer(config)` 로 신뢰 iframe origin 과 DOMPurify 인스턴스를
+ *   주입할 수 있다 (`purify: null` 은 정규식 경로 강제).
+ * - 두 경로 모두 블록 에디터 데이터 주석(`<!-- abe-blocks:... -->` 등)을
+ *   원문 그대로 보존한다.
  *
  * `sanitizeHtmlContent` 는 하위 호환을 위해 기본 안전 설정으로 동작한다
  * (I1 — 동일 이름, 동일 `string|null|undefined → string|null` 시그니처).
@@ -29,18 +35,80 @@ import { resolveTrustedIframeOrigins } from '../config';
 const STRIP_TAGS_WITH_CONTENT =
   /(<\s*\/?\s*(script|object|embed|applet|form|input|textarea|select|button)\b[^>]*>)/gi;
 
-/** 신뢰되지 않는 iframe 매칭 */
-const UNTRUSTED_IFRAME = /<\s*iframe\b[^>]*>[\s\S]*?<\s*\/\s*iframe\s*>/gi;
-
 /** script/style 태그 사이 콘텐츠 */
 const STRIP_TAG_CONTENT = /<\s*(script|style)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi;
 
-/** 이벤트 핸들러 속성 (onclick, onerror, onload 등) */
-const EVENT_HANDLER_ATTRS = /\s+on\w+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]*)/gi;
+// 아래 패턴은 HTML 토크나이저 규칙을 따른다. 속성 정리는 태그 마크업 안에서만
+// 하므로, 태그·주석·텍스트의 경계가 브라우저와 어긋나면 속성이 따옴표 값 안에
+// 숨는다. 그래서 공백은 `\s` 가 아니라 HTML 공백(tab, LF, FF, CR, space)만 인정한다.
+const HTML_WS = '[\\t\\n\\f\\r ]';
+const ATTR_NAME = '(?:=[^\\t\\n\\f\\r />=]*|[^\\t\\n\\f\\r />=]+)';
+const ATTR_VALUE = `(?:"[^"]*"|'[^']*'|[^\\t\\n\\f\\r >]*)`;
 
-/** 위험한 URL 프로토콜 (href/src 속성 내) */
-const DANGEROUS_PROTOCOL =
-  /(href|src|action)\s*=\s*["']\s*(javascript|vbscript|data\s*:(?!image\/))[^"']*["']/gi;
+/**
+ * 마크업 토큰을 왼쪽부터 브라우저와 같은 규칙으로 끊는다.
+ * 1 주석(`<!-->`·`<!--->` 비정상 종료와 `--!>` 포함), 2 CDATA 시작,
+ * 3 bogus 주석(`<!x`, `<?x`, `</1`), 4 끝 태그 표시 `/`, 5 태그 이름,
+ * 6 속성 영역, 7 닫는 `>`(입력 끝이면 빈 문자열).
+ * 따옴표로 감싼 속성값 안의 `>` 는 태그 끝으로 보지 않는다.
+ */
+const MARKUP = new RegExp(
+  [
+    '(<!--(?:-?>|[\\s\\S]*?(?:--!?>|$)))',
+    '(<!\\[CDATA\\[)',
+    '(<[!?][^>]*>?|<\\/(?![a-zA-Z])[^>]*>?)',
+    `<(\\/?)([a-zA-Z][^\\t\\n\\f\\r />]*)((?:[\\t\\n\\f\\r /]+|${ATTR_NAME}(?:${HTML_WS}*=${HTML_WS}*${ATTR_VALUE})?)*)(>?)`,
+  ].join('|'),
+  'g',
+);
+
+/** 속성 영역 안의 속성 하나 (1 이름, 2 값 원문 — 값이 없으면 undefined) */
+const ATTR_TOKEN = new RegExp(
+  `(${ATTR_NAME})(?:${HTML_WS}*=${HTML_WS}*(${ATTR_VALUE}))?`,
+  'g',
+);
+
+/** 값을 위험 프로토콜로 판정할 URL 속성 */
+const URL_ATTR_NAMES: ReadonlySet<string> = new Set([
+  'href',
+  'src',
+  'action',
+  'formaction',
+  'xlink:href',
+]);
+
+/**
+ * 브라우저가 내용을 마크업이 아닌 텍스트로 읽는 요소와 그 끝 태그 패턴.
+ * `plaintext` 는 입력 끝까지 텍스트다.
+ */
+const RAW_TEXT_END = new Map<string, RegExp | null>();
+for (const name of ['iframe', 'noembed', 'noframes', 'noscript', 'script', 'style', 'textarea', 'title', 'xmp']) {
+  RAW_TEXT_END.set(name, new RegExp(`</${name}[\\t\\n\\f\\r />]`, 'gi'));
+}
+RAW_TEXT_END.set('plaintext', null);
+
+/** 흔한 이름 엔티티 (URL 판정용 최소 집합) */
+const NAMED_ENTITIES: Readonly<Record<string, string>> = {
+  colon: ':',
+  tab: '\t',
+  newline: '\n',
+  nbsp: '\u00a0',
+  amp: '&',
+  quot: '"',
+  apos: "'",
+  lt: '<',
+  gt: '>',
+  sol: '/',
+  lpar: '(',
+  rpar: ')',
+};
+
+/**
+ * 한 번의 정리에서 변화가 없을 때까지 반복하는 최대 횟수. 제거가 새 위험
+ * 구조를 만드는 입력(`<scr<object>ipt>`)을 잡기 위해 반복하며, 이 횟수 안에
+ * 수렴하지 않는 입력은 태그를 모두 무력화한다(fail-closed).
+ */
+const MAX_REGEX_PASSES = 16;
 
 // ── 설정 인터페이스 ──
 
@@ -55,11 +123,19 @@ export interface SanitizerConfig {
   allowedTags?: string[];
   /** DOMPurify 사용 시 허용할 속성 화이트리스트. */
   allowedAttributes?: Record<string, string[]>;
+  /**
+   * 사용할 DOMPurify 인스턴스.
+   * - 객체: 동적 로딩 대신 이 인스턴스를 쓴다.
+   * - `null`: 정규식 경로를 강제한다.
+   * - 미지정(`undefined`): `isomorphic-dompurify` 동적 로딩을 시도한다.
+   */
+  purify?: DOMPurifyLike | null;
 }
 
 // ── DOMPurify 동적 로딩 (선택적 / 실제 사용되는 1차 경로) ──
 
-type DOMPurifyLike = {
+/** 새니타이저가 요구하는 DOMPurify 최소 인터페이스. */
+export type DOMPurifyLike = {
   sanitize: (dirty: string, options?: Record<string, unknown>) => string;
 };
 
@@ -90,7 +166,165 @@ function tryLoadDomPurify(): DOMPurifyLike | null {
 
 // ── 정규식 기반 새니타이저 (defense-in-depth fallback) ──
 
-function regexSanitize(html: string, trustedOrigins: readonly string[]): string {
+/** 숫자·16진수 엔티티와 흔한 이름 엔티티를 한 번만 디코딩한다. */
+function decodeEntities(value: string): string {
+  return value.replace(
+    /&(?:#x([0-9a-f]+)|#(\d+)|([a-z]+));?/gi,
+    (match, hex: string | undefined, dec: string | undefined, name: string | undefined) => {
+      if (hex !== undefined || dec !== undefined) {
+        const codePoint = hex !== undefined ? parseInt(hex, 16) : parseInt(dec as string, 10);
+        return codePoint > 0 && codePoint <= 0x10ffff
+          ? String.fromCodePoint(codePoint)
+          : '\uFFFD';
+      }
+      return NAMED_ENTITIES[(name as string).toLowerCase()] ?? match;
+    },
+  );
+}
+
+/**
+ * URL 속성 값이 위험 프로토콜인지 판정한다. 엔티티를 디코딩하고 공백·제어문자를
+ * 모두 제거한 뒤 본다. `data:image/` 는 기존 정책대로 허용한다.
+ */
+function isDangerousUrl(rawValue: string): boolean {
+  const normalized = decodeEntities(rawValue)
+    .replace(/[\s\u0000-\u001f\u007f-\u009f]/g, '')
+    .toLowerCase();
+  if (normalized.startsWith('javascript:') || normalized.startsWith('vbscript:')) {
+    return true;
+  }
+  return normalized.startsWith('data:') && !normalized.startsWith('data:image/');
+}
+
+/** 태그·속성 이름은 브라우저처럼 ASCII 대문자만 소문자로 바꿔 비교한다. */
+function asciiLower(value: string): string {
+  return value.replace(/[A-Z]+/g, (s) => s.toLowerCase());
+}
+
+/** 따옴표로 감싼 속성값이면 따옴표를 벗긴다. */
+function unquote(value: string): string {
+  const quote = value[0];
+  return value.length >= 2 && (quote === '"' || quote === "'") && value.endsWith(quote)
+    ? value.slice(1, -1)
+    : value;
+}
+
+/**
+ * iframe 의 첫 src 속성값(브라우저는 중복 속성 중 첫 값을 쓴다)이 신뢰 origin 으로
+ * 시작하는지 본다. URL 파서처럼 앞뒤 C0 제어문자·공백과 tab/개행을 지운 뒤 비교한다.
+ */
+function isTrustedIframeSrc(
+  rawSrc: string | undefined,
+  trustedOrigins: readonly string[],
+): boolean {
+  if (rawSrc === undefined) return false;
+  const src = decodeEntities(rawSrc)
+    .replace(/^[\x00-\x20]+|[\x00-\x20]+$/g, '')
+    .replace(/[\t\n\r]/g, '');
+  return trustedOrigins.some((origin) => src.startsWith(origin));
+}
+
+/**
+ * 태그의 속성 영역에서 이벤트(`on*`)·`srcdoc` 속성을 지우고 위험 URL 값을 비운다.
+ * 바꿀 것이 없으면 원문을 그대로 돌려준다. 첫 src 속성값 원문도 함께 돌려준다.
+ */
+function sanitizeAttributes(rawBody: string): { body: string; firstSrc: string | undefined } {
+  const attrToken = new RegExp(ATTR_TOKEN.source, 'g');
+  let body = '';
+  let last = 0;
+  let firstSrc: string | undefined;
+  let m: RegExpExecArray | null;
+  while ((m = attrToken.exec(rawBody)) !== null) {
+    const [whole, rawName, rawValue] = m;
+    const name = asciiLower(rawName);
+    const value = rawValue === undefined ? undefined : unquote(rawValue);
+    body += rawBody.slice(last, m.index);
+    last = attrToken.lastIndex;
+    if (name === 'src' && firstSrc === undefined) firstSrc = value ?? '';
+    if (name.startsWith('on') || name === 'srcdoc') continue;
+    if (value !== undefined && URL_ATTR_NAMES.has(name) && isDangerousUrl(value)) {
+      body += `${rawName}=""`;
+      continue;
+    }
+    body += whole;
+  }
+  return { body: body + rawBody.slice(last), firstSrc };
+}
+
+/**
+ * raw text 요소의 끝 태그 위치를 찾는다 (없으면 -1). 왼쪽부터 훑으므로 이름별로
+ * 마지막 결과를 기억해 같은 입력을 반복해서 끝까지 찾지 않는다.
+ */
+function findRawTextEnd(
+  html: string,
+  from: number,
+  name: string,
+  cache: Map<string, number>,
+): number {
+  const pattern = RAW_TEXT_END.get(name);
+  if (!pattern) return -1;
+  const cached = cache.get(name);
+  if (cached !== undefined && (cached === -1 || cached >= from)) return cached;
+  pattern.lastIndex = from;
+  const found = pattern.exec(html);
+  const index = found ? found.index : -1;
+  cache.set(name, index);
+  return index;
+}
+
+/**
+ * 마크업을 토큰 단위로 훑어 태그 안에서만 속성을 정리한다. 주석·bogus 주석과
+ * 태그 밖 텍스트는 원문 그대로 둔다.
+ * - 비신뢰 iframe: 닫는 태그가 있으면 내용과 닫는 태그까지, 없으면 여는 태그만 제거.
+ * - raw text 요소(title, 신뢰 iframe 등): 내용의 `<` 를 이스케이프해, 내용 안에
+ *   따옴표 값으로 태그를 숨겨 끝 태그 뒤로 넘기는 입력을 막는다.
+ * - CDATA 시작(`<![CDATA[`): SVG/MathML 안에서만 `]]>` 까지 텍스트가 되어 경계가
+ *   달라지므로 텍스트로 바꾼다.
+ */
+function sanitizeMarkup(html: string, trustedOrigins: readonly string[]): string {
+  const markup = new RegExp(MARKUP.source, 'g');
+  const endCache = new Map<string, number>();
+  let out = '';
+  let last = 0;
+  let m: RegExpExecArray | null;
+  while ((m = markup.exec(html)) !== null) {
+    const [token, , cdata, , slash, rawName, rawBody, close] = m;
+    out += html.slice(last, m.index);
+    last = markup.lastIndex;
+
+    if (rawName === undefined) {
+      out += cdata !== undefined ? `&lt;${token.slice(1)}` : token;
+      continue;
+    }
+
+    const name = asciiLower(rawName);
+    const isStartTag = slash === '';
+    const { body, firstSrc } = sanitizeAttributes(rawBody);
+
+    if (isStartTag && name === 'iframe' && !isTrustedIframeSrc(firstSrc, trustedOrigins)) {
+      const end = close === '>' ? findRawTextEnd(html, last, name, endCache) : -1;
+      if (end !== -1) {
+        markup.lastIndex = end;
+        last = markup.exec(html) ? markup.lastIndex : html.length;
+        markup.lastIndex = last;
+      }
+      continue;
+    }
+
+    out += `<${slash}${rawName}${body}${close}`;
+
+    if (isStartTag && close === '>' && RAW_TEXT_END.has(name)) {
+      const end = findRawTextEnd(html, last, name, endCache);
+      const stop = end === -1 ? html.length : end;
+      out += html.slice(last, stop).replace(/</g, '&lt;');
+      last = stop;
+      markup.lastIndex = stop;
+    }
+  }
+  return out + html.slice(last);
+}
+
+function regexSanitizePass(html: string, trustedOrigins: readonly string[]): string {
   let result = html;
 
   // 1. script/style 태그 사이 콘텐츠 제거
@@ -99,25 +333,20 @@ function regexSanitize(html: string, trustedOrigins: readonly string[]): string 
   // 2. 위험한 태그 제거
   result = result.replace(STRIP_TAGS_WITH_CONTENT, '');
 
-  // 2b. 신뢰되지 않는 iframe 제거 (신뢰 origin 유지)
-  result = result.replace(UNTRUSTED_IFRAME, (match) => {
-    const srcMatch = match.match(/\bsrc\s*=\s*["']([^"']+)["']/i);
-    if (srcMatch) {
-      const src = srcMatch[1].trim();
-      if (trustedOrigins.some((origin) => src.startsWith(origin))) {
-        return match;
-      }
-    }
-    return '';
-  });
+  // 3. 태그 단위 정리: 이벤트·srcdoc 속성 제거, 위험 URL 무력화(엔티티 디코딩 후
+  //    판정), 비신뢰 iframe 제거. 태그 밖 텍스트와 주석은 바꾸지 않는다.
+  return sanitizeMarkup(result, trustedOrigins);
+}
 
-  // 3. 이벤트 핸들러 속성 제거
-  result = result.replace(EVENT_HANDLER_ATTRS, '');
-
-  // 4. 위험한 URL 프로토콜 무력화
-  result = result.replace(DANGEROUS_PROTOCOL, '$1=""');
-
-  return result;
+function regexSanitize(html: string, trustedOrigins: readonly string[]): string {
+  let current = html;
+  for (let pass = 0; pass < MAX_REGEX_PASSES; pass++) {
+    const next = regexSanitizePass(current, trustedOrigins);
+    if (next === current) return next;
+    current = next;
+  }
+  // 수렴하지 않는 입력은 태그를 모두 텍스트로 만든다 (fail-closed).
+  return current.replace(/</g, '&lt;').replace(/>/g, '&gt;');
 }
 
 // ── DOMPurify 기반 새니타이저 (1차 경로) ──
@@ -129,9 +358,13 @@ function dompurifySanitize(
   config: SanitizerConfig,
 ): string {
   const options: Record<string, unknown> = {
-    // iframe 은 hook 에서 origin 검증 후 허용
-    ADD_TAGS: ['iframe'],
-    ADD_ATTR: ['allowfullscreen', 'frameborder', 'allow'],
+    // iframe 은 hook 에서 origin 검증 후 허용.
+    // `#comment` 는 블록 에디터 데이터 주석(`<!-- abe-blocks:... -->` 등) 보존용.
+    ADD_TAGS: ['iframe', '#comment'],
+    ADD_ATTR: ['allowfullscreen', 'frameborder', 'allow', 'target'],
+    // 본문 맨 앞의 주석이 <body> 밖으로 밀려나 사라지지 않도록 한다.
+    // (빈 입력은 `<!---->` 가 되므로 createSanitizer 에서 미리 걸러낸다.)
+    FORCE_BODY: true,
     FORBID_TAGS: [
       'script',
       'object',
@@ -236,7 +469,8 @@ export function createSanitizer(
     // (lazy — import 시점에 config 가 없어도 throw 하지 않음).
     const trustedOrigins =
       config.trustedIframeOrigins ?? resolveTrustedIframeOrigins();
-    const purify = tryLoadDomPurify();
+    const purify =
+      config.purify === undefined ? tryLoadDomPurify() : config.purify;
     if (purify) {
       return dompurifySanitize(html, purify, trustedOrigins, config);
     }
