@@ -68,8 +68,8 @@ export interface CmsJwtConfig {
   accessTokenExpiry?: string;
   /** refresh token 만료 (기본 '7d') */
   refreshTokenExpiry?: string;
-  /** 알고리즘 (기본 'HS256') */
-  algorithm?: string;
+  /** HMAC 알고리즘 (기본 'HS256'). secret 만 받으므로 비대칭 알고리즘은 지원하지 않는다. */
+  algorithm?: 'HS256' | 'HS384' | 'HS512';
 }
 
 /** sanitizer 설정 */
@@ -296,7 +296,7 @@ export function resolveJwtConfig(): {
   secret: string;
   accessTokenExpiry: string;
   refreshTokenExpiry: string;
-  algorithm: string;
+  algorithm: NonNullable<CmsJwtConfig['algorithm']>;
 } {
   const j = _config.jwt ?? {};
 
