@@ -11,3 +11,7 @@ coverage/
 .claude/
 .axt-profile.json*
 tests-harness/
+
+# superpowers (auto-installed; do not track)
+.superpowers/
+docs/superpowers/
