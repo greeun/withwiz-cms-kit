@@ -182,6 +182,21 @@ describe.each(PATHS)('html-sanitizer $name (CMS-HSP)', ({ purify }) => {
       ['HBP-03 이중 꺾쇠 script', '<<script>alert(1)//<</script>'],
       ['HBP-05 탭 엔티티로 쪼갠 javascript:', '<a href="jav&#x09;ascript:alert(1)">x</a>'],
       ['HBP-10 data:text/html img', '<img src="data:text/html,<script>alert(1)</script>">'],
+      // 태그 경계: 따옴표로 감싼 값 안의 > 는 태그 끝이 아니다
+      ['TAG-03 큰따옴표 값 안 > 뒤 이벤트 속성', '<img title="a>b" onerror="alert(1)">'],
+      ['TAG-04 작은따옴표 값 안 > 뒤 javascript href', `<a title='x>y' href="javascript:alert(1)">x</a>`],
+      // HTML 공백이 아닌 NBSP 뒤 따옴표는 따옴표 값이 아니다
+      ['TAG-05 NBSP 뒤 따옴표', '<a x=\xa0"a b onclick=alert(1) c">x</a>'],
+      ['END-01 끝 태그 속성값으로 가린 태그', `</p x="<img title='"><img src=1 onerror=alert(1)>'>`],
+      ['IFR-03 따옴표 값 안에 가린 신뢰 src', `<iframe x=" src='https://www.youtube.com/embed/a' >" src="https://evil.example/x"></iframe>`],
+      // raw text 요소·주석·CDATA 는 브라우저가 텍스트로 끝을 정한다
+      ['RAW-01 title 내용으로 가린 태그', '<title><a title="</title><img src=x onerror=alert(1)>"></title>'],
+      ['RAW-02 신뢰 iframe 내용으로 가린 태그', '<iframe src="https://www.youtube.com/embed/a"><a title="</iframe><img src=x onerror=alert(1)>"></iframe>'],
+      ['CMT-01 주석 안 따옴표로 가린 태그', '<!-- <a title=" --><img src=x onerror=alert(1)><!-- " -->'],
+      ['CMT-02 비정상 종료 주석 <!-->', '<!--><img src=x onerror=alert(1)>-->'],
+      ['CMT-03 비정상 종료 주석 <!--->', '<!---><img src=x onerror=alert(1)>-->'],
+      ['CMT-04 --!> 로 끝나는 주석', '<!-- x --!><img src=x onerror=alert(1)>-->'],
+      ['CDATA-01 SVG CDATA 로 가린 태그', '<svg><![CDATA[><a title="]]><img src=x onerror=alert(1)><b title=">]]></svg>'],
     ])('CMS-HSP-%s', (_label, input) => {
       expectInert(sanitize(input));
     });
@@ -193,6 +208,22 @@ describe.each(PATHS)('html-sanitizer $name (CMS-HSP)', ({ purify }) => {
         open = `${open.slice(0, mid)}<object>${open.slice(mid)}`;
         expectInert(sanitize(`<${open}>alert(1)</script>`));
       }
+    });
+  });
+
+  describe('태그 밖 텍스트 보존', () => {
+    it('CMS-HSP-TXT-01: 속성처럼 보이는 본문 텍스트를 바꾸지 않는다', () => {
+      const text = '설정값 "online=true" 와 "one=1", 예시 href="javascript:void(0)" 문구';
+      const html = `<p>${text}</p>`;
+      const out = sanitize(html);
+      expect(parseBody(out as string).body.textContent).toBe(text);
+      expect(out).toBe(html);
+    });
+
+    it('CMS-HSP-TXT-02: 태그 안에서 지운 속성과 같은 문구가 본문에 있어도 본문은 그대로다', () => {
+      const out = sanitize('<p onclick="x()">onclick="x()" 와 srcdoc="y" 설명</p>');
+      const doc = expectInert(out);
+      expect(doc.body.textContent).toBe('onclick="x()" 와 srcdoc="y" 설명');
     });
   });
 
