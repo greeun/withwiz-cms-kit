@@ -4,25 +4,38 @@
 
 | 항목 | 내용 |
 |------|------|
-| 대상 | `@withwiz/cms-kit` 0.2.0 (Next.js + React 관리자 패널용 CMS 프레임워크 라이브러리) |
+| 대상 | `@withwiz/cms-kit` 0.2.2 (Next.js + React 관리자 패널용 CMS 프레임워크 라이브러리) |
+| 기준 | develop `1de7c3a` (0.2.2), 2026-09-15 갱신 |
 | 범위 | `src/` 전체 (components/, hooks/, infrastructure/, services/, types/, utils/, validators/, config/) |
-| 환경 | Vitest 4.1.11, Node.js 22.22.0, 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2) |
+| 환경 | Vitest 4.1.11, Node.js 22.22.0, 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2). devDependency `@withwiz/toolkit` 0.15.0, `isomorphic-dompurify` 2.36.0 |
 | 목표 커버리지 | 미설정 (`vitest.config.ts` 에 coverage 설정이 없고 `@vitest/coverage-*` 패키지도 설치되어 있지 않음) |
 
-### 실측 기록 (2026-09-13)
+### 실측 기록 (2026-09-15)
 
-측정 위치는 `docs/test-classification` 브랜치 워크트리(커밋 `1010503` 기준)이다. JSON 리포터 출력 파일은 저장소 밖에 두었다.
+측정 위치는 `docs/test-classification` 브랜치 워크트리이다. develop `1de7c3a`(0.2.2)를 병합한 커밋 `550ba30` 에서 측정했다. JSON 리포터 출력 파일은 저장소 밖에 두었다.
 
 | 항목 | 결과 |
 |------|------|
-| 의존성 설치 | `pnpm install --frozen-lockfile` 은 `pnpm-lock.yaml` 이 없어 `ERR_PNPM_NO_LOCKFILE` 로 실패했다. 저장소에 기록된 `package-lock.json` 기준으로 `npm ci` 를 실행해 설치했다 |
-| 추적 파일만 있는 상태 | `npx vitest run` 결과 35개 파일이 모두 `Cannot find module .../tests-harness/env-setup.ts` 로 로드 실패했고 실행된 테스트는 0건이다 |
-| `tests-harness/env-setup.ts` 복사 후 | 34개 파일 257건 통과, 1개 파일(`tests/exports-superset.test.ts`) 로드 실패(`.claude/harness/pms-refactor/baseline-exports.json` ENOENT) |
-| 로컬 기준선 `baseline-exports.json` 까지 복사 후 | **35개 파일, 267건 통과, 실패 0건, 스킵 0건** |
-| 정적 집계 | `it()`/`test()` 호출은 259개이다. 실행 시 267건이 되는 이유는 `exports-superset.test.ts` 가 반복문 안의 `it()` 1개로 9건을 생성하기 때문이다 |
-| 도메인별 재확인 | 아래 도메인별 실행 명령으로 다시 실행했을 때 Unit 21개 파일 150건, Integration 3개 파일 17건, API 4개 파일 32건, Security 4개 파일 51건, Smoke 3개 파일 17건이 모두 통과했다 |
+| 의존성 설치 | 저장소에 기록된 `package-lock.json` 기준으로 `npm ci` 를 실행해 설치했다. `pnpm-lock.yaml` 은 여전히 없다 (2026-09-13 에는 `pnpm install --frozen-lockfile` 이 `ERR_PNPM_NO_LOCKFILE` 로 실패했다. 이번에는 pnpm 설치를 다시 실행하지 않았다) |
+| 추적 파일만 있는 상태 | `npx vitest run` 결과 37개 파일이 모두 `Cannot find module .../tests-harness/env-setup.ts` 로 로드 실패했고 실행된 테스트는 0건이다 |
+| `tests-harness/env-setup.ts` 복사 후 | 36개 파일 380건 통과, 1개 파일(`tests/exports-superset.test.ts`) 로드 실패(`.claude/harness/pms-refactor/baseline-exports.json` ENOENT) |
+| 로컬 기준선 `baseline-exports.json` 까지 복사 후 (`npm test`) | **37개 파일, 390건 통과, 실패 0건, 스킵 0건** |
+| 정적 집계 | `it()`/`it.each()` 호출은 282개이다. 실행 시 390건이 되는 이유는 두 가지이다. `exports-superset.test.ts` 가 반복문 안의 `it()` 1개로 9건을 생성한다(+8). `html-sanitizer-paths.test.ts` 는 `describe.each` 로 두 경로(DOMPurify·정규식)를 돌리고 그 안의 `it.each` 가 행마다 케이스를 만들어 정적 호출 16개가 116건이 된다(+100) |
+| 도메인별 재확인 | 아래 도메인별 실행 명령으로 다시 실행했을 때 Unit 21개 파일 150건, Integration 3개 파일 17건, API 4개 파일 32건, Security 5개 파일 167건, Accessibility 1개 파일 7건, Smoke 3개 파일 17건이 모두 통과했다 |
+| 이전 실측과 비교 | 2026-09-13(커밋 `1010503`, 0.2.0) 35개 파일 267건 → 37개 파일 390건. 늘어난 2개 파일은 `tests/admin-shell-current-page.dom.test.tsx`(7건)와 `tests/html-sanitizer-paths.test.ts`(116건)이고, 기존 35개 파일의 파일별 테스트 수는 바뀌지 않았다 |
 
 두 복사 파일은 원본 체크아웃(`withwiz-cms-kit/`)에만 존재하며 둘 다 `.gitignore` 대상(`tests-harness/`, `.claude/`)이다. 이 문서에 기록한 테스트 수는 두 파일이 있는 상태의 실측값이다.
+
+### 0.2.0 이후 반영 내역 (`1010503..1de7c3a`)
+
+| 커밋 | 버전 | 변경 | 테스트 영향 | 이 문서 반영 |
+|------|-----|------|-----------|------------|
+| `7d914b0` | 0.2.1 | AdminShell 사이드바에서 현재 페이지 nav 링크에 `aria-current="page"` 와 `active` 클래스를 설정한다 (경로가 href 와 같거나 `href/` 로 시작하는 항목 중 가장 긴 href 하나) | 신규 `tests/admin-shell-current-page.dom.test.tsx` 7건 | SC/TC-AC-006 추가. TC-U-022·TC-AC-004 의 AdminShell 행 번호 갱신 |
+| `2194483` | - | `docs/README.md` 를 영어로 옮기고 한국어 원문을 `docs/README.ko.md` 로 분리 | 없음 | 없음 |
+| `fae6543` | - | `CmsJwtConfig.algorithm` 을 `string` 에서 `HS256`·`HS384`·`HS512` 유니온으로 한정 (toolkit 0.15.0 에서 드러난 TS2322 수정) | 없음 (타입 수준 변경) | TC-U-007 비고 |
+| `6be1789` | - | devDependency `@withwiz/toolkit` 을 ^0.7.1 에서 ^0.15.0 으로 갱신 | 설치 후 전체 통과 | 개요 환경 |
+| `679fb96` | 0.2.2 | 새니타이저에 `purify` 주입 옵션 추가(`DOMPurifyLike` 타입 export). DOMPurify 경로가 블록 에디터 데이터 주석·`target` 속성을 보존(`ADD_TAGS: '#comment'`, `FORCE_BODY`). 정규식 경로가 엔티티를 디코딩한 뒤 위험 프로토콜을 판정 | 신규 `tests/html-sanitizer-paths.test.ts`. `exports-superset.test.ts` 에 `DOMPurifyLike` 단언 1줄, `html-sanitizer-bypass.test.ts` 에 주석 추가 (테스트 수 변화 없음) | SC/TC-S-007·S-008·S-009 추가. TC-S-001·S-002·S-006·SM-001·C-003 갱신 |
+| `f0193e1` | 0.2.2 | 정규식 경로의 속성 정리를 태그 마크업 안으로 한정 (브라우저 토크나이저 규칙으로 주석·CDATA·raw text 요소 경계 처리, iframe 은 첫 `src` 값으로 판정) | `html-sanitizer-paths.test.ts` 에 우회·본문 보존 케이스 추가 | TC-S-008·S-009 |
 
 ---
 
@@ -79,6 +92,9 @@
 | SC-S-004 | rate-limit 식별자 위조 방지와 공유 버킷 차단 | Security | Critical | ✅ 완료 |
 | SC-S-005 | 스토리지 키 나머지 거부 규칙 | Security | High | 🔲 계획 |
 | SC-S-006 | 새니타이저 신뢰 origin 주입 표면 | Security | High | 🔲 계획 |
+| SC-S-007 | 새니타이저 DOMPurify 인스턴스 주입 (`purify`) | Security | High | ✅ 완료 |
+| SC-S-008 | 새니타이저 두 경로(DOMPurify·정규식) 우회 입력 차단 | Security | Critical | ✅ 완료 |
+| SC-S-009 | 새니타이저 두 경로 본문 텍스트·데이터 주석·안전 표현 보존 | Security | High | ✅ 완료 |
 | SC-P-001 | AdminManagerBase 가상 스크롤 렌더링 범위 | Performance | Medium | 🔲 계획 |
 | SC-P-002 | 대용량 본문 새니타이즈·키 수집 처리 시간 | Performance | Low | 🔲 계획 |
 | SC-AC-001 | ToggleSwitch 접근 가능한 이름과 키보드 조작 | Accessibility | High | 🔲 계획 |
@@ -86,6 +102,7 @@
 | SC-AC-003 | AdminManagerBase 탭 키보드 접근 | Accessibility | High | 🔲 계획 |
 | SC-AC-004 | AdminShell 랜드마크와 버튼 이름 | Accessibility | Medium | 🔲 계획 |
 | SC-AC-005 | ResizableImage 정렬 버튼 키보드 동작 | Accessibility | Medium | 🔲 계획 |
+| SC-AC-006 | AdminShell 사이드바 현재 페이지 표시 (`aria-current`) | Accessibility | Medium | ✅ 완료 |
 | SC-L-001 | 동시 401 응답 시 토큰 갱신 단일화 | Load/Stress | Medium | 🔲 계획 |
 | SC-L-002 | 인메모리 limiter 동시 호출 일관성 | Load/Stress | Low | 🔲 계획 |
 | SC-SM-001 | 공개 export 상위집합 유지 | Smoke | High | ⚠️ 교체 필요 |
@@ -269,6 +286,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 
 - **자동화:** 가능 ✅ | **테스트 수:** 3개 (현재)
 - **관련:** 3~4번 단계는 서명 비밀 최소 길이 정책으로, Security 도메인과 관련된다.
+- **비고:** 커밋 `fae6543` 이후 `CmsJwtConfig.algorithm` 은 `HS256`·`HS384`·`HS512` 유니온 타입이다. 제한은 타입 수준뿐이며 `resolveJwtConfig()` 는 값을 검사하지 않고 그대로 반환한다(`src/config/index.ts` 309행). Vitest 는 타입 검사를 하지 않으므로 이 타입 회귀는 `npm run build`(tsup `dts: true`)에서만 드러난다.
 
 ---
 
@@ -589,7 +607,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/AdminShell.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminShell.tsx`: 인증 확인 effect(109~147행), 로그인 페이지 분기(167~173행), `handleLogout`(175~178행), `toggleSidebar`(180~186행), 너비 조절(149~165행, 188~196행) |
+| **대상** | `src/components/AdminShell.tsx`: 인증 확인 effect(121~159행), 로그인 페이지 분기(179~185행), `handleLogout`(187~190행), `toggleSidebar`(192~198행), 너비 조절(161~177행, 200~208행) |
 | **우선순위** | High |
 | **전제조건** | `next/navigation`(`usePathname` 반환값 제어, `useRouter().replace` spy), `next/link`, `next/dynamic`, `utils/admin-fetch` 를 mock 한다. 로그아웃은 전역 `fetch` 를 spy 한다. 각 테스트 전에 `localStorage.clear()`, `resetCmsConfig()` 를 호출한다 |
 | **테스트 데이터** | 기본 경로 `loginPath: '/admin/login'`, `meEndpoint: '/api/admin/auth/me'`, `logoutEndpoint: '/api/admin/auth/logout'` (`src/config/index.ts` 151~161행) |
@@ -605,6 +623,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 7 | `.admin-sidebar-resize` mousedown → document mousemove `clientX: 500` → mouseup | 사이드바 `width` 400 (최대값 제한), `localStorage['admin_sidebar_width'] === '400'` |
 
 - **자동화:** 가능 ✅
+- **비고:** TC-AC-006 의 CMS-ASC-CUR-06 은 `localStorage['admin_sidebar_collapsed']` 를 미리 `'true'` 로 두고 nav 링크 텍스트가 `glyph` 인지 확인한다. 초기값 읽기(85~90행)는 그 테스트가 실행하지만, 6번 단계의 접기 버튼 클릭과 저장(192~198행)은 실행하지 않으므로 이 TC 는 계획으로 둔다.
 
 ---
 
@@ -998,9 +1017,18 @@ AdminManagerBase / useAdminList / useImageDropZone
 
 ## 5. Security Tests (보안 테스트)
 
-**목적:** XSS 새니타이즈, 스토리지 키 경로 탈출, rate-limit 식별자 위조를 검증한다.
+**목적:** XSS 새니타이즈(DOMPurify 경로와 정규식 대체 경로 모두), 스토리지 키 경로 탈출, rate-limit 식별자 위조를 검증한다.
 
-**실행 명령:** `npx vitest run tests/html-sanitizer.test.ts tests/html-sanitizer-bypass.test.ts tests/r2-key-sanitization.test.ts tests/rate-limit-identity.test.ts`
+**실행 명령:** `npx vitest run tests/html-sanitizer.test.ts tests/html-sanitizer-bypass.test.ts tests/html-sanitizer-paths.test.ts tests/r2-key-sanitization.test.ts tests/rate-limit-identity.test.ts`
+
+```
+새니타이저 경로 선택 (src/utils/html-sanitizer.ts 463~479행):
+createSanitizer(config)(html)
+  → html 이 빈 값이면 그대로 반환
+  → purify = config.purify === undefined ? tryLoadDomPurify() : config.purify
+      → purify 있음: dompurifySanitize()   DOMPurify 경로 (Vitest 에서 기본 활성)
+      → purify 없음: regexSanitize()       정규식 경로 (require 가 실패하는 번들 환경의 실제 경로)
+```
 
 다른 도메인 파일에 있는 보안 관련 케이스는 다음과 같다. 수치는 해당 도메인에만 집계했다.
 
@@ -1017,7 +1045,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/html-sanitizer.test.ts` |
-| **대상** | `src/utils/html-sanitizer.ts`: `sanitizeHtmlContent()`, DOMPurify 경로(125~174행), iframe 훅(198~214행) |
+| **대상** | `src/utils/html-sanitizer.ts`: `sanitizeHtmlContent()`, DOMPurify 경로 `dompurifySanitize()`(354~407행), iframe 훅 `ensureIframeHook()`(431~447행) |
 | **우선순위** | Critical |
 | **전제조건** | devDependency `isomorphic-dompurify` 설치 상태 |
 | **테스트 데이터** | script·style·object·embed·form·applet 태그, 이벤트 핸들러 속성, `javascript:`·`data:text/html` URL |
@@ -1033,6 +1061,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 
 - **자동화:** 가능 ✅ | **테스트 수:** 22개 (현재)
 - **관련 요구사항:** OWASP A03:2021 Injection
+- **비고:** 이 파일은 `purify` 를 지정하지 않은 기본 새니타이저만 사용하므로 DOMPurify 경로만 실행한다. embed·applet·form·input·style 을 입력으로 넣어 정규식 경로를 확인하는 테스트는 없다 (object 는 TC-S-008 의 TAG-01·TAG-02 입력에 들어 있다. TC-S-008 비고).
 
 ---
 
@@ -1052,11 +1081,11 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 3 | `<img src=x onerror=alert(1)>` | `onerror`, `alert(1)` 없음 |
 | 4 | `jav&#x09;ascript:`, `javascript&#58;`, `JaVaScRiPt:` href | `javascript:` 없음 |
 | 5 | `data:text/html,<script>...` 를 a href·img src 로 전달 | `data:text/html`, `<script` 없음 |
-| 6 | DOMPROOF: 테스트 안의 정규식만 적용 / `sanitizeHtmlContent`, `createSanitizer({ trustedIframeOrigins: ['https://x/'] })` 적용 | 정규식 결과에는 `jav&#x09;ascript:alert(1)` 가 남는다 / 실제 새니타이저 결과에는 없다 (활성 경로가 DOMPurify 임을 증명) |
+| 6 | DOMPROOF: 테스트 안의 정규식 사본만 적용 / `sanitizeHtmlContent`, `createSanitizer({ trustedIframeOrigins: ['https://x/'] })` 적용 | 사본 결과에는 `jav&#x09;ascript:alert(1)` 가 남는다 / 실제 새니타이저 결과에는 `javascript:`, `alert(1)` 이 없다 |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 11개 (현재)
 - **관련 요구사항:** OWASP A03:2021 Injection
-- **비고:** DOMPROOF 의 정규식 사본은 소스 42~43행 `DANGEROUS_PROTOCOL` 과 현재 같다. 이 사본은 페이로드가 정규식 우회라는 사실을 보여 주는 용도이고 단언 대상은 실제 새니타이저이므로, TC-I-003 과 같은 허위 양성은 아니다.
+- **비고:** DOMPROOF 의 정규식 사본(테스트 121~122행)은 0.2.2 이전 소스의 `DANGEROUS_PROTOCOL` 이다. 0.2.2 소스에는 이 상수가 없고, 정규식 경로는 엔티티를 디코딩한 뒤 판정한다(`isDangerousUrl()` 189~197행). 2026-09-15 에 소스를 실행해 보니 같은 페이로드의 결과가 DOMPurify 경로는 `'<a>x</a>'`, 정규식 경로(`purify: null`)는 `'<a href="">x</a>'` 였다. 두 결과 모두 단언을 통과하므로 DOMPROOF 는 더 이상 활성 경로가 DOMPurify 임을 증명하지 못한다. 테스트 파일 34~38행 주석도 이 점을 적고 있다. 경로를 고정한 검증은 TC-S-007·TC-S-008 이 `purify` 주입으로 맡는다. 단언 대상은 실제 새니타이저이므로 TC-I-003 과 같은 허위 양성은 아니다.
 
 ---
 
@@ -1135,7 +1164,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/html-sanitizer-config.test.ts` (신규) |
-| **대상** | `src/utils/html-sanitizer.ts`: `createSanitizer()`(230~245행), `dompurifySanitize()`(125~174행) / `src/config/index.ts`: `resolveTrustedIframeOrigins()` |
+| **대상** | `src/utils/html-sanitizer.ts`: `createSanitizer()`(463~479행), `dompurifySanitize()`(354~407행) / `src/config/index.ts`: `resolveTrustedIframeOrigins()` |
 | **우선순위** | High |
 | **전제조건** | devDependency `isomorphic-dompurify` 설치 상태. 각 테스트 전에 `resetCmsConfig()` |
 
@@ -1148,7 +1177,86 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 5 | 기본 설정에서 `<a href="#" onpointerdown="x()">k</a>` | `'<a href="#">k</a>'` (`FORBID_ATTR` 목록에 없어도 DOMPurify 기본 정책이 제거한다) |
 
 - **자동화:** 가능 ✅
-- **비고:** 3~5번 결과는 2026-09-13 에 소스와 같은 DOMPurify 옵션·훅으로 실행해 확인했다.
+- **비고:** 1~5번 결과는 2026-09-15 에 0.2.2 소스(주석·`target` 보존 옵션 포함)를 번들해 DOMPurify 경로로 실행해 확인했다 (3~5번은 2026-09-13 결과와 같다). 같은 입력을 정규식 경로(`purify: null`)로 실행하면 1~3번은 같고, 4번은 `allowedTags` 가 적용되지 않아 입력이 그대로 남으며(`SanitizerConfig.allowedTags` 는 DOMPurify 경로에서만 쓰인다, 122~123행), 5번은 `'<a href="#" >k</a>'` 로 속성 앞 공백이 남는다. TC-S-008·TC-S-009 는 기본 신뢰 origin 으로만 실행하므로 이 TC 의 주입 표면은 여전히 테스트가 없다.
+
+---
+
+### TC-S-007: 새니타이저 DOMPurify 인스턴스 주입 (purify)
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/html-sanitizer-paths.test.ts` (`describe('createSanitizer purify 주입 (CMS-HSP-INJ)')`) |
+| **대상** | `src/utils/html-sanitizer.ts`: `SanitizerConfig.purify`(126~132행), `DOMPurifyLike`(137~140행), `createSanitizer()` 빈 입력 처리(467행)·경로 선택(472~477행), `tryLoadDomPurify()`(149~165행) |
+| **우선순위** | High |
+| **전제조건** | node 환경. devDependency `isomorphic-dompurify` 를 테스트에서 직접 import 하고, 소스의 동적 `require` 가 같은 인스턴스를 로드하므로 `vi.spyOn(DOMPurify, 'sanitize')` 로 동적 로딩 경로의 호출을 관찰한다 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | `createSanitizer({ purify: { sanitize: vi.fn(() => '<p>injected</p>') } })('<p>x</p>')` | 주입한 `sanitize` 1회 호출, 반환값 `'<p>injected</p>'` |
+| 2 | `createSanitizer({ purify: null })('<p>x</p>')` | 동적 로딩한 `DOMPurify.sanitize` 미호출, 결과 `'<p>x</p>'` (정규식 경로 강제) |
+| 3 | `createSanitizer({})`, `createSanitizer({ purify: undefined })` 로 각각 1회 호출 | 동적 로딩한 `DOMPurify.sanitize` 2회 호출 (지정하지 않으면 기존처럼 동적 로딩) |
+| 4 | 주입 인스턴스로 `''`, `null`, `undefined` 호출 | 각각 `''`, `null`, `undefined` 반환, 주입한 `sanitize` 미호출 (DOMPurify 에 빈 문자열을 넘기면 `FORCE_BODY` 때문에 `'<!---->'` 가 되므로 미리 거른다) |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 4개 (현재)
+- **관련 요구사항:** OWASP A05:2021 Security Misconfiguration (번들 환경에서 DOMPurify 가 조용히 빠지는 구성)
+- **비고:** 호스트가 Next.js Turbopack 서버 번들처럼 `require` 가 항상 실패하는 환경에서 DOMPurify 경로를 쓰려면 `createSanitizer({ purify: DOMPurify })` 로 인스턴스를 주입해야 한다 (`docs/utils.md`). 실제 `require` 실패로 대체 경로로 바뀌는 분기는 TC-C-003 에서 다룬다.
+
+---
+
+### TC-S-008: 새니타이저 두 경로(DOMPurify·정규식) 우회 입력 차단
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/html-sanitizer-paths.test.ts` (`describe.each(PATHS)` 안의 `describe('우회 입력 차단')`) |
+| **대상** | `src/utils/html-sanitizer.ts`: DOMPurify 경로 `dompurifySanitize()`(354~407행)·`ensureIframeHook()`(431~447행) / 정규식 경로 `regexSanitize()`(341~350행), `regexSanitizePass()`(327~339행), `sanitizeMarkup()`(284~325행), `sanitizeAttributes()`(231~252행), `isDangerousUrl()`(189~197행), `decodeEntities()`(170~183행), `isTrustedIframeSrc()`(216~225행), 토큰 패턴 `MARKUP`(55~63행)·`RAW_TEXT_END`(84~88행) |
+| **우선순위** | Critical |
+| **전제조건** | node 환경. `PATHS` 두 항목으로 같은 케이스를 반복한다: DOMPurify 경로는 `createSanitizer({ purify: DOMPurify })`, 정규식 경로는 `createSanitizer({ purify: null })`. 신뢰 origin 은 설정하지 않아 기본값(YouTube·youtube-nocookie·Vimeo 4개)을 쓴다 |
+| **판정 방법** | 출력 문자열을 `JSDOM` 으로 다시 파싱해 검사한다(`expectInert`). 이름이 `on` 으로 시작하는 속성과 `srcdoc` 이 없어야 한다. URL 속성 5종(`href`, `src`, `action`, `formaction`, `xlink:href`)의 값을 `new URL()` 로 해석했을 때 `javascript:`·`vbscript:`·`data:`(단 `data:image/` 제외)로 시작하지 않아야 한다. `script`·`object`·`embed`·`applet` 요소와 기본 신뢰 origin 밖의 `iframe` 이 없어야 한다 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | BYP-01~03: `<img src="x"/onerror="alert(1)">`, `<svg/onload=alert(1)>`, `<a href="https://x.com/"onmouseover="alert(1)">` | 두 경로 모두 `on*` 속성이 없다 (slash·따옴표 바로 뒤 속성) |
+| 2 | EVT-01~04: 연속 이벤트 속성, 작은따옴표 뒤, `/onload=…/onfocus=…`, 개행 구분자 | 두 경로 모두 `on*` 속성이 없다 |
+| 3 | BYP-04, URL-01~10, HBP-05: `jav&#x61;script:`, `&#0000106avascript:`, `javascript&colon;`, `java&Tab;script:`, `java&NewLine;script:`, `&#1;&#32;javascript:`, 따옴표 없는 값, `vbscript:`, `data:text/html;base64`, SVG `xlink:href`, `action="jav&#x09;ascript:…"`, `jav&#x09;ascript:` | 두 경로 모두 위험 프로토콜 URL 속성이 없다 (정규식 경로는 엔티티 디코딩과 공백·제어문자 제거 후 판정) |
+| 4 | HBP-01, HBP-03, HBP-10, TAG-01: `<ScRiPt >`, `<<script>alert(1)//<</script>`, `data:text/html` img, `<scr<object>ipt>…` | 두 경로 모두 `script`·`object` 요소와 위험 URL 이 없다 |
+| 5 | TAG-02: `<script>` 태그 이름 가운데에 `<object>` 를 1~40단계로 중첩해 끼운 입력 | 40개 입력 모두 `script` 요소가 없다 (정규식 경로는 변화가 없을 때까지 최대 16회 반복하고, 수렴하지 않으면 `<`·`>` 를 모두 이스케이프한다) |
+| 6 | BYP-05a·05b·05c: 닫는 태그 없는 비신뢰 iframe, self-closing 비신뢰 iframe | 비신뢰 iframe 이 없고, 앞 문단 `<p>` 텍스트 `'a'` 가 남는다 |
+| 7 | IFR-01~03: 신뢰 iframe 의 `srcdoc`, 신뢰 iframe 뒤 닫히지 않은 비신뢰 iframe, 따옴표 값 안에 신뢰 `src` 를 숨기고 실제 `src` 는 비신뢰 origin 인 iframe | `srcdoc` 과 비신뢰 iframe 이 없다 (정규식 경로는 첫 `src` 속성값으로 판정) |
+| 8 | TAG-03~05, END-01: 따옴표 값 안의 `>` 뒤 이벤트 속성·`javascript:` href, NBSP 뒤 따옴표, 끝 태그 속성값으로 가린 `<img onerror>` | 두 경로 모두 `on*` 속성과 위험 URL 이 없다 (태그 경계를 브라우저와 같게 끊는다) |
+| 9 | RAW-01~02, CMT-01~04, CDATA-01: `<title>`·신뢰 iframe 내용으로 가린 태그, 주석 안 따옴표, `<!-->`·`<!--->`·`--!>` 로 끝나는 주석, SVG `<![CDATA[` 로 가린 태그 | 두 경로 모두 `on*` 속성이 없다 (raw text 요소 내용의 `<` 이스케이프, CDATA 시작의 텍스트화) |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 82개 (현재: 경로별 41건 × 2. 정적 `it`/`it.each` 호출 4개)
+- **관련 요구사항:** OWASP A03:2021 Injection
+- **비고:**
+  - 1~6번 단계와 7번 단계의 IFR-01~02 는 커밋 `679fb96`, 7번 단계의 IFR-03 과 8~9번 단계는 커밋 `f0193e1` 에서 추가되었다. 테스트 이름은 `CMS-HSP-<라벨>` 형식이고, 경로 이름은 `describe` 제목(`html-sanitizer DOMPurify 경로 (CMS-HSP)` / `html-sanitizer 정규식 경로 (CMS-HSP)`)으로만 구분된다.
+  - `CMS-HSP-HBP-01`·`03`·`05`·`10` 은 TC-S-002 의 같은 번호 페이로드를 두 경로로 다시 실행한다. `CMS-HSP-CMT-01~04`(주석 우회)는 TC-S-009 의 `CMS-HSP-CMT <라벨>`(데이터 주석 보존)과 접두어가 같지만 다른 케이스이다.
+  - `expectInert` 가 검사하는 요소는 `script`·`object`·`embed`·`applet` 이고 입력에 들어 있는 위험 태그는 `script`·`object` 뿐이다. embed·applet·form·input·textarea·select·button·style 제거(정규식 경로 35~39행)는 정규식 경로 테스트가 없다.
+
+---
+
+### TC-S-009: 새니타이저 두 경로 본문 텍스트·데이터 주석·안전 표현 보존
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/html-sanitizer-paths.test.ts` (`describe.each(PATHS)` 안의 `describe('태그 밖 텍스트 보존')`, `describe('데이터 주석 보존')`, `describe('안전한 표현 유지')`, `describe('빈 입력')`) |
+| **대상** | `src/utils/html-sanitizer.ts`: DOMPurify 옵션 `ADD_TAGS: ['iframe', '#comment']`·`ADD_ATTR`(`target` 포함)·`FORCE_BODY: true`(360~367행) / 정규식 경로 `sanitizeMarkup()` 의 주석·태그 밖 텍스트 원문 유지(295~298행, 324행)와 `sanitizeAttributes()` 의 무변경 원문 반환(231~252행) / `createSanitizer()` 빈 입력 처리(467행) |
+| **우선순위** | High |
+| **전제조건** | TC-S-008 과 같은 두 경로 구성. 데이터 주석 페이로드는 블록 에디터 serializer 와 같은 방식(`btoa(encodeURIComponent(JSON.stringify(data)))`)으로 만든다 |
+| **테스트 데이터** | 한글·`<b>`·따옴표·`&`·`>`·`/on=1` 을 담은 블록 JSON 을 인코딩한 `PAYLOAD` |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | TXT-01: `<p>설정값 "online=true" 와 "one=1", 예시 href="javascript:void(0)" 문구</p>` | 두 경로 모두 출력이 입력과 같다 (속성처럼 보이는 본문 텍스트를 바꾸지 않는다) |
+| 2 | TXT-02: `<p onclick="x()">onclick="x()" 와 srcdoc="y" 설명</p>` | `onclick` 속성은 없고 본문 텍스트는 `'onclick="x()" 와 srcdoc="y" 설명'` 그대로이다 |
+| 3 | CMT 8건: `abe-blocks`, `pme-data`, `rme-data` 주석(공백 있음·없음 각각)과 `nbe-cta-start`/`nbe-cta-end` 주석으로 감싼 CTA 블록(공백 있음·없음)을 문서 맨 앞과 본문 사이에 둔다 | 두 위치 모두 출력이 입력과 바이트 단위로 같다 (맨 앞 주석은 DOMPurify 경로에서 `FORCE_BODY` 가 있어야 남는다) |
+| 4 | CMT-DOC: 데이터 주석 4종과 `h2.pme-title`, `style` 속성 `p`, `target="_blank"`·`rel` 링크, `nbe-cta` 주석이 섞인 실제 형태의 본문 | 두 경로 모두 출력이 입력과 바이트 단위로 같다 |
+| 5 | KEEP-01: `class`·`style` 이 있는 `p`, `target="_blank"` 링크, `width`·`height`·`frameborder`·`allow`·`allowfullscreen` 이 있는 YouTube iframe | TC-S-008 판정을 통과하고 `class`, `style`, `href`, `target`, iframe `src`·`allowfullscreen`·`frameborder`·`allow` 값이 유지된다 |
+| 6 | KEEP-02: `<img src="data:image/png;base64,…">` / KEEP-03: `<a href="https://example.com/?a=1&amp;b=2">` | `data:image` src 유지 / 출력이 입력과 같다 |
+| 7 | EMPTY-01: `''`, `null`, `undefined` | 각각 `''`, `null`, `undefined` |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 30개 (현재: 경로별 15건 × 2. 정적 `it`/`it.each` 호출 8개)
+- **관련:** 새니타이저가 필요 이상으로 지우지 않는지 확인하는 회귀이다. 보존 대상 주석 목록은 `docs/utils.md` 새니타이저 절과 같다.
+- **비고:** 1~2번 단계는 커밋 `f0193e1`, 나머지는 커밋 `679fb96` 에서 추가되었다. `f0193e1` 이전의 정규식 경로는 속성 치환을 HTML 전체 문자열에 적용해 본문 텍스트까지 바꾸었다 (커밋 `f0193e1` 메시지).
 
 ---
 
@@ -1208,7 +1316,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 
 **목적:** 패키지가 export 하는 UI 컴포넌트가 WCAG 2.1 Level AA 의 이름·역할·값, 키보드 조작, 상태 메시지 요구를 충족하는지 검증한다.
 
-**실행 명령:** 계획 단계이므로 명령이 없다.
+**실행 명령:** `npx vitest run tests/admin-shell-current-page.dom.test.tsx` (완료 TC 는 TC-AC-006 뿐이다. 나머지는 계획 단계이다)
 
 **공통 전제조건:** jsdom 과 `@testing-library/react` 는 설치되어 있다. `@testing-library/user-event` 와 axe 계열 자동 검사 도구는 설치되어 있지 않으므로 도입 여부를 결정해야 한다. 시각적 포커스 표시는 jsdom 에서 계산할 수 없어 브라우저 수동 확인 항목으로 둔다. 예상 결과 칸에는 요구 사항과 함께 소스를 읽고 판정한 현재 코드 충족 여부를 적었다.
 
@@ -1283,7 +1391,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/accessibility/AdminShell.a11y.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminShell.tsx`: 렌더링(198~271행) |
+| **대상** | `src/components/AdminShell.tsx`: 렌더링(210~287행) |
 | **우선순위** | Medium |
 | **기준** | WCAG 2.1 SC 1.3.1 (Info and Relationships), 2.4.4 (Link Purpose), 4.1.2, 4.1.3 |
 | **전제조건** | TC-U-017 과 같은 mock 구성, `/me` 성공 응답 |
@@ -1298,6 +1406,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 6 | 브랜드 링크 `target="_blank"` | 새 창 열림 안내 여부를 결정해야 한다 (현재 `title="사이트 보기"` 만 있다) |
 
 - **자동화:** 가능 ✅
+- **비고:** nav 링크의 현재 페이지 상태(`aria-current="page"`)는 0.2.1 에서 추가되었고 TC-AC-006 이 검증한다. 4번 단계(접힌 상태 링크 이름이 `glyph` 1글자)는 0.2.2 에서도 그대로이다(264행).
 
 ---
 
@@ -1319,6 +1428,34 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 4 | 리사이즈 핸들 | 요구: 키보드로 크기를 조절하는 수단 (현재 코드 미충족: `onMouseDown` 만 가진 `<div>` 이며 포커스할 수 없다) |
 
 - **자동화:** 가능 ✅
+
+---
+
+### TC-AC-006: AdminShell 사이드바 현재 페이지 표시 (aria-current)
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/admin-shell-current-page.dom.test.tsx` |
+| **대상** | `src/components/AdminShell.tsx`: `currentNavHref` 계산(109~119행), nav 링크의 `className`·`aria-current`(252~268행) |
+| **우선순위** | Medium |
+| **기준** | WCAG 2.1 SC 1.3.1 (Info and Relationships): 현재 위치 표시(`active` 클래스)를 `aria-current` 로 보조기술이 판별할 수 있게 한다. 참고: SC 2.4.8 (Location, Level AAA) |
+| **전제조건** | `next/navigation`(`usePathname` 반환값을 `vi.hoisted` 상태로 제어), `next/link`(나머지 props 를 넘기는 `<a>` 로 대체), `next/dynamic`, `utils/admin-fetch`(`/me` 성공 응답)를 mock 한다. 각 테스트 전후에 `resetCmsConfig()`, `localStorage.clear()` 를 호출한다 |
+| **테스트 데이터** | `brandLabel="Brand"`, `navItems`: `Dashboard` `/admin` (`D`), `News` `/admin/news` (`N`), `Gallery` `/admin/gallery` (`G`) |
+| **판정 방법** | 현재 페이지 링크는 `aria-current="page"` 이고 `className` 이 정확히 `'admin-sidebar-link active'` 이다. 나머지 링크는 `aria-current` 속성이 없고 `className` 이 `'admin-sidebar-link'` 이다. 두 표시 중 하나라도 있는 링크의 href 목록(`markedHrefs`)도 함께 비교한다 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | CUR-01: 경로 `/admin/gallery` | `Gallery` 만 현재 페이지, `Dashboard`·`News` 는 표시 없음 |
+| 2 | CUR-02: 경로 `/admin/news/abc/edit` | 표시된 href `['/admin/news']` (하위 경로에서는 상위 href 링크가 현재 페이지) |
+| 3 | CUR-03: nav 를 `News`·`Gallery` 2개로 두고 경로 `/admin/newsletter` | 표시된 href `[]` (`/admin/news/` 로 시작하지 않으므로 일치하지 않는다) |
+| 4 | CUR-04: 경로 `/admin/news` | 표시된 href `['/admin/news']`, `Dashboard` 는 표시 없음 (`/admin` 도 일치하지만 가장 긴 href 하나만 표시) |
+| 5 | CUR-05: 기본 nav 3개, 경로 `/admin/newsletter` | 표시된 href `['/admin']` (`/admin/` 로 시작하는 더 짧은 일치 링크) |
+| 6 | CUR-06: `localStorage['admin_sidebar_collapsed'] = 'true'` 후 경로 `/admin/news/abc/edit` | 링크 텍스트 `['D', 'N', 'G']` (접힌 상태), 표시된 href `['/admin/news']` |
+| 7 | CUR-07: `usePathname()` 이 `null` | 링크 3개 모두 표시 없음 |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 7개 (현재)
+- **관련:** 2~5번 단계는 경로 일치 규칙(경로 경계, 가장 긴 href)을 검증하므로 Unit 도메인과도 관련된다.
+- **비고:** 패키지에는 `.admin-sidebar-link.active` 스타일 규칙이 없다 (`src/components/` 의 CSS 는 `image-drop-zone.css`, `toggle-switch.css` 두 개뿐이다). 시각적 현재 위치 표시는 호스트 CSS 가 맡으므로 이 TC 는 마크업만 검증한다.
 
 ---
 
@@ -1376,7 +1513,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 
 **실행 명령:** `npx vitest run tests/exports-superset.test.ts tests/no-consumer-literals.test.ts tests/zod-compat.test.ts`
 
-새로 받은 체크아웃에서는 `exports-superset.test.ts` 가 로드되지 않으므로 이 명령의 결과가 2개 파일 7건 통과와 1개 파일 실패가 된다.
+추적 파일만 있는 체크아웃에서는 세 파일 모두 `tests-harness/env-setup.ts` 를 찾지 못해 0건 실행이다. `env-setup.ts` 만 복사한 상태에서는 `exports-superset.test.ts` 가 기준선 파일을 찾지 못해 2개 파일 7건 통과와 1개 파일 실패가 된다 (2026-09-15 실측).
 
 ---
 
@@ -1388,14 +1525,14 @@ AdminManagerBase / useAdminList / useImageDropZone
 | **대상** | `src/` 9개 배럴의 export 이름 집합이 기준선의 상위집합인지 (TypeScript 컴파일러 API `getExportsOfModule`) |
 | **우선순위** | High |
 | **전제조건** | `.claude/harness/pms-refactor/baseline-exports.json` (gitignore 대상 `.claude/` 아래에 있어 저장소에 없다) |
-| **현재 문제** | 새로 받은 체크아웃에서는 27행 `readFileSync` 가 ENOENT 로 실패해 파일 전체가 로드되지 않는다(0건 실행). 원본 체크아웃처럼 로컬 기준선 파일이 있을 때만 10건이 실행된다 |
+| **현재 문제** | 기준선 파일이 없으면 모듈 최상위의 기준선 읽기(27~32행, `readFileSync` 는 28행)가 ENOENT 로 실패해 파일 전체가 로드되지 않는다(0건 실행). 원본 체크아웃처럼 로컬 기준선 파일이 있을 때만 10건이 실행된다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
 | 1 | `.` 배럴 | 기준선 이름 64개 모두 export |
 | 2 | `./components` 13개, `./hooks` 5개, `./infrastructure` 8개, `./infrastructure/middleware` 7개 | 누락 0 |
 | 3 | `./services` 12개, `./types` 3개, `./utils` 29개, `./validators` 2개 | 누락 0 |
-| 4 | CMS-EXP-TOUCHED | `utils` 에 `sanitizeHtmlContent`·`createSanitizer`·`setCmsConfig` 등, `components` 에 `JsonLd`·`AdminShell`, `infrastructure` 에 `prisma`·`withPublicApi`, 루트에 `parseSortParam`·`parseSortKey` |
+| 4 | CMS-EXP-TOUCHED | `utils` 에 `sanitizeHtmlContent`·`createSanitizer`·`setCmsConfig`·`DOMPurifyLike`(0.2.2 추가 타입, 커밋 `679fb96`) 등, `components` 에 `JsonLd`·`AdminShell`, `validators` 에 `slugSchema`·`optionalUrlSchema`, `infrastructure` 에 `prisma`·`withPublicApi`, 루트에 `parseSortParam`·`parseSortKey` |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 10개 (기준선 파일이 있을 때), 0개 (새로 받은 체크아웃)
 
@@ -1462,7 +1599,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 2 | `tsup.config.ts` `CLIENT_ENTRIES` 9개의 `.js`·`.mjs` | 첫 줄이 `"use client";` |
 | 3 | `dist/` 와 `dist/components/` | `image-drop-zone.css`, `toggle-switch.css` 존재 |
 | 4 | 9개 배럴의 dist `.d.ts` 를 TypeScript 컴파일러 API 로 읽기 | export 이름 집합이 `src` 배럴과 같다 |
-| 5 | `dist/utils/index.d.ts` | `setCmsConfig`, `resetCmsConfig`, `createForwardedIdentityExtractor` 포함 (설정 API 는 `./config` 서브패스가 없어 `./utils` 로만 공개된다) |
+| 5 | `dist/utils/index.d.ts` | `setCmsConfig`, `resetCmsConfig`, `createForwardedIdentityExtractor`, `DOMPurifyLike` 포함 (설정 API 는 `./config` 서브패스가 없어 `./utils` 로만 공개된다) |
 
 - **자동화:** 가능 ✅
 - **비고:** 현재 테스트가 import 하는 `@withwiz/cms-kit/*` 경로 39개 중 17개는 `exports` 에 없다. 그중 9개는 `/index` 표기로 배럴과 같고, 나머지 8개(`components/ImageDropUpload`, `config`, `hooks/useAdminForm`, `hooks/useAdminList`, `services/base-service`, `utils/api-response`, `utils/cn`, `utils/image-resize`)는 소비자가 사용할 수 없는 깊은 경로이다.
@@ -1480,8 +1617,8 @@ AdminManagerBase / useAdminList / useImageDropZone
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | `npm ci` → `npx vitest run` (현재 상태) | 현재: 35개 파일 모두 `Cannot find module .../tests-harness/env-setup.ts` 로 실패, 0건 실행 (2026-09-13 실측) |
-| 2 | 선행 조건 해소 후 같은 명령 | 요구: 35개 파일 로드, 267건 실행 |
+| 1 | `npm ci` → `npx vitest run` (현재 상태) | 현재: 37개 파일 모두 `Cannot find module .../tests-harness/env-setup.ts` 로 실패, 0건 실행 (2026-09-15 실측, 2026-09-13 에는 35개 파일) |
+| 2 | 선행 조건 해소 후 같은 명령 | 요구: 37개 파일 로드, 390건 실행 |
 | 3 | `pnpm install --frozen-lockfile` | 현재: `pnpm-lock.yaml` 이 없어 `ERR_PNPM_NO_LOCKFILE`. 요구: 저장소가 채택한 패키지 관리자 명령으로 설치 성공 |
 
 - **자동화:** 가능 ✅
@@ -1541,18 +1678,21 @@ AdminManagerBase / useAdminList / useImageDropZone
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/chaos/sanitizer-fallback.test.ts` (신규) |
-| **대상** | `src/utils/html-sanitizer.ts`: `tryLoadDomPurify()`(73~89행), `regexSanitize()`(93~121행) |
+| **대상** | `src/utils/html-sanitizer.ts`: `tryLoadDomPurify()`(149~165행), `createSanitizer()` 경로 선택(472~477행) |
 | **우선순위** | Low |
-| **전제조건** | 모듈 수준 `cachedDomPurify` 를 초기화하기 위해 `vi.resetModules()` 를 호출한다. 소스는 동적 `require('isomorphic-dompurify')` 를 사용하므로, `vi.mock` 이 이 `require` 호출에 적용되는지 먼저 검증해야 한다 |
+| **전제조건** | 모듈 수준 `cachedDomPurify` 를 초기화하기 위해 `vi.resetModules()` 를 호출한다. 소스는 동적 `require('isomorphic-dompurify')` 를 사용하므로, `vi.mock`(또는 `vi.doMock`)으로 로드 실패를 만들 수 있는지 먼저 검증해야 한다 |
+| **범위** | 정규식 경로의 출력 명세(스크립트·이벤트 속성·위험 URL·비신뢰 iframe 제거와 보존 규칙)는 TC-S-008·TC-S-009 가 `purify: null` 로 두 경로를 고정해 검증한다. 이 TC 는 `purify` 를 지정하지 않았을 때 로드 실패를 감지해 그 경로로 바뀌는 분기만 다룬다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | `'<p>a</p><script>x()</script>'` | `'<p>a</p>'` |
-| 2 | `'<a href="#" onclick="x()">k</a>'` | `'<a href="#">k</a>'` |
-| 3 | `evil.example` iframe / `https://www.youtube.com/embed/a` iframe | 제거 / 유지 |
-| 4 | `'<a href="jav&#x09;ascript:alert(1)">x</a>'` | 입력이 그대로 남는다 (정규식 경로의 알려진 한계, TC-S-002 6번 단계에서 확인된 동작) |
+| 1 | `require('isomorphic-dompurify')` 가 예외를 던지게 한 뒤 `sanitizeHtmlContent('<a href="jav&#x09;ascript:alert(1)">x</a>')` | `'<a href="">x</a>'` (정규식 경로 결과. DOMPurify 경로 결과는 `'<a>x</a>'` 이므로 두 경로를 구분할 수 있다) |
+| 2 | 1번 상태에서 `sanitizeHtmlContent('<a href="#" onclick="x()">k</a>')` | `'<a href="#" >k</a>'` (정규식 경로는 지운 속성 앞의 공백을 남긴다) |
+| 3 | 모듈은 로드되지만 `default`·본체 모두 `sanitize` 함수가 없는 객체 | 1번과 같은 정규식 경로 결과 (156행 조건 불충족) |
+| 4 | 1번 이후 같은 모듈 인스턴스로 다시 호출 | 계속 정규식 경로 결과 (150행에서 캐시된 `null` 을 반환하고 다시 로드하지 않는다) |
+| 5 | 1번 상태에서 `createSanitizer({ purify: DOMPurify })` 로 호출 | `'<a>x</a>'` (주입한 인스턴스를 쓰고 동적 로딩을 시도하지 않는다, 472~473행) |
 
 - **자동화:** 가능 ✅ (선행 검증 필요)
+- **비고:** 1·2·4·5번 결과는 2026-09-15 에 0.2.2 소스를 번들해 `isomorphic-dompurify` 를 해석할 수 없는 위치에서 실행해(실제 `require` 실패) 확인한 값이다. 3번은 실행하지 않았다. 2026-09-13 판의 이 TC 는 0.2.0 정규식 경로 기준으로 onclick 입력 결과를 `'<a href="#">k</a>'`, `jav&#x09;ascript:` 입력을 "그대로 남는 알려진 한계"로 적었다(같은 방법으로 `1010503` 소스를 실행해 두 값을 다시 확인했다). 0.2.2 에서 엔티티 디코딩 후 판정과 태그 단위 속성 정리로 바뀌어 위 값으로 고쳤다. 정규식 경로의 출력 단계는 TC-S-008·TC-S-009 로 옮겨졌고, 로드 실패 분기를 실행하는 테스트는 여전히 없으므로 계획 상태를 유지한다.
 
 ---
 
@@ -1564,60 +1704,64 @@ AdminManagerBase / useAdminList / useImageDropZone
 | **Integration** | 3개 | 17개 | 4 | 4 (2 / 1 / 1) | +1개 (교체 1개 별도) |
 | **API** | 4개 | 32개 | 6 | 6 (4 / 0 / 2) | +2개 |
 | **E2E** | 0개 | 0개 | 0 | 0 | 미적용 |
-| **Security** | 4개 | 51개 | 6 | 6 (4 / 0 / 2) | +2개 |
+| **Security** | 5개 | 167개 | 9 | 9 (7 / 0 / 2) | +2개 |
 | **Performance** | 0개 | 0개 | 2 | 2 (0 / 0 / 2) | +2개 |
-| **Accessibility** | 0개 | 0개 | 5 | 5 (0 / 0 / 5) | +5개 |
+| **Accessibility** | 1개 | 7개 | 6 | 6 (1 / 0 / 5) | +5개 |
 | **Load/Stress** | 0개 | 0개 | 2 | 2 (0 / 0 / 2) | +2개 |
 | **Smoke** | 3개 | 17개 | 5 | 5 (2 / 1 / 2) | +1개 (CI 절차 1개 별도) |
 | **Chaos** | 0개 | 0개 | 3 | 3 (0 / 0 / 3) | +3개 |
-| **합계** | **35개** | **267개** | **60** | **60 (29 / 2 / 29)** | **+24개** |
+| **합계** | **37개** | **390개** | **64** | **64 (33 / 2 / 29)** | **+24개** |
 
+- 2026-09-13 판(0.2.0) 대비 Security 에 1개 파일 116건(SC/TC-S-007~009), Accessibility 에 1개 파일 7건(SC/TC-AC-006)이 늘었다. 계획 TC 중 완료로 바뀐 것은 없다 (TC-C-003 은 범위를 로드 실패 분기로 좁히고 계획 유지).
+- Security 167개 중 116개는 `html-sanitizer-paths.test.ts` 가 DOMPurify·정규식 두 경로에 같은 케이스를 반복해 만든 수이다.
 - Smoke 17개에는 로컬 기준선이 있어야 실행되는 `exports-superset.test.ts` 10건이 포함되어 있다.
 - Unit 계획 신규 파일 6개는 `AdminManagerBase.dom.test.tsx`(TC-U-018~021 공용), `AdminShell.dom.test.tsx`, `ResizableImage.dom.test.tsx`(TC-U-023~024 공용), `useImageDropZone-paths.dom.test.ts`, `image-resize-canvas.dom.test.ts`, `variant-key-edge.test.ts` 이다.
 - 계획 테스트 수는 구현 전이므로 집계하지 않았다.
 
 ### 테스트 파일 대조표
 
-모든 테스트 파일(35개)이 한 TC 의 "파일" 칸에 등장한다. 누락 파일은 0개이다.
+모든 테스트 파일(37개)이 한 개 이상의 TC "파일" 칸에 등장한다. 누락 파일은 0개이다. 테스트 수는 2026-09-15 JSON 리포터 실행 결과이다.
 
 | # | 파일 | 환경 | 테스트 수 | TC |
 |---|------|------|---------|-----|
 | 1 | `tests/admin-fetch.dom.test.ts` | jsdom | 7 | TC-A-004 |
 | 2 | `tests/admin-shell-config.dom.test.tsx` | jsdom | 3 | TC-U-017 |
-| 3 | `tests/api-helpers.test.ts` | node | 9 | TC-A-002 |
-| 4 | `tests/api-response.test.ts` | node | 13 | TC-A-001 |
-| 5 | `tests/base-service.test.ts` | node | 6 | TC-U-003 |
-| 6 | `tests/cn.test.ts` | node | 6 | TC-U-002 |
-| 7 | `tests/config-boundary.test.ts` | node | 8 | TC-U-008 |
-| 8 | `tests/date.test.ts` | node | 10 | TC-U-001 |
-| 9 | `tests/exports-superset.test.ts` | node | 10 | TC-SM-001 |
-| 10 | `tests/html-sanitizer-bypass.test.ts` | node | 11 | TC-S-002 |
-| 11 | `tests/html-sanitizer.test.ts` | node | 22 | TC-S-001 |
-| 12 | `tests/image-resize.dom.test.ts` | jsdom | 5 | TC-U-011 |
-| 13 | `tests/image-variant-utils.test.ts` | node | 7 | TC-U-005 |
-| 14 | `tests/image-variants.test.ts` | node | 5 | TC-U-005 |
-| 15 | `tests/ImageDropUpload.dom.test.tsx` | jsdom | 7 | TC-U-015 |
-| 16 | `tests/integration/middleware-wrappers.test.ts` | node | 6 | TC-I-003 |
-| 17 | `tests/integration/prisma-service-flow.test.ts` | node | 5 | TC-I-001 |
-| 18 | `tests/integration/r2-pipeline.test.ts` | node | 6 | TC-I-002 |
-| 19 | `tests/JsonLd.dom.test.tsx` | jsdom | 4 | TC-U-016 |
-| 20 | `tests/jwt.test.ts` | node | 3 | TC-U-007 |
-| 21 | `tests/no-consumer-literals.test.ts` | node | 3 | TC-SM-002 |
-| 22 | `tests/pagination.test.ts` | node | 7 | TC-U-003 |
-| 23 | `tests/prisma-di.test.ts` | node | 4 | TC-U-006 |
-| 24 | `tests/r2-helpers.test.ts` | node | 18 | TC-U-009 |
-| 25 | `tests/r2-key-sanitization.test.ts` | node | 6 | TC-S-003 |
-| 26 | `tests/r2-storage.test.ts` | node | 13 | TC-U-010 |
-| 27 | `tests/rate-limit-identity.test.ts` | node | 12 | TC-S-004 |
-| 28 | `tests/route-params.test.ts` | node | 3 | TC-A-003 |
-| 29 | `tests/shared-validators.test.ts` | node | 12 | TC-U-004 |
-| 30 | `tests/ToggleSwitch.dom.test.tsx` | jsdom | 6 | TC-U-015 |
-| 31 | `tests/useAdminForm.dom.test.ts` | jsdom | 7 | TC-U-012 |
-| 32 | `tests/useAdminList.dom.test.ts` | jsdom | 7 | TC-U-012 |
-| 33 | `tests/useImageDropZone.dom.test.ts` | jsdom | 7 | TC-U-013 |
-| 34 | `tests/useScrollReveal.dom.test.ts` | jsdom | 5 | TC-U-014 |
-| 35 | `tests/zod-compat.test.ts` | node | 4 | TC-SM-003 |
-| | **합계** | node 25개, jsdom 10개 | **267** | |
+| 3 | `tests/admin-shell-current-page.dom.test.tsx` | jsdom | 7 | TC-AC-006 |
+| 4 | `tests/api-helpers.test.ts` | node | 9 | TC-A-002 |
+| 5 | `tests/api-response.test.ts` | node | 13 | TC-A-001 |
+| 6 | `tests/base-service.test.ts` | node | 6 | TC-U-003 |
+| 7 | `tests/cn.test.ts` | node | 6 | TC-U-002 |
+| 8 | `tests/config-boundary.test.ts` | node | 8 | TC-U-008 |
+| 9 | `tests/date.test.ts` | node | 10 | TC-U-001 |
+| 10 | `tests/exports-superset.test.ts` | node | 10 | TC-SM-001 |
+| 11 | `tests/html-sanitizer-bypass.test.ts` | node | 11 | TC-S-002 |
+| 12 | `tests/html-sanitizer-paths.test.ts` | node | 116 | TC-S-007 (4), TC-S-008 (82), TC-S-009 (30) |
+| 13 | `tests/html-sanitizer.test.ts` | node | 22 | TC-S-001 |
+| 14 | `tests/image-resize.dom.test.ts` | jsdom | 5 | TC-U-011 |
+| 15 | `tests/image-variant-utils.test.ts` | node | 7 | TC-U-005 |
+| 16 | `tests/image-variants.test.ts` | node | 5 | TC-U-005 |
+| 17 | `tests/ImageDropUpload.dom.test.tsx` | jsdom | 7 | TC-U-015 |
+| 18 | `tests/integration/middleware-wrappers.test.ts` | node | 6 | TC-I-003 |
+| 19 | `tests/integration/prisma-service-flow.test.ts` | node | 5 | TC-I-001 |
+| 20 | `tests/integration/r2-pipeline.test.ts` | node | 6 | TC-I-002 |
+| 21 | `tests/JsonLd.dom.test.tsx` | jsdom | 4 | TC-U-016 |
+| 22 | `tests/jwt.test.ts` | node | 3 | TC-U-007 |
+| 23 | `tests/no-consumer-literals.test.ts` | node | 3 | TC-SM-002 |
+| 24 | `tests/pagination.test.ts` | node | 7 | TC-U-003 |
+| 25 | `tests/prisma-di.test.ts` | node | 4 | TC-U-006 |
+| 26 | `tests/r2-helpers.test.ts` | node | 18 | TC-U-009 |
+| 27 | `tests/r2-key-sanitization.test.ts` | node | 6 | TC-S-003 |
+| 28 | `tests/r2-storage.test.ts` | node | 13 | TC-U-010 |
+| 29 | `tests/rate-limit-identity.test.ts` | node | 12 | TC-S-004 |
+| 30 | `tests/route-params.test.ts` | node | 3 | TC-A-003 |
+| 31 | `tests/shared-validators.test.ts` | node | 12 | TC-U-004 |
+| 32 | `tests/ToggleSwitch.dom.test.tsx` | jsdom | 6 | TC-U-015 |
+| 33 | `tests/useAdminForm.dom.test.ts` | jsdom | 7 | TC-U-012 |
+| 34 | `tests/useAdminList.dom.test.ts` | jsdom | 7 | TC-U-012 |
+| 35 | `tests/useImageDropZone.dom.test.ts` | jsdom | 7 | TC-U-013 |
+| 36 | `tests/useScrollReveal.dom.test.ts` | jsdom | 5 | TC-U-014 |
+| 37 | `tests/zod-compat.test.ts` | node | 4 | TC-SM-003 |
+| | **합계** | node 26개, jsdom 11개 | **390** | |
 
 ---
 
@@ -1629,7 +1773,7 @@ AdminManagerBase / useAdminList / useImageDropZone
 
 - **A. `CMS-D-01` 계열 (tests/spec.md 정의):** `tests/spec.md` Task 1~18 이 정의한 18개 접두어이다.
 - **B. `CMS-D-01` 과 같은 형식이지만 정의 문서가 없는 ID:** pms-refactor 로컬 기준선(2026-05-15, 27개 파일·191건)에 이미 있었지만 `tests/spec.md` 와 하네스 문서 어디에도 정의되지 않은 9개 접두어이다.
-- **C. `CMS-EXP` 계열 (pms-refactor 하네스 절 참조):** pms-refactor Sprint 1 에서 추가된 8개 파일과 기존 파일에 추가된 번호이다. 테스트 주석은 로컬 하네스 `spec.md` 의 절 번호(§3 I1, §4.1, §4.6, §4.7, §5)와 체크 항목(CHK-, AC-)을 참조하지만, 하네스 `spec.md`·`sprint_contract.md` 자체에는 `CMS-` ID 가 한 건도 없다. 기존 파일에 나중에 추가된 번호(커밋 `c4aeb8e`, `797595f` 포함)도 이 묶음에 기록한다.
+- **C. `CMS-EXP` 계열 (pms-refactor 하네스 절 참조):** pms-refactor Sprint 1 에서 추가된 8개 파일과 기존 파일에 추가된 번호이다. 테스트 주석은 로컬 하네스 `spec.md` 의 절 번호(§3 I1, §4.1, §4.6, §4.7, §5)와 체크 항목(CHK-, AC-)을 참조하지만, 하네스 `spec.md`·`sprint_contract.md` 자체에는 `CMS-` ID 가 한 건도 없다. 기존 파일에 나중에 추가된 번호(커밋 `c4aeb8e`, `797595f` 포함)와 0.2.1·0.2.2 에서 추가된 2개 파일(커밋 `7d914b0`, `679fb96`, `f0193e1`)도 이 묶음에 기록한다.
 
 ### A. tests/spec.md 정의 ID
 
@@ -1689,17 +1833,25 @@ AdminManagerBase / useAdminList / useImageDropZone
 | `CMS-AF-07` | 1 | §4.1 C2 | 기준선 이후, 최초 커밋 이전 | `tests/admin-fetch.dom.test.ts` | TC-A-004 |
 | `CMS-UIDZ-07` | 1 | §4.1 C2 | 기준선 이후, 최초 커밋 이전 | `tests/useImageDropZone.dom.test.ts` | TC-U-013 |
 | `CMS-R2P-06` | 1 | §4.1 C3 | 기준선 이후, 최초 커밋 이전 | `tests/integration/r2-pipeline.test.ts` | TC-I-002 |
+| `CMS-ASC-CUR-01` ~ `CMS-ASC-CUR-07` | 7 | 없음 (접근성 수정, 사이드바 현재 페이지 표시) | 커밋 `7d914b0` (0.2.1) | `tests/admin-shell-current-page.dom.test.tsx` | TC-AC-006 |
+| `CMS-HSP-INJ-01` ~ `CMS-HSP-INJ-04` | 4 | 없음 (새니타이저 보안 수정) | 커밋 `679fb96` (0.2.2) | `tests/html-sanitizer-paths.test.ts` | TC-S-007 |
+| `CMS-HSP-BYP-01` ~ `05c`, `EVT-01` ~ `04`, `URL-01` ~ `10`, `IFR-01` ~ `02`, `TAG-01` ~ `02`, `HBP-01`·`03`·`05`·`10` | 58 (정적 4개) | 없음 (새니타이저 보안 수정) | 커밋 `679fb96` (0.2.2) | `tests/html-sanitizer-paths.test.ts` | TC-S-008 |
+| `CMS-HSP-TAG-03` ~ `05`, `END-01`, `IFR-03`, `RAW-01` ~ `02`, `CMT-01` ~ `04`, `CDATA-01` | 24 (정적 0개, 기존 `it.each` 에 행 추가) | 없음 (정규식 경로 태그 경계 수정) | 커밋 `f0193e1` (0.2.2) | `tests/html-sanitizer-paths.test.ts` | TC-S-008 |
+| `CMS-HSP-CMT <라벨>` 8종, `CMS-HSP-CMT-DOC`, `CMS-HSP-KEEP-01` ~ `03`, `CMS-HSP-EMPTY-01` | 26 (정적 6개) | 없음 (새니타이저 보안 수정) | 커밋 `679fb96` (0.2.2) | `tests/html-sanitizer-paths.test.ts` | TC-S-009 |
+| `CMS-HSP-TXT-01`, `CMS-HSP-TXT-02` | 4 (정적 2개) | 없음 (정규식 경로 태그 경계 수정) | 커밋 `f0193e1` (0.2.2) | `tests/html-sanitizer-paths.test.ts` | TC-S-009 |
 
 - "Sprint 1" 은 로컬 하네스 `archive/sprint-1/sprint_contract.md` 에 8개 파일 이름이 모두 등장하고 `archive/sprint-0/sprint_contract.md` 에는 없다는 사실에 근거한다.
-- "기준선 이후, 최초 커밋 이전" 은 로컬 `baseline-test-inventory.txt` 의 파일별 `it_test_count` 와 최초 커밋 `7b0c0dc`(2026-05-24)의 테스트 ID 목록을 비교한 결과이다. "커밋 `c4aeb8e`"·"커밋 `797595f`" 는 각 커밋 전후의 테스트 ID 목록을 비교한 결과이다.
-- 집계 확인: A 140개 + B 51개 = 기준선 191개이고, C 의 정적 `it()` 68개(CMS-EXP 는 1개로 계산)를 더하면 정적 집계 259개와 같다.
+- "기준선 이후, 최초 커밋 이전" 은 로컬 `baseline-test-inventory.txt` 의 파일별 `it_test_count` 와 최초 커밋 `7b0c0dc`(2026-05-24)의 테스트 ID 목록을 비교한 결과이다. "커밋 `c4aeb8e`"·"커밋 `797595f`"·"커밋 `679fb96`"·"커밋 `f0193e1`" 은 각 커밋 전후의 테스트 ID 목록을 비교한 결과이다.
+- `CMS-HSP-*` 의 개수 칸은 실행 건수이다. `CMS-HSP-INJ-*` 를 뺀 나머지는 한 ID 가 DOMPurify·정규식 두 경로에서 각각 1건씩 실행된다. `CMS-HSP-HBP-*` 는 `CMS-HBP-*` 와, `CMS-HSP-CMT-01` ~ `04` 는 `CMS-HSP-CMT <라벨>` 과 이름이 비슷하지만 서로 다른 케이스이다.
+- 집계 확인: A 140개 + B 51개 = 기준선 191개이다. C 의 정적 `it()`/`it.each()` 호출 91개(0.2.0 까지 68개, `CMS-ASC-CUR` 7개, `CMS-HSP` 16개. CMS-EXP 는 1개로 계산)를 더하면 정적 집계 282개와 같다.
 
 ### 이전 문서
 
 | 문서 | 추적 여부 | 현재 상태 |
 |------|---------|---------|
-| `tests/spec.md` (안내 줄 추가 전 505줄) | 추적 | Sprint 1~3 구현 작업 계획서이다. 현재 35개 파일 중 18개만 다루고 17개(묶음 B 9개 파일과 묶음 C 의 Sprint 1 파일 8개)는 언급하지 않는다. 경로를 모노레포 기준 `cms-kit/tests/` 로 적고 있고 체크박스는 모두 미완료 표시이다. 파일 맨 위에 이 문서를 가리키는 안내 한 줄을 추가했다 |
-| `docs/testing.md` (안내 줄 추가 전 95줄) | 추적 | 실행 방법 문서이다. 디렉터리 목록에 27개 파일만 있고 Sprint 1 추가 파일 8개가 빠져 있다. "공통 셋업" 절은 `tests/setup.ts` 가 `RATE_LIMIT_ENABLED` 를 설정한다고 적지만 실제로는 gitignore 대상 `tests-harness/env-setup.ts` 가 설정한다. 이 문서로 연결하는 한 줄을 추가했다 |
+| `tests/spec.md` (안내 줄 추가 전 505줄) | 추적 | Sprint 1~3 구현 작업 계획서이다. 현재 37개 파일 중 18개만 다루고 19개(묶음 B 9개 파일, 묶음 C 의 Sprint 1 파일 8개, 0.2.1·0.2.2 추가 파일 2개)는 언급하지 않는다. 경로를 모노레포 기준 `cms-kit/tests/` 로 적고 있고 체크박스는 모두 미완료 표시이다. 파일 맨 위에 이 문서를 가리키는 안내 한 줄을 추가했다 |
+| `docs/testing.md` (안내 줄 추가 전 95줄) | 추적 | 실행 방법 문서이다. 디렉터리 목록에 27개 파일만 있고 Sprint 1 추가 파일 8개와 0.2.1·0.2.2 추가 파일 2개가 빠져 있다. "공통 셋업" 절은 `tests/setup.ts` 가 `RATE_LIMIT_ENABLED` 를 설정한다고 적지만 실제로는 gitignore 대상 `tests-harness/env-setup.ts` 가 설정한다. 이 문서로 연결하는 한 줄을 추가했다. `docs/README.md`·`docs/README.ko.md`(0.2.2 기준 분리)는 71행에서 이 파일을 테스트 문서로 연결한다 |
+| `docs/utils.md` | 추적 | 0.2.2 에서 새니타이저 절에 `createSanitizer` 의 `purify` 옵션과 데이터 주석·`target` 보존 설명이 추가되었다 (TC-S-007, TC-S-009) |
 | `docs/plans/2026-03-10-pms-package.md` | 추적 | 패키지 분리 계획서이며 옛 패키지명 `@withwiz/pms` 를 사용한다 |
 | `.claude/harness/pms-refactor/spec.md` (935줄) | gitignore 대상 (원본 체크아웃 로컬 파일) | 테스트 주석이 참조하는 절 번호(§3, §4.1, §4.6, §4.7, §5)의 원문이다. 옛 패키지명 `@withwiz/pms` 와 옛 Vitest 프로젝트 이름 `pms`·`pms-dom` 을 쓴다. 옛 경로 `withwiz-pms/` 는 같은 폴더의 `sprint_contract.md` 에 적혀 있다. 이 문서 작업에서는 두 파일 모두 수정하지 않았다 |
 | `.claude/harness/pms-refactor/baseline-exports.json` | gitignore 대상 | `tests/exports-superset.test.ts` 가 읽는 기준선이다 (TC-SM-001) |
@@ -1717,8 +1869,8 @@ AdminManagerBase / useAdminList / useImageDropZone
 | API | 부분 | 6 | 응답·검증 헬퍼와 `adminFetch` 는 패키지에 있지만 HTTP 라우트 자체는 호스트 앱이 소유한다 |
 | Integration | 적용(약함) | 4 | `tests/integration/` 3개 파일 중 1개는 복제 구현을 검증하고, 1개는 서비스 모듈을 import 하지 않는다 |
 | E2E | 미적용 | 0 | 패키지에 실행 가능한 앱·라우트가 없고 컴포넌트는 호스트 Next.js 앱 안에서만 동작한다 |
-| Security | 적용(강함) | 6 | 새니타이저·키 검증·식별자 위조 방지 4개 파일 51건이 있고, 다른 도메인 파일에도 보안 케이스가 있다 |
-| Accessibility | 적용, 0건 | 5 | UI 컴포넌트 6개(AdminShell, AdminManagerBase, ToggleSwitch, ImageDropUpload, ResizableImage, JsonLd)를 export 하고 jsdom·testing-library 가 설치되어 있으나 접근성 케이스가 0건이다 |
+| Security | 적용(강함) | 9 | 새니타이저·키 검증·식별자 위조 방지 5개 파일 167건이 있고(그중 116건은 새니타이저 두 경로를 같은 명세로 검증), 다른 도메인 파일에도 보안 케이스가 있다 |
+| Accessibility | 적용, 0건 | 6 | UI 컴포넌트 6개(AdminShell, AdminManagerBase, ToggleSwitch, ImageDropUpload, ResizableImage, JsonLd)를 export 하고 jsdom·testing-library 가 설치되어 있다. 사전 조사 시점에는 접근성 케이스가 0건이었고, 0.2.1 에서 AdminShell 현재 페이지 표시 7건(TC-AC-006)이 생겼다 |
 | Performance | 부분 | 2 | 가상 스크롤과 대용량 본문 처리 경로가 있지만 합의된 기준값이 없다 |
 | Load/Stress | 낮음 | 2 | 라이브러리 안의 동시성 코드는 토큰 갱신 단일화와 인메모리 limiter 두 곳뿐이다 |
 | Smoke | 부분(dist 없음) | 5 | 계약 가드 3개 파일은 있지만 vitest alias 가 항상 `src` 로 연결되어 dist 산출물을 검증하지 않고, 새로 받은 체크아웃에서는 스위트가 실행되지 않는다 |
@@ -1730,14 +1882,14 @@ AdminManagerBase / useAdminList / useImageDropZone
 
 | 순위 | 항목 | 관련 ID | 선행 조건 |
 |-----|------|--------|---------|
-| 1 | 새로 받은 체크아웃에서 스위트가 실행되지 않는다 (35개 파일 로드 실패, `exports-superset` 기준선 부재) | TC-SM-005, TC-SM-001 ⚠️ | `vitest.config.ts` `setupFiles` 와 gitignore 대상 파일 처리 결정 (설정 변경) |
+| 1 | 새로 받은 체크아웃에서 스위트가 실행되지 않는다 (37개 파일 로드 실패, `exports-superset` 기준선 부재) | TC-SM-005, TC-SM-001 ⚠️ | `vitest.config.ts` `setupFiles` 와 gitignore 대상 파일 처리 결정 (설정 변경) |
 | 2 | `AdminManagerBase.tsx`(340줄) 동작 테스트 0건 (사전 조사 순위 3) | TC-U-018 ~ TC-U-021, TC-P-001, TC-AC-003 | `@tanstack/react-virtual`·`sonner`·`admin-fetch` mock, `window.confirm` spy |
 | 3 | `middleware-wrappers.test.ts` 복제 구현 검증 (사전 조사 순위 7) | TC-I-003 ⚠️ | 어댑터 가로채기 방식 합의. 복제본 삭제는 테스트 코드 수정 작업으로 분리 |
-| 4 | 접근성 케이스 0건 | TC-AC-001 ~ TC-AC-005 | `@testing-library/user-event`·axe 계열 도입 여부 결정 (devDependency 추가), 현재 코드 미충족 항목의 수정 여부 결정 |
+| 4 | 접근성 케이스가 AdminShell 현재 페이지 표시 7건(TC-AC-006)뿐이다 (키보드 조작·이름·상태 메시지 0건) | TC-AC-001 ~ TC-AC-005 | `@testing-library/user-event`·axe 계열 도입 여부 결정 (devDependency 추가), 현재 코드 미충족 항목의 수정 여부 결정 |
 | 5 | `ResizableImage.tsx`(230줄) 참조 0건 | TC-U-023, TC-U-024, TC-AC-005 | 최소 doc·text 노드 정의, `@tiptap/react` 에디터 렌더링 |
-| 6 | AdminShell 인증·사이드바 동작 미검증 (설정 주입 3건만 존재) | TC-U-022, TC-AC-004 | `next/navigation` mock |
+| 6 | AdminShell 인증·사이드바 동작 미검증 (설정 주입 3건과 현재 페이지 표시 7건만 존재) | TC-U-022, TC-AC-004 | `next/navigation` mock (TC-AC-006 의 mock 구성을 재사용할 수 있다) |
 | 7 | 이미지 드롭존 드래그·오류 경로와 업로드 계약 | TC-U-025, TC-A-005 | `maxFiles` 경고가 곧바로 지워지는 동작의 의도 확인 |
-| 8 | 보안 규칙 보완 (키 규칙 4종, 새니타이저 주입 표면) | TC-S-005, TC-S-006 | 없음 |
+| 8 | 보안 규칙 보완 (키 규칙 4종, 새니타이저 신뢰 origin 주입 표면, 정규식 경로의 embed·applet·form·input·textarea·select·button·style 제거) | TC-S-005, TC-S-006, TC-S-008 비고 | 정규식 경로 위험 태그 케이스는 대응 계획 TC 가 없어 추가 여부를 정해야 한다 |
 | 9 | dist 산출물 스모크 부재 | TC-SM-004 | `npm run build` 선행, alias 없는 실행 경로 |
 | 10 | 이미지 처리 경로 (캔버스 리사이즈, sharp 실제 실행, 변형 URL 경계) | TC-U-026, TC-I-004, TC-U-027 | Canvas·Image 스텁, sharp 네이티브 바이너리, `getVariantUrl` 동작 의도 결정 |
 | 11 | 검증 실패 응답 본문 미검증 | TC-A-006 | 없음 |
@@ -1756,19 +1908,22 @@ AdminManagerBase / useAdminList / useImageDropZone
 | CMS-RP-02 | 이름은 일반 객체 입력이지만 실제 입력은 Promise 이다 | TC-A-003 비고 |
 | CMS-AH-05 ~ 07, 09 | 응답 상태 코드와 본문을 검증하지 않는다 | TC-A-006 |
 | CMS-PSF-01 ~ 05 | 서비스 모듈을 import 하지 않아 TC-U-006 과 검증 범위가 겹친다 | 파일 목적 재정의 필요 |
+| CMS-HBP-DOMPROOF | 0.2.2 정규식 경로도 이 페이로드를 무력화하므로(`'<a href="">x</a>'`) 활성 경로가 DOMPurify 임을 더 이상 증명하지 못한다. 테스트 안의 정규식 사본은 0.2.2 이전 소스이다 | TC-S-007, TC-S-008 (`purify` 로 경로 고정) |
+| CMS-HSP (`expectInert`) | 비신뢰 iframe 을 뺀 위험 요소 검사가 `script`·`object`·`embed`·`applet` 만 보고, 입력에 들어 있는 위험 태그도 `script`·`object` 뿐이다 | 없음 (TC-S-008 비고, 우선순위 갭 8) |
 
 ---
 
 ## 리뷰 체크리스트
 
 - [x] 사전 조사 문서의 10개 도메인을 모두 판정했다 (E2E 는 미적용 근거 기록)
-- [x] 35개 테스트 파일이 모두 TC "파일" 칸에 등장한다 (대조표, 누락 0)
-- [x] 파일별 테스트 수를 2026-09-13 JSON 리포터 실행 결과로 기록했다 (267건 통과, 실패 0, 스킵 0)
-- [x] 도메인별 파일 필터로 다시 실행해 합계를 확인했다 (Unit 150, Integration 17, API 32, Security 51, Smoke 17)
+- [x] 37개 테스트 파일이 모두 TC "파일" 칸에 등장한다 (대조표, 누락 0)
+- [x] 파일별 테스트 수를 2026-09-15 JSON 리포터 실행 결과로 기록했다 (390건 통과, 실패 0, 스킵 0)
+- [x] 도메인별 파일 필터로 다시 실행해 합계를 확인했다 (Unit 150, Integration 17, API 32, Security 167, Accessibility 7, Smoke 17)
 - [x] 기존 ID 두 계열과 정의 문서가 없는 ID 를 새 TC 로 매핑했다
 - [x] 완료 TC 의 단계는 실제 `it()` 이름과 단언에서 뽑았다
-- [x] 계획 TC 의 단계는 대상 소스의 행 번호를 근거로 작성했다
+- [x] 계획 TC 의 단계는 대상 소스의 행 번호를 근거로 작성했다 (0.2.2 소스 기준으로 AdminShell·html-sanitizer 행 번호를 다시 맞췄다)
 - [x] ⚠️ 교체 필요 2건(TC-I-003, TC-SM-001)에 교체 계획을 적었다
+- [x] develop `1de7c3a`(0.2.2)까지의 변경을 반영했다 (새 SC/TC 4건, 계획 TC 중 완료 전환 0건, TC-C-003 범위 조정)
 - [ ] 새로 받은 체크아웃에서 스위트 실행 (TC-SM-005)
 - [ ] AdminManagerBase 계획 테스트 구현
 - [ ] middleware-wrappers 교체 구현
