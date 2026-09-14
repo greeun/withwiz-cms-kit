@@ -1,7 +1,7 @@
 export { cn } from './cn';
 export { toLocalDatetime, formatDateTime, formatDate } from './date';
 export { sanitizeHtmlContent, createSanitizer } from './html-sanitizer';
-export type { SanitizerConfig } from './html-sanitizer';
+export type { SanitizerConfig, DOMPurifyLike } from './html-sanitizer';
 export { NextApiResponse } from './api-response';
 export { validateIds, validateAndParse, parseSortKey } from './api-helpers';
 export { getRouteParam } from './route-params';
