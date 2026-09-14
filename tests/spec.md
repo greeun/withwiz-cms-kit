@@ -1,3 +1,4 @@
+> 현행 분류 문서는 [docs/testing/test-classification.md](../docs/testing/test-classification.md) 이다.
 # @withwiz/cms-kit 풀테스트 스펙
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
