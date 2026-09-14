@@ -1,6 +1,7 @@
 # Testing
 
 `@withwiz/cms-kit` 는 Vitest 기반 자체 테스트 스위트를 갖습니다. 루트 `vitest.config.ts` 의 projects 에 두 개의 프로젝트로 등록되어 있습니다.
+도메인별 시나리오·케이스 분류와 실측 테스트 수는 [testing/test-classification.md](./testing/test-classification.md) 에서 확인할 수 있습니다.
 
 | Project | 환경 | 포함 경로 | 제외 |
 |---|---|---|---|
