@@ -100,6 +100,8 @@ IMAGE_VARIANT_SIZES; // { lg: 1920, md: 960, sm: 480, thumb: 240 }
 getVariantUrl(originalUrl, size);  // 원본 URL → variant URL 계산
 ```
 
+확장자는 URL 경로의 마지막 세그먼트에서만 찾습니다. 확장자가 없으면 원본 URL 을 그대로 돌려주고, 쿼리 문자열과 해시는 파일 이름만 바꾼 뒤 그대로 붙입니다 (`…/photo.jpg?v=1` → `…/photo-thumb.webp?v=1`). `getVariantKeys()` 와 `uploadImageWithVariants()` 의 기준 키도 같은 규칙으로 계산하므로 `news.v2/abc` 의 변형 키는 `news.v2/abc-thumb.webp` 등입니다.
+
 ### `r2-storage.ts`
 
 ```ts
