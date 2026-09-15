@@ -5,6 +5,7 @@ import {
   resolveR2CredentialsConfig,
   resolveR2PublicUrl,
 } from '../config';
+import { stripPathExtension } from './variant-path';
 
 /**
  * storage object key 를 검증/정규화한다 (spec.md §4.6 / Sprint 1 S5).
@@ -160,7 +161,8 @@ export async function uploadImageWithVariants(
 
   const original = await uploadToR2(originalKey, originalBuffer, originalContentType);
 
-  const baseKey = originalKey.replace(/\.[^.]+$/, '');
+  // 확장자는 마지막 세그먼트에서만 지운다 (getVariantKeys 와 같은 규칙).
+  const baseKey = stripPathExtension(originalKey);
 
   const variants: ImageVariantUrls = {};
   const variantKeys: string[] = [];

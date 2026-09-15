@@ -1,5 +1,6 @@
 import { deleteFromR2 } from './r2-storage';
 import { IMAGE_VARIANT_SIZES, type VariantSize } from './image-variant-utils';
+import { stripPathExtension } from './variant-path';
 import { logError } from '@withwiz/toolkit/core/logger/logger';
 import {
   resolveR2CredentialsConfig,
@@ -137,8 +138,12 @@ export function extractR2KeysFromHtml(...htmlContents: (string | null)[]): strin
   return keys;
 }
 
+/**
+ * 키의 변형 이미지 키 4종을 만든다. 확장자는 마지막 세그먼트에서만 지우므로
+ * `news.v2/abc` 는 `news.v2/abc-lg.webp` 등이 된다 (uploadImageWithVariants 와 같은 규칙).
+ */
 export function getVariantKeys(key: string): string[] {
-  const baseKey = key.replace(/\.[^.]+$/, '');
+  const baseKey = stripPathExtension(key);
   return VARIANT_SUFFIXES.map((suffix) => `${baseKey}-${suffix}.webp`);
 }
 
