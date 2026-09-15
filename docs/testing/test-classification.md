@@ -1348,7 +1348,8 @@ createSanitizer(config)(html)
 - **관련 요구사항:** OWASP A03:2021 Injection
 - **비고:**
   - SPEC-08 을 DOMPurify 경로에서 실행하지 않는 이유는 DOMPurify 가 허용 목록 밖의 태그 이름(`settings` 등)을 원래 지우기 때문이다.
-  - dompurify 3.4.15 는 `animatecolor`·`animatemotion`·`animatetransform` 을 기본 SVG 허용 목록에 두고, `animate`·`set` 은 `svgDisallowed` 목록에 둔다. 허용된 세 요소에서는 `attributeName` 값이 `href` 와 일치하면 그 속성을 지우고, `to`·`from` 은 허용 속성이 아니며, `javascript:` 값이 든 `values` 도 지운다. cms-kit 은 DOMPurify 옵션(`ADD_TAGS: ['iframe', '#comment']`)으로 이 요소들의 허용 여부를 바꾸지 않으므로 세 요소는 DOMPurify 경로 출력에 남는다.
+  - dompurify 3.4.15 는 `animatecolor`·`animatemotion`·`animatetransform` 을 기본 SVG 허용 목록에 두고, `animate`·`set` 은 `svgDisallowed` 목록에 둔다. 허용된 세 요소에서는 `attributeName` 값에 소문자 `href` 가 들어 있으면 그 속성을 지우고, `to`·`from` 은 허용 속성이 아니며, `values`·`by` 는 값이 `javascript:` 로 시작할 때만 지운다. cms-kit 은 DOMPurify 옵션(`ADD_TAGS: ['iframe', '#comment']`)으로 이 요소들의 허용 여부를 바꾸지 않으므로 세 요소는 DOMPurify 경로 출력에 남는다.
+  - DOMPurify 경로의 알려진 한계(2026-09-16 실행, blog-core 와 같은 결과): `<svg><a xlink:href="#"><animateTransform attributeName="xlink:href" values="#;javascript:alert(1)"></animateTransform></a></svg>` 는 `attributeName` 만 지우고 `values="#;javascript:alert(1)"` 를 남긴다. `<svg><a><animateColor attributeName=" HREF " by="javascript:alert(1)"/></a></svg>` 는 `by` 만 지우고 `attributeName="HREF"` 를 남긴다. 두 경우 모두 href 를 바꿀 수 있는 속성 조합(href 대상 `attributeName` 과 `javascript:` 값)이 함께 남지 않지만, 출력에 `javascript:` 가 없다는 단언이나 대소문자를 무시한 `attributeName` 단언은 통과하지 못하므로 테스트 입력에 넣지 않았다. 정규식 경로는 두 입력에서 애니메이션 요소를 모두 지운다.
 - **결함 이력:** 2026-09-15 판까지는 이 TC 가 없었다. 0.2.2 정규식 경로는 SPEC-01~06 입력을 모두 입력 그대로 반환했다(2026-09-16 실행). 커밋 `30917b4` 에서 `REMOVED_ELEMENTS` 를 추가하고 이 TC 의 테스트를 추가했다. 수정 전 실행에서 정규식 경로의 SPEC-01~06·ANIM-01~03 9건이 실패했고, DOMPurify 경로와 SPEC-07·SPEC-08 은 통과했다. 기존 데이터 주석·`target` 속성·신뢰 iframe 보존 테스트(TC-S-009)는 수정 후에도 통과한다.
 
 ---
