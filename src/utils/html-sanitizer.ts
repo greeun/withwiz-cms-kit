@@ -82,6 +82,24 @@ const URL_ATTR_NAMES: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * 태그만 지우는 요소 (소문자 이름). SVG 애니메이션 요소(animate·set 등)는 실행
+ * 시점에 부모 요소의 href 같은 속성을 `javascript:` 로 바꿀 수 있고, meta·base·
+ * link 는 문서 이동(refresh)·기준 URL·외부 스타일시트를 바꾼다. 토크나이저가 끊은
+ * 태그 이름 전체와 비교하므로 `<settings>`·`<linkbox>` 같은 다른 이름의 태그와
+ * 태그 밖 텍스트는 해당하지 않는다. 여는·닫는·자체 닫는 태그를 모두 지운다.
+ */
+const REMOVED_ELEMENTS: ReadonlySet<string> = new Set([
+  'animate',
+  'animatemotion',
+  'animatetransform',
+  'animatecolor',
+  'set',
+  'meta',
+  'base',
+  'link',
+]);
+
+/**
  * 브라우저가 내용을 마크업이 아닌 텍스트로 읽는 요소와 그 끝 태그 패턴.
  * `plaintext` 는 입력 끝까지 텍스트다.
  */
@@ -279,6 +297,7 @@ function findRawTextEnd(
 /**
  * 마크업을 토큰 단위로 훑어 태그 안에서만 속성을 정리한다. 주석·bogus 주석과
  * 태그 밖 텍스트는 원문 그대로 둔다.
+ * - REMOVED_ELEMENTS 에 속한 태그: 여는·닫는·자체 닫는 태그를 지운다.
  * - 비신뢰 iframe: 닫는 태그가 있으면 내용과 닫는 태그까지, 없으면 여는 태그만 제거.
  * - raw text 요소(title, 신뢰 iframe 등): 내용의 `<` 를 이스케이프해, 내용 안에
  *   따옴표 값으로 태그를 숨겨 끝 태그 뒤로 넘기는 입력을 막는다.
@@ -302,6 +321,8 @@ function sanitizeMarkup(html: string, trustedOrigins: readonly string[]): string
     }
 
     const name = asciiLower(rawName);
+    if (REMOVED_ELEMENTS.has(name)) continue;
+
     const isStartTag = slash === '';
     const { body, firstSrc } = sanitizeAttributes(rawBody);
 
@@ -337,8 +358,9 @@ function regexSanitizePass(html: string, trustedOrigins: readonly string[]): str
   // 2. 위험한 태그 제거
   result = result.replace(STRIP_TAGS_WITH_CONTENT, '');
 
-  // 3. 태그 단위 정리: 이벤트·srcdoc 속성 제거, 위험 URL 무력화(엔티티 디코딩 후
-  //    판정), 비신뢰 iframe 제거. 태그 밖 텍스트와 주석은 바꾸지 않는다.
+  // 3. 태그 단위 정리: SVG 애니메이션·meta·base·link 태그 제거, 이벤트·srcdoc 속성
+  //    제거, 위험 URL 무력화(엔티티 디코딩 후 판정), 비신뢰 iframe 제거. 태그 밖
+  //    텍스트와 주석은 바꾸지 않는다.
   return sanitizeMarkup(result, trustedOrigins);
 }
 
