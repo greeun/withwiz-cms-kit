@@ -31,9 +31,13 @@ import { resolveTrustedIframeOrigins } from '../config';
 
 // ── 정규식 패턴 (defense-in-depth fallback 전용) ──
 
-/** 항상 제거할 태그 (내용 포함) */
+/**
+ * 항상 제거할 태그. 여는·닫는 태그만 지우고 사이 내용은 남긴다(내용까지 지우는
+ * 것은 script·style 에 한해 STRIP_TAG_CONTENT 가 먼저 처리한다). style 은 닫는
+ * 태그가 없으면 STRIP_TAG_CONTENT 에 걸리지 않으므로 여기서도 지운다.
+ */
 const STRIP_TAGS_WITH_CONTENT =
-  /(<\s*\/?\s*(script|object|embed|applet|form|input|textarea|select|button)\b[^>]*>)/gi;
+  /(<\s*\/?\s*(script|object|embed|applet|form|input|textarea|select|button|style)\b[^>]*>)/gi;
 
 /** script/style 태그 사이 콘텐츠 */
 const STRIP_TAG_CONTENT = /<\s*(script|style)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi;
