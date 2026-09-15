@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useImperativeHandle, useMemo, useRef, forwardRef } from "react";
+import { useCallback, useEffect, useId, useImperativeHandle, useMemo, useRef, forwardRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { toast } from "sonner";
 import { adminFetch, getAuthHeaders } from "../utils/admin-fetch";
@@ -22,6 +22,11 @@ interface Props<TItem extends { id: string }, TForm extends object> {
 export interface AdminManagerBaseHandle {
   selectItem: (id: string) => void;
 }
+
+type TabKey = "list" | "edit";
+
+/** 탭 순서 (좌우 화살표·Home·End 이동 기준) */
+const TAB_ORDER: readonly TabKey[] = ["list", "edit"];
 
 function AdminManagerBaseInner<
   TItem extends { id: string },
@@ -184,6 +189,55 @@ function AdminManagerBaseInner<
 
   const listScrollRef = useRef<HTMLDivElement>(null);
 
+  // ── 탭 (WAI-ARIA Tabs 패턴, 수동 활성화) ──
+  // 선택된 탭만 tabIndex=0 이다. 좌우 화살표·Home·End 는 포커스만 옮기고
+  // Enter·Space·클릭으로 선택한다. 목록 탭 선택은 onNavigateToList 를 부르므로
+  // (호스트는 라우터 이동에 쓴다) 화살표 이동만으로는 선택하지 않는다.
+  const idBase = useId();
+  const pageTitleId = `${idBase}-title`;
+  const tabId = (key: TabKey) => `${idBase}-tab-${key}`;
+  const panelId = (key: TabKey) => `${idBase}-panel-${key}`;
+  const tabRefs = useRef<Record<TabKey, HTMLDivElement | null>>({ list: null, edit: null });
+
+  function selectTab(key: TabKey) {
+    setTab(key);
+    if (key === "list") config.onNavigateToList?.();
+  }
+
+  function handleTabKeyDown(event: React.KeyboardEvent<HTMLDivElement>, key: TabKey) {
+    const index = TAB_ORDER.indexOf(key);
+    let nextIndex: number;
+    switch (event.key) {
+      case "ArrowRight":
+        nextIndex = (index + 1) % TAB_ORDER.length;
+        break;
+      case "ArrowLeft":
+        nextIndex = (index - 1 + TAB_ORDER.length) % TAB_ORDER.length;
+        break;
+      case "Home":
+        nextIndex = 0;
+        break;
+      case "End":
+        nextIndex = TAB_ORDER.length - 1;
+        break;
+      case "Enter":
+      case " ":
+      case "Spacebar":
+        event.preventDefault();
+        selectTab(key);
+        return;
+      default:
+        return;
+    }
+    event.preventDefault();
+    tabRefs.current[TAB_ORDER[nextIndex]]?.focus();
+  }
+
+  const tabLabels: Record<TabKey, React.ReactNode> = {
+    list: config.meta.listTabLabel,
+    edit: "편집 + 미리보기",
+  };
+
   const virtualizer = useVirtualizer({
     count: filteredItems.length,
     getScrollElement: () => listScrollRef.current,
@@ -198,24 +252,28 @@ function AdminManagerBaseInner<
         <div className="pm-tb-l">
           <span className="pm-tb-logo">{config.meta.appTitle}</span>
           <span className="pm-tb-sep" />
-          <span className="pm-tb-pg">{config.meta.pageTitle}</span>
+          <span className="pm-tb-pg" id={pageTitleId}>{config.meta.pageTitle}</span>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="pm-tabs">
-        <div
-          className={`pm-tab ${tab === "list" ? "on" : ""}`}
-          onClick={() => { setTab("list"); config.onNavigateToList?.(); }}
-        >
-          {config.meta.listTabLabel}
-        </div>
-        <div
-          className={`pm-tab ${tab === "edit" ? "on" : ""}`}
-          onClick={() => setTab("edit")}
-        >
-          편집 + 미리보기
-        </div>
+      <div className="pm-tabs" role="tablist" aria-labelledby={pageTitleId}>
+        {TAB_ORDER.map((key) => (
+          <div
+            key={key}
+            ref={(el) => { tabRefs.current[key] = el; }}
+            id={tabId(key)}
+            role="tab"
+            aria-selected={tab === key}
+            aria-controls={panelId(key)}
+            tabIndex={tab === key ? 0 : -1}
+            className={`pm-tab ${tab === key ? "on" : ""}`}
+            onClick={() => selectTab(key)}
+            onKeyDown={(event) => handleTabKeyDown(event, key)}
+          >
+            {tabLabels[key]}
+          </div>
+        ))}
       </div>
 
       {/* Mobile Preview Toggle */}
@@ -223,6 +281,7 @@ function AdminManagerBaseInner<
         <button
           type="button"
           className={`mobile-pv-btn${!mobilePv ? " on" : ""}`}
+          aria-pressed={!mobilePv}
           onClick={() => setMobilePv(false)}
         >
           편집
@@ -230,6 +289,7 @@ function AdminManagerBaseInner<
         <button
           type="button"
           className={`mobile-pv-btn${mobilePv ? " on" : ""}`}
+          aria-pressed={mobilePv}
           onClick={() => setMobilePv(true)}
         >
           미리보기
@@ -239,7 +299,12 @@ function AdminManagerBaseInner<
       {/* Body */}
       <div className="pm-body">
         {/* List Panel */}
-        <div className={`pm-panel pm-panel-list ${tab === "list" ? "on" : ""}`}>
+        <div
+          id={panelId("list")}
+          role="tabpanel"
+          aria-labelledby={tabId("list")}
+          className={`pm-panel pm-panel-list ${tab === "list" ? "on" : ""}`}
+        >
           <div className="pm-list-left">
             <div className="pm-list-header">
               {config.renderFilterControls({
@@ -302,6 +367,9 @@ function AdminManagerBaseInner<
 
         {/* Edit Panel */}
         <div
+          id={panelId("edit")}
+          role="tabpanel"
+          aria-labelledby={tabId("edit")}
           className={`pm-panel pm-panel-edit ${tab === "edit" ? "on" : ""}`}
         >
           <div className="pm-edit-left">
@@ -314,7 +382,7 @@ function AdminManagerBaseInner<
               saving,
               loading,
               onSave: handleSave,
-              onCancel: () => { setTab("list"); config.onNavigateToList?.(); },
+              onCancel: () => selectTab("list"),
               onDelete: () => { if (selectedId) handleDelete(selectedId); },
             })}
           </div>
