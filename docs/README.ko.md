@@ -21,7 +21,7 @@ npm install @withwiz/cms-kit
 pnpm add @withwiz/cms-kit
 ```
 
-`@withwiz/toolkit` 은 peer dependency 입니다 (`>=0.7.1`). 일반적으로 의존성 해석 시 함께 설치되지만, 환경에 따라 명시 설치가 필요할 수 있습니다.
+`@withwiz/toolkit` 은 peer dependency 이며 `>=0.8.0` 을 요구합니다. 0.7.1 은 타입 선언이 존재하지 않는 패키지를 import 하므로 cms-kit 이 쓰는 JWT·미들웨어 타입이 검사되지 않습니다. 일반적으로 의존성 해석 시 함께 설치되지만, 환경에 따라 명시 설치가 필요할 수 있습니다.
 
 ```bash
 npm install @withwiz/toolkit
