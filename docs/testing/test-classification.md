@@ -5,11 +5,66 @@
 | 항목 | 내용 |
 |------|------|
 | 대상 | `@withwiz/cms-kit` 0.2.2 (Next.js + React 관리자 패널용 CMS 프레임워크 라이브러리) + `fix/residual-defects` 브랜치 수정 (버전 미변경, 미게시) |
-| 기준 | `fix/residual-defects` 코드 커밋 `c741e11` (develop `431d2de` 에서 분기), 2026-09-16 갱신 |
+| 기준 | `fix/residual-defects` 코드 커밋 `c741e11` (develop `431d2de` 에서 분기), 2026-09-16 갱신. `@withwiz/toolkit` peer 하한 실측은 커밋 `aa96df1` 기준, 2026-09-17 추가 |
 | 범위 | `src/` 전체 (components/, hooks/, infrastructure/, services/, types/, utils/, validators/, config/) |
-| 환경 | Vitest 4.1.11, Node.js 22.22.0, 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2). devDependency `@withwiz/toolkit` 0.15.0, `isomorphic-dompurify` 2.36.0 |
+| 환경 | Vitest 4.1.11, Node.js 22.22.0, 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2). devDependency `@withwiz/toolkit` 0.15.0, `isomorphic-dompurify` 2.36.0. peerDependency `@withwiz/toolkit` `>=0.8.0` (2026-09-17 에 `>=0.7.1` 에서 변경) |
 | 목표 커버리지 | 미설정 (`vitest.config.ts` 에 coverage 설정이 없고 `@vitest/coverage-*` 패키지도 설치되어 있지 않음) |
-| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26) |
+| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음) |
+
+### 실측 기록 (2026-09-17): `@withwiz/toolkit` peer 하한
+
+`peerDependencies` 는 `@withwiz/toolkit` 을 `>=0.7.1` 로 선언했지만 검증은 devDependency 0.15.0 에서만 했다. cms-kit 소스는 toolkit 서브패스 5개(`core/auth/jwt`, `core/logger/logger`, `next/middleware/rate-limit`, `next/middleware/types`, `next/middleware/wrappers`)를 import 하고, 게시된 11개 버전은 모두 이 서브패스를 같은 파일 경로로 export 한다. 측정 위치는 `fix/residual-defects` 브랜치 워크트리(커밋 `aa96df1`)이고, 확인용 스크립트와 로그는 저장소 밖에 두었다.
+
+| 항목 | 내용 |
+|------|------|
+| 환경 | Node.js 22.22.0, npm 11.16.0, TypeScript 6.0.3, Vitest 4.1.11, tsup 8.5.1 |
+| 대상 | 게시본 0.15.0·0.14.0·0.13.0·0.12.0·0.11.0·0.10.0·0.9.3·0.9.2·0.9.0·0.8.0·0.7.1, toolkit `fix/residual-defects` 커밋 `b19f5ea`(0.16.0 게시 예정 후보, `package.json` 버전 표기는 아직 0.15.0) |
+| 설치 | 버전마다 `npm install --no-save @withwiz/toolkit@<버전>` 을 실행하고 `npm ls @withwiz/toolkit` 과 설치된 `package.json` 의 버전을 확인했다. `package.json` 버전이 0.15.0 이 아닌 게시본은 devDependency 범위(`^0.15.0`) 밖이라 `npm ls` 가 `invalid` 로 표시하고 종료 코드 1 을 돌려준다(의도한 결과). 후보는 커밋 `b19f5ea` 를 `git archive` 로 풀어 `npm ci`·`npm run build`·`npm pack` 으로 만든 tgz 를 설치했고, 설치된 `dist/next/middleware/wrappers.js`·`dist/core/auth/jwt/index.js` 의 SHA-256 이 후보 빌드 결과와 같음을 확인했다. 설치할 때마다 `package.json`·`package-lock.json` 해시가 바뀌지 않음을 확인했다 |
+| 타입 검사 | `npx tsc --noEmit` |
+| 타입 해석 확인 | cms-kit 이 쓰는 toolkit 타입 15개(JWTManager 생성 설정·`algorithm`·logger, `logInfo`·`logError` 첫 인자, `setRateLimitAdapter` 인자·`rateLimiters`, `IApiContext`·`IApiContext['locale']`, `IUser`, `TApiHandler`, 래퍼 4종의 인자)에 숫자를 대입하고 `@ts-expect-error` 로 오류를 기대하는 파일을 설치된 node_modules 로 검사했다. 타입이 해석되지 않으면 대입이 허용되어 TS2578(사용되지 않은 `@ts-expect-error`)이 난다 |
+| 테스트 | `npm test`. 실제 toolkit 을 불러오는 테스트(`exports-superset.test.ts` 등)는 배럴 import 와 export 이름을 확인하고, JWT 발급·logger 출력·미들웨어 응답을 다루는 테스트는 toolkit 을 mock 한다. 실제 호출은 dist 스모크가 확인한다 |
+| dist 스모크 | 버전마다 `npm run build` 후 dist 를 CJS(`require`, `.js`)와 ESM(`import`, `.mjs`)으로 각각 불러 아래 12개 항목을 실행했다. dist JS·d.ts 산출물 해시는 모든 버전의 빌드에서 같았다 (toolkit 은 번들에 포함되지 않는다) |
+
+dist 스모크 항목은 다음과 같다.
+
+1. `utils/index` import 와 공개 함수 확인
+2. `setCmsConfig()` 로 rate-limit 식별자 추출기 주입 (ESM 은 JWT 설정도 주입)
+3. `utils/jwt` 의 `getJWTManager()` 가 같은 toolkit `JWTManager` 인스턴스를 돌려준다
+4. access 토큰 발급·검증: CJS 는 환경변수 `JWT_SECRET` 과 기본값(HS256, 7200초), ESM 은 주입 설정(HS512, `15m`)을 쓰고 토큰 헤더 `alg` 와 `exp - iat` 를 확인한다
+5. 토큰 쌍 발급, refresh 토큰 검증, 서명을 바꾼 토큰 거부
+6. `utils/r2-storage` import 와 자격 증명이 없을 때 `isR2Enabled()` 가 `false`
+7. `utils/r2-helpers` 의 `deleteR2Keys()` 가 삭제 실패 시 toolkit `logError` 를 실행해 로그가 출력된다
+8. `infrastructure/middleware/wrappers` import (import 시점에 `setRateLimitAdapter()` 실행)
+9. `withPublicApi`: 200 응답과 `x-ratelimit-limit: 120`, 같은 식별자의 121번째 요청 429, 다른 식별자 200 (cms-kit 인메모리 limiter 가 toolkit 체인에 적용된다)
+10. `withAuthApi`·`withAdminApi`: 토큰이 없는 요청은 401 이고 핸들러가 실행되지 않는다
+11. `withCustomApi`: 체인 구성 함수가 체인을 그대로 돌려주면 200
+12. `infrastructure/index`·`infrastructure/middleware/index`·`services/index` 배럴 import
+
+아래 표의 dist 스모크 수치는 `next/server` resolve 훅을 적용해 실행한 결과이다 (훅이 필요한 이유는 표 아래 "dist 스모크의 환경 문제" 항목).
+
+| toolkit | `tsc --noEmit` | 타입 해석 확인 | `npm test` | `npm run build` | dist 스모크 CJS | dist 스모크 ESM |
+|---------|---------------|--------------|-----------|----------------|---------------|---------------|
+| 0.16.0 후보 (`b19f5ea`) | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.15.0 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.14.0 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.13.0 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.12.0 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.11.0 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.10.0 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.9.3 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.9.2 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.9.0 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.8.0 | 오류 0 | 15/15 | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+| 0.7.1 | 오류 0 (검사 무효, 아래 참조) | **11/15** | 40개 파일 470건 통과 | 성공 | 12/12 | 12/12 |
+
+실패 원인은 다음과 같이 구분했다.
+
+- **0.7.1 타입 선언 결함 (실제 비호환):** 0.7.1 의 `dist/core/auth/jwt/index.d.ts` 7행은 `JWTConfig`·`JWTPayload`·`TokenPair`·`Logger` 를 존재하지 않는 패키지 `@withwiz/core/auth/types` 에서 가져오고, `dist/next/middleware/types.d.ts` 5행은 `TLocale` 을 `@withwiz/core/error/messages` 에서 가져온다. `skipLibCheck: true` 에서는 이 해석 실패가 오류로 보고되지 않고, 해당 타입은 어떤 값이든 받는다. 그래서 JWTManager 생성 설정·`algorithm`·logger 와 `IApiContext['locale']` 4건이 숫자 대입을 허용했다. 0.8.0 부터는 d.ts 가 `@withwiz/toolkit/...` 경로를 써서 15건이 모두 해석된다.
+- **0.7.1 에서 `tsc` 통과가 무효인 근거:** 현재 소스에서 `CmsJwtConfig.algorithm` 과 `resolveJwtConfig()` 반환 타입의 `algorithm` 만 커밋 `fae6543` 이전처럼 `string` 으로 되돌린 사본을 저장소 밖에 만들어 `tsc --noEmit` 을 실행했다. 0.7.1 에서는 통과했고, 0.8.0 에서는 `src/utils/jwt.ts(30,9): error TS2322: Type 'string' is not assignable to type 'JWTAlgorithm'.` 로 실패했다. 2026-09-13 에 0.15.0 으로 올리면서 드러난 것과 같은 TS2322 가 0.8.0 에서도 난다.
+- **dist 스모크의 환경 문제 (모든 버전 공통):** 순수 Node 로 실행하면 모든 버전에서 CJS 7/12, ESM 2/12 였다. 실패는 모두 `ERR_MODULE_NOT_FOUND: Cannot find module '…/node_modules/next/server'` 에서 시작한다. toolkit 은 `"type": "module"` ESM 전용이라 CJS dist 의 `require` 도 toolkit 을 ESM 으로 불러오고, toolkit 청크와 cms-kit ESM 청크(`api-helpers`·`api-response`)가 `next/server` 를 확장자 없이 import 한다. next 패키지에는 exports 맵이 없어 Node ESM 로더는 이 지정자를 해석하지 못한다(TC-SM-004 전제조건의 제약과 같다). ESM 의 JWT 항목 3건은 `utils/index` import 실패로 설정을 주입하지 못해 함께 실패했다. Next.js 번들러는 이 지정자를 해석하므로, `next/` 로 시작하는 확장자 없는 지정자가 해석에 실패할 때만 `.js` 를 붙여 다시 해석하는 resolve 훅(`module.registerHooks`)을 `--import` 로 등록해 다시 실행했다. 표의 dist 스모크 수치는 이 결과이다. 훅이 다시 해석한 횟수는 모든 버전에서 CJS 4회, ESM 6회로 같았다.
+- **첫 측정의 Node 버전 문제 (비교에서 제외):** 처음에 측정 스크립트를 bash 로 실행했을 때는 nvm 이 로드되지 않아 PATH 에 있던 Homebrew Node 26.8.2 와 npm 11.19.1 이 쓰였다. 이 상태에서는 0.15.0 에서도 `npm test` 가 2개 파일 10건 실패했다(`admin-shell-config.dom.test.tsx`, `admin-shell-current-page.dom.test.tsx` 에서 `localStorage` 가 `undefined`, Node 경고 `localStorage is not available because --localstorage-file was not provided`). toolkit 버전과 관계없는 실행 환경 문제이므로 Node 22.22.0 으로 고정해 모든 버전을 다시 측정했다.
+
+결론: 테스트와 dist 스모크 기준으로는 11개 게시 버전과 0.16.0 후보가 모두 호환된다. 타입 호환이 실제로 확인되는 가장 낮은 버전은 0.8.0 이므로 `peerDependencies['@withwiz/toolkit']` 을 `>=0.7.1` 에서 `>=0.8.0` 으로 올렸다. 상한은 다른 @withwiz 패키지의 관례(`@withwiz/ui` `>=0.8.0`, `@withwiz/blog-system` `>=0.11.0`)에 맞춰 두지 않았다. `npm install --package-lock-only` 로 동기화한 `package-lock.json` 의 변경은 루트 항목 `packages[""].peerDependencies` 한 줄이다. 변경 후 `npm ci` 로 toolkit 0.15.0 레지스트리본을 복원하고 `npx tsc --noEmit` 오류 0건, `npm run build` 성공, `npm test` 40개 파일 470건 통과, dist 스모크 CJS·ESM 12/12 를 다시 확인했다. `README.md`·`README.ko.md`·`docs/README.md`·`docs/README.ko.md` 의 peer 요구 버전도 고쳤다.
 
 ### 실측 기록 (2026-09-16)
 
@@ -1706,6 +1761,7 @@ createSanitizer(config)(html)
 
 - **자동화:** 가능 ✅
 - **비고:** 현재 테스트가 import 하는 `@withwiz/cms-kit/*` 경로 39개 중 17개는 `exports` 에 없다. 그중 9개는 `/index` 표기로 배럴과 같고, 나머지 8개(`components/ImageDropUpload`, `config`, `hooks/useAdminForm`, `hooks/useAdminList`, `services/base-service`, `utils/api-response`, `utils/cn`, `utils/image-resize`)는 소비자가 사용할 수 없는 깊은 경로이다.
+- **실행 검증 참고 (2026-09-17):** toolkit peer 하한 실측(개요 "실측 기록 (2026-09-17)")에서 dist 를 순수 Node 로 불러오면 `next/server` 해석 실패(`ERR_MODULE_NOT_FOUND`)로 CJS 는 미들웨어 래퍼와 배럴을, ESM 은 `utils/index` 를 포함한 대부분의 진입점을 불러오지 못했다. toolkit 이 ESM 전용이어서 CJS dist 의 래퍼도 같은 경로로 실패한다. 이 TC 에 실행 검증을 넣으려면 `next/` 로 시작하는 확장자 없는 지정자만 `.js` 로 다시 해석하는 resolve 훅이 필요하다.
 
 ---
 
@@ -2053,6 +2109,7 @@ createSanitizer(config)(html)
 - [x] develop `1de7c3a`(0.2.2)까지의 변경을 반영했다 (새 SC/TC 4건, 계획 TC 중 완료 전환 0건, TC-C-003 범위 조정)
 - [x] 2026-09-16 `fix/residual-defects` 변경을 반영했다 (완료 전환 4건: TC-U-027·TC-AC-003·TC-SM-005·TC-SM-001, 새 SC/TC 2건: TC-S-010·TC-S-011, 해결한 결함의 당시 동작을 결함 이력·교체 이력으로 기록)
 - [x] 새로 받은 체크아웃에서 스위트 실행 (TC-SM-005)
+- [x] `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보에서 타입 검사·타입 해석·테스트·빌드·dist 스모크를 실측하고 peer 하한을 `>=0.8.0` 으로 조정했다 (2026-09-17)
 - [ ] AdminManagerBase 계획 테스트 구현 (TC-AC-003 완료, TC-U-018~021·TC-P-001 남음)
 - [ ] middleware-wrappers 교체 구현
 - [ ] 접근성 도구 도입 결정과 계획 테스트 구현
