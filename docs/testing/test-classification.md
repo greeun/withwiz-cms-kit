@@ -9,7 +9,7 @@
 | 범위 | `src/` 전체 (components/, hooks/, infrastructure/, services/, types/, utils/, validators/, config/) |
 | 환경 | Vitest 4.1.11, Node.js 22.22.0, 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2). devDependency `@withwiz/toolkit` 0.15.0, `isomorphic-dompurify` 2.36.0. peerDependency `@withwiz/toolkit` `>=0.8.0` (2026-09-17 에 `>=0.7.1` 에서 변경) |
 | 목표 커버리지 | 미설정 (`vitest.config.ts` 에 coverage 설정이 없고 `@vitest/coverage-*` 패키지도 설치되어 있지 않음) |
-| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음) |
+| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음). 2026-09-18 `fix/residual-defects-a` 기준 갱신: 정규식 경로가 하이픈이 들어간 사용자 정의 태그를 지우는 결함(TC-S-010)을 고쳤다. 40개 파일 472건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26, 변화 없음) |
 
 ### 실측 기록 (2026-09-17): `@withwiz/toolkit` peer 하한
 
@@ -118,6 +118,7 @@ dist 스모크 항목은 다음과 같다.
 | `a0753cc` | 테스트만 변경: CMS-HBP-DOMPROOF 가 두 경로의 출력 차이(`href` 속성 삭제 대 `href=""`)와 동적 로딩한 `DOMPurify.sanitize` 호출을 단언하도록 교체 | `html-sanitizer-bypass.test.ts` 11건 유지 | TC-S-002 |
 | `a541627` | 정규식 경로 `STRIP_TAGS_WITH_CONTENT` 에 `style` 추가 (닫는 태그 없는 `<style>` 이 남던 결함) | `html-sanitizer-paths.test.ts` 에 CMS-HSP-DNG-01~10 (20건) | SC/TC-S-010 추가, TC-S-001·S-008 비고 |
 | `30917b4` | 정규식 경로 `sanitizeMarkup()` 이 `REMOVED_ELEMENTS`(animate·animatemotion·animatetransform·animatecolor·set·meta·base·link) 태그를 제거 (정규식 대체 새니타이저 공통 명세, blog-core 와 같은 입력). DOMPurify 설정은 바꾸지 않음 | `html-sanitizer-paths.test.ts` 에 CMS-HSP-SPEC-01~08, ANIM-01~03 (21건) | SC/TC-S-011 추가 |
+| `a2ef0fd` | 기존 제거 목록(script·style·object·embed·applet·form·input·textarea·select·button)을 `\b` 경계 정규식 `STRIP_TAGS_WITH_CONTENT` 에서 `REMOVED_ELEMENTS` 로 옮겨, 하이픈이 들어간 사용자 정의 태그를 지우지 않게 함. DOMPurify 설정은 바꾸지 않음 | `html-sanitizer-paths.test.ts` 에 CMS-HSP-SPEC-09~10 (2건) | TC-S-010 결함 이력·단계 7~8 추가 |
 | `d59774c` | `getVariantUrl()`·`getVariantKeys()`·`uploadImageWithVariants()` 가 내부 헬퍼 `stripPathExtension()`(`src/utils/variant-path.ts`, exports 미포함)으로 마지막 경로 세그먼트에서만 확장자를 찾는다. `getVariantUrl()` 은 쿼리 문자열과 해시를 유지한다 | 신규 `tests/variant-key-edge.test.ts` 24건. CMS-IV-07 단언을 정확한 결과로 변경 (7건 유지) | TC-U-027 ✅ 전환, TC-U-005 |
 | `c741e11` | AdminManagerBase 탭에 WAI-ARIA Tabs 패턴(`tablist`·`tab`·`tabpanel`, roving tabindex, 좌우 화살표·Home·End 포커스 이동, Enter·Space 선택)과 모바일 미리보기 버튼 `aria-pressed` 적용. 클래스 이름·요소 종류 유지 | 신규 `tests/admin-manager-tabs.dom.test.tsx` 12건 | TC-AC-003 ✅ 전환, TC-U-018~021·TC-P-001 행 번호 |
 
@@ -1300,7 +1301,7 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/html-sanitizer-paths.test.ts` (`describe.each(PATHS)` 안의 `describe('우회 입력 차단')`) |
-| **대상** | `src/utils/html-sanitizer.ts`: DOMPurify 경로 `dompurifySanitize()`(380~433행)·`ensureIframeHook()`(457~473행) / 정규식 경로 `regexSanitize()`(367~376행), `regexSanitizePass()`(352~365행), `sanitizeMarkup()`(307~350행), `sanitizeAttributes()`(253~274행), `isDangerousUrl()`(211~219행), `decodeEntities()`(192~205행), `isTrustedIframeSrc()`(238~247행), 토큰 패턴 `MARKUP`(59~67행)·`RAW_TEXT_END`(106~110행) |
+| **대상** | `src/utils/html-sanitizer.ts`: DOMPurify 경로 `dompurifySanitize()`(387~440행)·`ensureIframeHook()`(464~480행) / 정규식 경로 `regexSanitize()`(374~383행), `regexSanitizePass()`(362~372행), `sanitizeMarkup()`(317~360행), `sanitizeAttributes()`(263~284행), `isDangerousUrl()`(221~229행), `decodeEntities()`(202~215행), `isTrustedIframeSrc()`(248~257행), 토큰 패턴 `MARKUP`(51~59행)·`RAW_TEXT_END`(116~120행) |
 | **우선순위** | Critical |
 | **전제조건** | node 환경. `PATHS` 두 항목으로 같은 케이스를 반복한다: DOMPurify 경로는 `createSanitizer({ purify: DOMPurify })`, 정규식 경로는 `createSanitizer({ purify: null })`. 신뢰 origin 은 설정하지 않아 기본값(YouTube·youtube-nocookie·Vimeo 4개)을 쓴다 |
 | **판정 방법** | 출력 문자열을 `JSDOM` 으로 다시 파싱해 검사한다(`expectInert`). 이름이 `on` 으로 시작하는 속성과 `srcdoc` 이 없어야 한다. URL 속성 5종(`href`, `src`, `action`, `formaction`, `xlink:href`)의 값을 `new URL()` 로 해석했을 때 `javascript:`·`vbscript:`·`data:`(단 `data:image/` 제외)로 시작하지 않아야 한다. `script`·`object`·`embed`·`applet` 요소와 기본 신뢰 origin 밖의 `iframe` 이 없어야 한다 |
@@ -1331,7 +1332,7 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/html-sanitizer-paths.test.ts` (`describe.each(PATHS)` 안의 `describe('태그 밖 텍스트 보존')`, `describe('데이터 주석 보존')`, `describe('안전한 표현 유지')`, `describe('빈 입력')`) |
-| **대상** | `src/utils/html-sanitizer.ts`: DOMPurify 옵션 `ADD_TAGS: ['iframe', '#comment']`·`ADD_ATTR`(`target` 포함)·`FORCE_BODY: true`(386~393행) / 정규식 경로 `sanitizeMarkup()` 의 주석·태그 밖 텍스트 원문 유지(318~321행, 349행)와 `sanitizeAttributes()` 의 무변경 원문 반환(253~274행) / `createSanitizer()` 빈 입력 처리(493행) |
+| **대상** | `src/utils/html-sanitizer.ts`: DOMPurify 옵션 `ADD_TAGS: ['iframe', '#comment']`·`ADD_ATTR`(`target` 포함)·`FORCE_BODY: true`(386~393행) / 정규식 경로 `sanitizeMarkup()` 의 주석·태그 밖 텍스트 원문 유지(328~331행, 359행)와 `sanitizeAttributes()` 의 무변경 원문 반환(263~284행) / `createSanitizer()` 빈 입력 처리(500행) |
 | **우선순위** | High |
 | **전제조건** | TC-S-008 과 같은 두 경로 구성. 데이터 주석 페이로드는 블록 에디터 serializer 와 같은 방식(`btoa(encodeURIComponent(JSON.stringify(data)))`)으로 만든다 |
 | **테스트 데이터** | 한글·`<b>`·따옴표·`&`·`>`·`/on=1` 을 담은 블록 JSON 을 인코딩한 `PAYLOAD` |
@@ -1356,11 +1357,11 @@ createSanitizer(config)(html)
 
 | 항목 | 내용 |
 |------|------|
-| **파일** | `tests/html-sanitizer-paths.test.ts` (`describe.each(PATHS)` 안의 `describe('위험 태그 제거')`) |
-| **대상** | `src/utils/html-sanitizer.ts`: 정규식 경로 `STRIP_TAGS_WITH_CONTENT`(39~40행)·`STRIP_TAG_CONTENT`(43행)를 적용하는 `regexSanitizePass()`(352~365행) / DOMPurify 경로 `FORBID_TAGS`(394~405행) |
+| **파일** | `tests/html-sanitizer-paths.test.ts` (`describe.each(PATHS)` 안의 `describe('위험 태그 제거')`, 파일 끝의 `describe('html-sanitizer 정규식 경로 기존 제거 목록의 태그 이름 경계 (CMS-HSP)')`) |
+| **대상** | `src/utils/html-sanitizer.ts`: 정규식 경로 `STRIP_TAG_CONTENT`(35행)를 적용하는 `regexSanitizePass()`(362~372행), 제거 대상 목록 `REMOVED_ELEMENTS`(91~110행)와 `sanitizeMarkup()` 의 제거 분기(334행) / DOMPurify 경로 `FORBID_TAGS`(401~412행) |
 | **우선순위** | High |
 | **전제조건** | TC-S-008 과 같은 두 경로 구성과 `expectInert` 판정 |
-| **판정 방법** | `expectInert` 에 더해 출력을 `JSDOM` 으로 다시 파싱했을 때 `embed, applet, form, input, textarea, select, button, style` 요소가 없어야 하고, 입력 앞에 둔 `<p>a</p>` 의 텍스트가 남아야 한다 |
+| **판정 방법** | `expectInert` 에 더해 출력을 `JSDOM` 으로 다시 파싱했을 때 `embed, applet, form, input, textarea, select, button, style` 요소가 없어야 하고, 입력 앞에 둔 `<p>a</p>` 의 텍스트가 남아야 한다. 태그 이름 경계(SPEC-09·10)는 정규식 경로 출력 문자열을 입력과 그대로 비교한다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
@@ -1370,10 +1371,12 @@ createSanitizer(config)(html)
 | 4 | DNG-07·08: 닫는 태그가 있는 `<style>…</style>` / 닫는 태그가 없는 `<style>…` | 두 경로 모두 style 요소가 없다 (정규식 경로는 닫는 태그가 없을 때 뒤따르는 CSS 문자열을 텍스트로 남긴다) |
 | 5 | DNG-09: 대소문자를 섞은 `<EmBeD>`·`<FoRm>`·`<InPuT>`·`<StYlE>…</sTyLe>` 와 끝의 닫히지 않은 `<sTyLe media="all">` | 두 경로 모두 해당 요소가 없다 |
 | 6 | DNG-10: `<p>a</p><style>body{background:url(https://evil.example/t)}</style><p>b</p>` | style 요소가 없고, 출력에 `evil.example` 이 없으며, 문단 텍스트가 `['a', 'b']` 이다 |
+| 7 | SPEC-09: 제거 대상과 이름이 다른 사용자 정의 태그 `<style-guide>`·`<form-field>`·`<input-group>`·`<button-bar>`·`<select-box>`·`<object-list>` | 정규식 경로 출력이 입력과 같다 (태그와 내용이 모두 남는다) |
+| 8 | SPEC-10: 이름이 정확히 같은 `<form>`·`<button>`·`<object>` | 정규식 경로가 태그만 지우고 내용 텍스트를 남긴다 |
 
-- **자동화:** 가능 ✅ | **테스트 수:** 20개 (현재: 경로별 10건 × 2. 정적 `it`/`it.each` 호출 2개)
+- **자동화:** 가능 ✅ | **테스트 수:** 22개 (현재: DNG 경로별 10건 × 2, SPEC-09·10 은 정규식 경로만 1건씩. 정적 `it`/`it.each` 호출 4개)
 - **관련 요구사항:** OWASP A03:2021 Injection
-- **결함 이력:** 2026-09-15 판까지는 이 TC 가 없었고, TC-S-001·TC-S-008 비고에 정규식 경로 테스트가 없다고 기록했다. 2026-09-16 에 테스트를 추가하자 정규식 경로가 닫는 태그 없는 `<style>` 을 남기는 결함이 드러났다(DNG-08·DNG-09 가 정규식 경로에서 실패). `STRIP_TAG_CONTENT` 는 `<style>…</style>` 쌍만 지우고 `STRIP_TAGS_WITH_CONTENT` 목록에는 `style` 이 없었다. 커밋 `a541627` 에서 목록에 `style` 을 추가했다. DOMPurify 경로는 수정 전에도 통과했다.
+- **결함 이력:** 2026-09-15 판까지는 이 TC 가 없었고, TC-S-001·TC-S-008 비고에 정규식 경로 테스트가 없다고 기록했다. 2026-09-16 에 테스트를 추가하자 정규식 경로가 닫는 태그 없는 `<style>` 을 남기는 결함이 드러났다(DNG-08·DNG-09 가 정규식 경로에서 실패). `STRIP_TAG_CONTENT` 는 `<style>…</style>` 쌍만 지우고 `STRIP_TAGS_WITH_CONTENT` 목록에는 `style` 이 없었다. 커밋 `a541627` 에서 목록에 `style` 을 추가했다. DOMPurify 경로는 수정 전에도 통과했다. 2026-09-18 에 SPEC-09 를 추가하자 이번에는 그 목록이 `\b` 경계 정규식이라 `<style-guide>`·`<form-field>`·`<input-group>`·`<button-bar>`·`<select-box>`·`<object-list>` 를 통째로 지우는 결함이 드러났다(정규식 경로 출력이 `abcdef`). 커밋 `a2ef0fd` 에서 목록을 `REMOVED_ELEMENTS` 로 옮겨 토크나이저가 끊은 태그 이름 전체와 비교하게 했고, `STRIP_TAGS_WITH_CONTENT` 상수와 `regexSanitizePass()` 의 해당 단계는 없어졌다. blog-core `STRIP_TAG_ONLY` 와 같은 방식이다.
 
 ---
 
@@ -1382,7 +1385,7 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/html-sanitizer-paths.test.ts` (`describe.each(PATHS)` 안의 `describe('SVG 애니메이션·문서 메타 요소 제거')`, 파일 끝의 `describe('html-sanitizer 정규식 경로 태그 이름 경계 (CMS-HSP)')`) |
-| **대상** | `src/utils/html-sanitizer.ts`: 정규식 경로 `REMOVED_ELEMENTS`(91~100행)와 `sanitizeMarkup()` 의 제거 분기(324행) / DOMPurify 경로는 `isomorphic-dompurify` 가 로드하는 dompurify 3.4.15 기본 허용 목록 (패키지 설정 변경 없음) |
+| **대상** | `src/utils/html-sanitizer.ts`: 정규식 경로 `REMOVED_ELEMENTS`(91~110행)와 `sanitizeMarkup()` 의 제거 분기(334행) / DOMPurify 경로는 `isomorphic-dompurify` 가 로드하는 dompurify 3.4.15 기본 허용 목록 (패키지 설정 변경 없음) |
 | **우선순위** | Critical |
 | **전제조건** | TC-S-008 과 같은 두 경로 구성. SPEC-01~07 은 `@withwiz/blog-core` 와 같은 정규식 대체 새니타이저 공통 명세 입력이다 |
 | **판정 방법** | `expectInert` 에 더해 소문자로 바꾼 출력에 `javascript:` 가 없고, `attributeName` 값이 `href`·`xlink:href` 인 요소가 없어야 한다. 요소 부재는 정규식 경로에서 `animate`·`animatemotion`·`animatetransform`·`animatecolor`·`set`·`meta`·`base`·`link` 8종, DOMPurify 경로에서 `animate`·`set`·`meta`·`base`·`link` 5종을 본다. 정규식 경로는 출력 문자열에도 태그 이름 경계(`[\t\n\f\r />]` 또는 끝)를 지킨 해당 태그가 없어야 한다 |
@@ -1899,7 +1902,7 @@ createSanitizer(config)(html)
 | 11 | `tests/exports-superset.test.ts` | node | 10 | TC-SM-001 |
 | 12 | `tests/fresh-checkout.test.ts` | node | 3 | TC-SM-005 |
 | 13 | `tests/html-sanitizer-bypass.test.ts` | node | 11 | TC-S-002 |
-| 14 | `tests/html-sanitizer-paths.test.ts` | node | 157 | TC-S-007 (4), TC-S-008 (82), TC-S-009 (30), TC-S-010 (20), TC-S-011 (21) |
+| 14 | `tests/html-sanitizer-paths.test.ts` | node | 159 | TC-S-007 (4), TC-S-008 (82), TC-S-009 (30), TC-S-010 (22), TC-S-011 (21) |
 | 15 | `tests/html-sanitizer.test.ts` | node | 22 | TC-S-001 |
 | 16 | `tests/image-resize.dom.test.ts` | jsdom | 5 | TC-U-011 |
 | 17 | `tests/image-variant-utils.test.ts` | node | 7 | TC-U-005 |
@@ -2008,13 +2011,14 @@ createSanitizer(config)(html)
 | `CMS-HSP-DNG-01` ~ `CMS-HSP-DNG-10` | 20 (정적 2개) | 없음 (정규식 경로 위험 태그 테스트 보강, 닫는 태그 없는 style 결함 수정) | 커밋 `a541627` (2026-09-16) | `tests/html-sanitizer-paths.test.ts` | TC-S-010 |
 | `CMS-HSP-SPEC-01` ~ `07`, `CMS-HSP-ANIM-01` ~ `03` | 20 (정적 2개) | 없음 (정규식 대체 새니타이저 공통 명세) | 커밋 `30917b4` (2026-09-16) | `tests/html-sanitizer-paths.test.ts` | TC-S-011 |
 | `CMS-HSP-SPEC-08` | 1 (정적 1개, 정규식 경로만) | 없음 (정규식 대체 새니타이저 공통 명세) | 커밋 `30917b4` (2026-09-16) | `tests/html-sanitizer-paths.test.ts` | TC-S-011 |
+| `CMS-HSP-SPEC-09`, `CMS-HSP-SPEC-10` | 2 (정적 2개, 정규식 경로만) | 없음 (기존 제거 목록 태그 이름 경계 결함 수정) | 커밋 `a2ef0fd` (2026-09-18) | `tests/html-sanitizer-paths.test.ts` | TC-S-010 |
 | `CMS-VKE-01` ~ `17`, `CMS-VKE-20` ~ `23`, `CMS-VKE-30` ~ `32` | 24 (정적 7개) | 없음 (변형 URL·키 계산 결함 수정) | 커밋 `d59774c` (2026-09-16) | `tests/variant-key-edge.test.ts` | TC-U-027 |
 | `CMS-AMT-01` ~ `CMS-AMT-12` | 12 | 없음 (접근성 수정, AdminManagerBase 탭 키보드 조작) | 커밋 `c741e11` (2026-09-16) | `tests/admin-manager-tabs.dom.test.tsx` | TC-AC-003 |
 
 - "Sprint 1" 은 로컬 하네스 `archive/sprint-1/sprint_contract.md` 에 8개 파일 이름이 모두 등장하고 `archive/sprint-0/sprint_contract.md` 에는 없다는 사실에 근거한다.
 - "기준선 이후, 최초 커밋 이전" 은 로컬 `baseline-test-inventory.txt` 의 파일별 `it_test_count` 와 최초 커밋 `7b0c0dc`(2026-05-24)의 테스트 ID 목록을 비교한 결과이다. "커밋 `c4aeb8e`"·"커밋 `797595f`"·"커밋 `679fb96`"·"커밋 `f0193e1`" 은 각 커밋 전후의 테스트 ID 목록을 비교한 결과이다. 2026-09-16 커밋은 이 문서 작업과 같은 브랜치에서 추가한 번호이다.
-- `CMS-HSP-*` 의 개수 칸은 실행 건수이다. `CMS-HSP-INJ-*` 와 `CMS-HSP-SPEC-08` 을 뺀 나머지는 한 ID 가 DOMPurify·정규식 두 경로에서 각각 1건씩 실행된다. `CMS-HSP-HBP-*` 는 `CMS-HBP-*` 와, `CMS-HSP-CMT-01` ~ `04` 는 `CMS-HSP-CMT <라벨>` 과 이름이 비슷하지만 서로 다른 케이스이다.
-- 집계 확인: A 140개 + B 51개 = 기준선 191개이다. C 의 정적 `it()`/`it.each()` 호출 118개(0.2.0 까지 68개, `CMS-ASC-CUR` 7개, `CMS-HSP` 21개, `CMS-FRESH` 3개, `CMS-VKE` 7개, `CMS-AMT` 12개. CMS-EXP 는 1개로 계산)를 더하면 정적 집계 309개와 같다.
+- `CMS-HSP-*` 의 개수 칸은 실행 건수이다. `CMS-HSP-INJ-*` 와 `CMS-HSP-SPEC-08` ~ `10` 을 뺀 나머지는 한 ID 가 DOMPurify·정규식 두 경로에서 각각 1건씩 실행된다. `CMS-HSP-HBP-*` 는 `CMS-HBP-*` 와, `CMS-HSP-CMT-01` ~ `04` 는 `CMS-HSP-CMT <라벨>` 과 이름이 비슷하지만 서로 다른 케이스이다.
+- 집계 확인: A 140개 + B 51개 = 기준선 191개이다. C 의 정적 `it()`/`it.each()` 호출 120개(0.2.0 까지 68개, `CMS-ASC-CUR` 7개, `CMS-HSP` 23개, `CMS-FRESH` 3개, `CMS-VKE` 7개, `CMS-AMT` 12개. CMS-EXP 는 1개로 계산)를 더하면 정적 집계 311개와 같다.
 
 ### 이전 문서
 
