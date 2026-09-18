@@ -41,10 +41,9 @@ describe('getVariantUrl', () => {
   });
 
   it('CMS-IV-07: 쿼리 파라미터 포함 URL 처리', () => {
-    // 마지막 `.` 이후를 교체하므로 쿼리까지 포함됨
+    // 확장자는 경로의 마지막 세그먼트에서만 찾고 쿼리 문자열은 그대로 붙인다.
+    // (0.2.2 이하는 `.jpg?v=1` 전체를 확장자로 보고 쿼리를 버렸다. TC-U-027 결함 이력)
     const url = 'https://cdn.r2.dev/images/photo.jpg?v=1';
-    const result = getVariantUrl(url);
-    // `.jpg?v=1` 전체가 마지막 확장자 매칭 → `-thumb.webp`로 교체
-    expect(result).toContain('-thumb.webp');
+    expect(getVariantUrl(url)).toBe('https://cdn.r2.dev/images/photo-thumb.webp?v=1');
   });
 });

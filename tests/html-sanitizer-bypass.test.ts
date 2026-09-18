@@ -1,3 +1,5 @@
+import { vi } from 'vitest';
+import DOMPurify from 'isomorphic-dompurify';
 import { sanitizeHtmlContent, createSanitizer } from '@withwiz/cms-kit/utils/html-sanitizer';
 
 /**
@@ -22,20 +24,18 @@ import { sanitizeHtmlContent, createSanitizer } from '@withwiz/cms-kit/utils/htm
  *                                             remains inside the surrounding
  *                                             markup for several variants
  *
- * The single most decisive proof that the ACTIVE path is the DOMPurify DOM
- * sanitizer and NOT the regex fallback is CMS-HBP-DOMPROOF below: payload
- * `<a href="jav&#x09;ascript:alert(1)">` — the retained regex
- * `DANGEROUS_PROTOCOL` cannot match it (the entity `&#x09;` splits the
- * `javascript` token) so the regex fallback emits the live `javascript:`
- * href, whereas DOMPurify decodes the entity, recognizes the URL scheme and
- * strips it. The assertion that this payload's `javascript:` is gone can ONLY
- * pass if the DOM path is active.
+ * CMS-HBP-DOMPROOF below proves that the ACTIVE default path is the DOMPurify
+ * DOM sanitizer and NOT the regex fallback (see the 2026-09-16 note).
  *
  * NOTE (fix/security-sanitizer): "regex fallback" above means the PRE-FIX
- * regex, reproduced inline in CMS-HBP-DOMPROOF. The current regex path
- * decodes entities before the protocol check and also neutralizes this
- * payload; both paths are verified separately in html-sanitizer-paths.test.ts
- * via `createSanitizer({ purify })`.
+ * regex. The current regex path decodes entities before the protocol check and
+ * also neutralizes this payload; both paths are verified separately in
+ * html-sanitizer-paths.test.ts via `createSanitizer({ purify })`.
+ *
+ * NOTE (2026-09-16): CMS-HBP-DOMPROOF no longer relies on the pre-fix regex
+ * copy. It asserts an output difference between the two current paths (the
+ * DOMPurify path drops the dangerous href attribute, the regex path leaves
+ * `href=""`) and that the dynamically loaded DOMPurify instance was called.
  */
 
 function assertAbsent(out: string | null, tokens: string[]): void {
@@ -107,29 +107,37 @@ describe('html-sanitizer regex-bypass regression (CMS-HBP)', () => {
     assertAbsent(out, ['data:text/html', '<script', 'alert(1)']);
   });
 
-  // DOM-path proof: this payload is ONE the retained regex fallback provably
-  // cannot neutralize (entity-split `javascript`), so a green assertion here
-  // proves the active sanitizer is the DOMPurify DOM allowlist, not regex.
-  it('CMS-HBP-DOMPROOF: active path is DOMPurify (regex fallback cannot fix this)', () => {
+  // DOM-path proof (2026-09-16 교체): 0.2.2 부터 정규식 경로도 엔티티를 디코딩해
+  // javascript: 를 막으므로 "javascript: 가 없다" 는 단언만으로는 활성 경로를
+  // 구분할 수 없다. 두 경로의 출력이 실제로 달라지는 입력(DOMPurify 는 위험 href
+  // 속성을 통째로 지우고, 정규식 경로는 `href=""` 로 비워 남긴다)과, 동적 로딩한
+  // DOMPurify 인스턴스의 sanitize 호출 여부를 함께 단언한다. 정규식 경로로 바뀌면
+  // 두 단언이 모두 실패한다.
+  it('CMS-HBP-DOMPROOF: active path is DOMPurify (regex fallback output differs)', () => {
     const payload = '<a href="jav&#x09;ascript:alert(1)">x</a>';
 
-    // Sanity: drive the retained regex fallback DIRECTLY (no DOMPurify) and
-    // confirm it leaves a LIVE entity-split script URL — i.e. the payload IS
-    // a genuine regex bypass (non-vacuity proof, executable not prose). The
-    // `&#x09;` entity splits the `javascript` token so the protocol regex
-    // never matches; the dangerous `ascript:alert(1)` href survives intact.
-    const REGEX_DANGEROUS_PROTOCOL =
-      /(href|src|action)\s*=\s*["']\s*(javascript|vbscript|data\s*:(?!image\/))[^"']*["']/gi;
-    const regexOnly = payload.replace(REGEX_DANGEROUS_PROTOCOL, '$1=""');
-    // regex FAILS: the (entity-encoded) script URL remains in the href.
-    expect(regexOnly).toContain('jav&#x09;ascript:alert(1)');
+    // Non-vacuity: 정규식 경로(purify: null 강제)는 이 입력에서 href 속성을
+    // 빈 값으로 남긴다. 아래 DOMPurify 경로 단언이 경로를 구분한다는 근거이다.
+    const regexOut = createSanitizer({ purify: null })(payload);
+    expect(regexOut).toBe('<a href="">x</a>');
 
-    // The real default sanitizer (DOMPurify DOM path) must neutralize it.
-    const out = sanitizeHtmlContent(payload);
-    assertAbsent(out, ['javascript:', 'alert(1)']);
+    // 소스의 동적 require 는 이 테스트가 import 한 것과 같은 인스턴스를 로드한다.
+    const spy = vi.spyOn(DOMPurify, 'sanitize');
+    try {
+      // The real default sanitizer (DOMPurify DOM path) must neutralize it.
+      const out = sanitizeHtmlContent(payload);
+      assertAbsent(out, ['javascript:', 'alert(1)']);
+      expect(out).not.toMatch(/href/i);
 
-    // createSanitizer factory (consumer-config surface) behaves identically.
-    const custom = createSanitizer({ trustedIframeOrigins: ['https://x/'] });
-    assertAbsent(custom(payload), ['javascript:', 'alert(1)']);
+      // createSanitizer factory (consumer-config surface) behaves identically.
+      const customOut = createSanitizer({ trustedIframeOrigins: ['https://x/'] })(payload);
+      assertAbsent(customOut, ['javascript:', 'alert(1)']);
+      expect(customOut).not.toMatch(/href/i);
+
+      expect(spy).toHaveBeenCalledTimes(2);
+      expect(spy.mock.calls.map((call) => call[0])).toEqual([payload, payload]);
+    } finally {
+      spy.mockRestore();
+    }
   });
 });

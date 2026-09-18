@@ -94,6 +94,10 @@ export default function NewsManager({ initialItems }: { initialItems: NewsItem[]
 
 `ref` 로 `AdminManagerBaseHandle` 을 노출해 외부에서 `selectItem(id)` 호출 가능.
 
+### 탭 접근성
+
+목록·편집 탭은 WAI-ARIA Tabs 패턴을 따릅니다. `.pm-tabs` 가 `role="tablist"`(페이지 제목으로 이름 지정), 각 `.pm-tab` 이 `role="tab"`·`aria-selected`·`aria-controls` 를 가지고, `.pm-panel` 이 `role="tabpanel"` 입니다. 선택된 탭만 `tabIndex=0` 이며, 좌우 화살표·Home·End 는 탭 사이에서 포커스만 옮기고 Enter·Space·클릭으로 선택합니다. 목록 탭을 선택하면 클릭과 같이 `onNavigateToList` 가 호출되므로, 화살표 이동만으로는 선택하지 않습니다(수동 활성화). 모바일 편집·미리보기 버튼은 `aria-pressed` 로 상태를 노출합니다. 기존 클래스 이름(`pm-tabs`, `pm-tab`, `on`, `pm-panel-list`, `pm-panel-edit`)과 탭 요소 종류(`div`)는 바뀌지 않았습니다.
+
 ## `ImageDropUpload`
 
 Tiptap 에디터 및 커버 이미지용 드래그앤드롭 업로드. 내부적으로 `useImageDropZone` 을 사용합니다. 스타일은 `image-drop-zone.css` 로 scoped 제공.

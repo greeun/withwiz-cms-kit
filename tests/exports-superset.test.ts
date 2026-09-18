@@ -5,7 +5,8 @@ import ts from 'typescript';
 /**
  * CMS-EXP — I1 public-export superset (spec.md §3 I1 / CHK-I1).
  *
- * For each of the 9 code barrels, EVERY name in baseline-exports.json must
+ * For each of the 9 code barrels, EVERY name in the tracked fixture
+ * tests/fixtures/baseline-exports.json must
  * still be exported (SUPERSET: new names allowed, none of the baseline names
  * missing). The baseline was captured from the built dist `.d.ts` via the
  * TypeScript compiler API (ts.getExportsOfModule); this test reproduces the
@@ -26,7 +27,7 @@ const PKG_ROOT = resolve(__dirname, '..');
 
 const baseline = JSON.parse(
   readFileSync(
-    resolve(PKG_ROOT, '.claude/harness/pms-refactor/baseline-exports.json'),
+    resolve(PKG_ROOT, 'tests/fixtures/baseline-exports.json'),
     'utf8',
   ),
 ) as Record<string, string[] | { type: string }>;
