@@ -1,6 +1,7 @@
 {
   "name": "@withwiz/cms-kit",
   "version": "0.2.2",
+  "packageManager": "npm@11.16.0",
   "description": "Reusable CMS framework for Next.js + React admin panels — AdminShell, AdminManagerBase, middleware wrappers, image pipeline, and shared admin utilities.",
   "license": "MIT",
   "author": "withwiz <ss@withwiz.com>",
@@ -205,7 +206,7 @@
   "peerDependencies": {
     "@aws-sdk/client-s3": ">=3",
     "@tanstack/react-virtual": ">=3",
-    "@withwiz/toolkit": ">=0.7.1",
+    "@withwiz/toolkit": ">=0.8.0",
     "clsx": ">=2",
     "isomorphic-dompurify": ">=2",
     "next": ">=15",

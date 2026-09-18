@@ -87,6 +87,30 @@ function expectInert(out: string | null): Document {
   return doc;
 }
 
+/** 정규식 대체 새니타이저 공통 명세의 제거 대상 요소 (소문자 이름). */
+const REMOVED_ELEMENTS: ReadonlySet<string> = new Set([
+  'animate',
+  'animatemotion',
+  'animatetransform',
+  'animatecolor',
+  'set',
+  'meta',
+  'base',
+  'link',
+]);
+
+/**
+ * DOMPurify 경로에서 요소째 없어져야 하는 대상. DOMPurify 3.x 기본 SVG 허용 목록은
+ * animatemotion·animatetransform·animatecolor 를 허용하고, 대신 href 를 대상으로
+ * 하는 attributeName 과 to·from 속성을 지워 무력화한다. 공통 명세 입력 1~6 의
+ * 요소(animate·set·meta·base·link)는 허용 목록에 없어 요소째 제거된다.
+ */
+const DOMPURIFY_REMOVED_ELEMENTS: ReadonlySet<string> = new Set(['animate', 'set', 'meta', 'base', 'link']);
+
+/** 제거 대상 요소의 여는·닫는·자체 닫는 태그 (태그 이름 경계 포함). */
+const REMOVED_ELEMENT_TAG =
+  /<\/?(?:animate|animatemotion|animatetransform|animatecolor|set|meta|base|link)(?=[\t\n\f\r />]|$)/i;
+
 /** 블록 에디터 serializer 와 같은 방식(btoa(encodeURIComponent(JSON))) 으로 인코딩한다. */
 function encodePayload(data: unknown): string {
   return btoa(encodeURIComponent(JSON.stringify(data)));
@@ -211,6 +235,74 @@ describe.each(PATHS)('html-sanitizer $name (CMS-HSP)', ({ purify }) => {
     });
   });
 
+  describe('위험 태그 제거', () => {
+    // 정규식 경로의 STRIP_TAGS_WITH_CONTENT·STRIP_TAG_CONTENT 와 DOMPurify 경로의
+    // FORBID_TAGS 가 같은 태그를 지우는지 확인한다. object 는 TAG-01·TAG-02 에 있다.
+    const DANGEROUS_TAGS = 'embed, applet, form, input, textarea, select, button, style';
+
+    it.each([
+      ['DNG-01 embed', '<p>a</p><embed src="https://evil.example/x.swf" type="application/x-shockwave-flash">'],
+      ['DNG-02 self-closing embed', '<p>a</p><embed src="https://evil.example/x.swf"/>'],
+      ['DNG-03 applet', '<p>a</p><applet code="Evil.class" archive="https://evil.example/x.jar"></applet>'],
+      ['DNG-04 form', '<p>a</p><form action="https://evil.example/collect" method="post"><span>b</span></form>'],
+      ['DNG-05 input', '<p>a</p><input type="password" name="pw" formaction="https://evil.example/">'],
+      ['DNG-06 textarea·select·button', '<p>a</p><textarea name="t">x</textarea><select name="s"><option>o</option></select><button type="submit">go</button>'],
+      ['DNG-07 style (닫는 태그 있음)', '<p>a</p><style>body{background:url(https://evil.example/t)}</style>'],
+      ['DNG-08 style (닫는 태그 없음)', '<p>a</p><style>body{background:url(https://evil.example/t)}'],
+      ['DNG-09 대소문자 섞은 태그', '<p>a</p><EmBeD src="x"><FoRm><InPuT name="a"></fOrM><StYlE>p{color:red}</sTyLe><sTyLe media="all">'],
+    ])('CMS-HSP-%s', (_label, input) => {
+      const doc = expectInert(sanitize(input));
+      expect(doc.querySelectorAll(DANGEROUS_TAGS).length).toBe(0);
+      expect(doc.querySelector('p')?.textContent).toBe('a');
+    });
+
+    it('CMS-HSP-DNG-10: 닫는 태그가 있는 style 은 내용까지 지운다', () => {
+      const out = sanitize('<p>a</p><style>body{background:url(https://evil.example/t)}</style><p>b</p>');
+      const doc = expectInert(out);
+      expect(doc.querySelectorAll('style').length).toBe(0);
+      expect(out).not.toContain('evil.example');
+      expect(Array.from(doc.querySelectorAll('p')).map((p) => p.textContent)).toEqual(['a', 'b']);
+    });
+  });
+
+  describe('SVG 애니메이션·문서 메타 요소 제거', () => {
+    // 정규식 대체 새니타이저 공통 명세 (cms-kit·blog-core 동일 입력).
+    // SVG 애니메이션 요소는 실행 시점에 부모 요소의 href 를 javascript: 로 바꾸고,
+    // meta·base·link 는 문서 이동·기준 URL·외부 스타일시트를 바꾼다.
+    it.each([
+      ['SPEC-01 animate 로 href 교체', '<svg><a href="#"><animate attributeName="href" to="javascript:alert(1)"/><text>x</text></a></svg>'],
+      ['SPEC-02 set 으로 href 교체', '<svg><a><set attributeName="href" to="javascript:alert(1)"></set></a></svg>'],
+      ['SPEC-03 대문자 ANIMATE', '<SVG><A><ANIMATE ATTRIBUTENAME=href TO=javascript:alert(1)></ANIMATE></A></SVG>'],
+      ['SPEC-04 meta refresh', '<meta http-equiv="refresh" content="0;url=javascript:alert(1)">'],
+      ['SPEC-05 base href', '<base href="https://evil.example/">'],
+      ['SPEC-06 link stylesheet', '<link rel="stylesheet" href="https://evil.example/x.css">'],
+      ['ANIM-01 animateMotion·animateTransform·animateColor·SET', '<svg><animateMotion path="M0,0"/><animateTransform attributeName="transform"></animateTransform><animateColor attributeName="fill"></animateColor><a><SET attributeName=href to=javascript:alert(1) /></a></svg>'],
+      ['ANIM-02 따옴표 값 안 > 뒤 to 속성', '<svg><a><animate values="a>b" attributeName="href" to="javascript:alert(1)"/></a></svg>'],
+      ['ANIM-03 slash 구분 속성', '<svg><a><set/attributeName=href/to=javascript:alert(1)></a></svg><META/http-equiv=refresh/content="0;url=javascript:alert(1)">'],
+    ])('CMS-HSP-%s', (_label, input) => {
+      const out = sanitize(input);
+      const doc = expectInert(out);
+      expect((out as string).toLowerCase()).not.toContain('javascript:');
+      // 남은 애니메이션 요소가 href 를 대상으로 삼지 않는다.
+      const hrefTargets = allElements(doc)
+        .map((el) => (el.getAttribute('attributeName') ?? el.getAttribute('attributename') ?? '').trim())
+        .filter((v) => /(^|:)href$/.test(v));
+      expect(hrefTargets).toEqual([]);
+
+      const removed = purify === null ? REMOVED_ELEMENTS : DOMPURIFY_REMOVED_ELEMENTS;
+      const remaining = allElements(doc)
+        .map((el) => el.localName.toLowerCase())
+        .filter((n) => removed.has(n));
+      expect(remaining).toEqual([]);
+      if (purify === null) expect(out).not.toMatch(REMOVED_ELEMENT_TAG);
+    });
+
+    it('CMS-HSP-SPEC-07: 본문 속 같은 단어는 그대로 남는다', () => {
+      const html = '<p>settings, link, base, meta, animate 라는 단어</p>';
+      expect(sanitize(html)).toBe(html);
+    });
+  });
+
   describe('태그 밖 텍스트 보존', () => {
     it('CMS-HSP-TXT-01: 속성처럼 보이는 본문 텍스트를 바꾸지 않는다', () => {
       const text = '설정값 "online=true" 와 "one=1", 예시 href="javascript:void(0)" 문구';
@@ -301,5 +393,16 @@ describe.each(PATHS)('html-sanitizer $name (CMS-HSP)', ({ purify }) => {
       expect(sanitize(null)).toBeNull();
       expect(sanitize(undefined)).toBeUndefined();
     });
+  });
+});
+
+describe('html-sanitizer 정규식 경로 태그 이름 경계 (CMS-HSP)', () => {
+  const sanitize = createSanitizer({ purify: null });
+
+  it('CMS-HSP-SPEC-08: 제거 대상과 이름이 다른 태그는 건드리지 않는다', () => {
+    const html =
+      '<settings>a</settings><linkbox>b</linkbox><baseline>c</baseline>' +
+      '<metadata>d</metadata><link-preview>e</link-preview><animated>f</animated>';
+    expect(sanitize(html)).toBe(html);
   });
 });

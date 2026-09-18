@@ -8,8 +8,7 @@ import path from 'path';
 // vitest.config.ts + `test` script + vitest devDependency), adapted to the
 // CMS-kit node/jsdom split (`cms-kit` / `cms-kit-dom`) documented in docs/testing.md.
 //
-// Behavior-neutral: adds ONLY a runner. No src/** runtime change, no existing
-// tests/** file changed (the existing tests/setup.ts is used as-is).
+// Behavior-neutral: adds ONLY a runner. No src/** runtime change.
 //
 // - globals: true is MANDATORY. Every existing PMS test file relies on the
 //   GLOBAL describe/it/expect/beforeEach (some import nothing from vitest;
@@ -25,10 +24,11 @@ import path from 'path';
 //   observable file->project mapping is identical because the only .tsx test
 //   files are *.dom.test.tsx, which route to cms-kit-dom. The doc's project
 //   names/environments/exclusions are preserved exactly.)
-// - setupFiles runs the NEW harness-owned env-setup.ts (supplies
-//   RATE_LIMIT_ENABLED='false' per docs/testing.md §"공통 셋업" without
-//   editing the byte-identity-protected tests/setup.ts) BEFORE the existing
-//   tests/setup.ts (which sets NODE_ENV and mocks next/cache).
+// - setupFiles 는 추적 대상인 tests/setup.ts 하나만 지정한다. 이 파일이
+//   NODE_ENV, RATE_LIMIT_ENABLED='false' 기본값(docs/testing.md "공통 셋업"),
+//   next/cache mock 을 설정한다. gitignore 대상 파일을 셋업으로 지정하면 새로
+//   받은 체크아웃에서 모든 테스트 파일이 로드에 실패한다 (TC-SM-005,
+//   tests/fresh-checkout.test.ts 가 회귀를 막는다).
 
 const cmsKitAlias = [
   // Deep subpath: @withwiz/cms-kit/utils/html-sanitizer -> src/utils/html-sanitizer
@@ -48,10 +48,7 @@ const cmsKitAlias = [
 // 못하므로, toolkit 을 Vite 파이프라인에서 인라인 변환해 해석시킨다.
 const inlineToolkit = { deps: { inline: [/@withwiz\/toolkit/] } };
 
-const setupFiles = [
-  './tests-harness/env-setup.ts',
-  './tests/setup.ts',
-];
+const setupFiles = ['./tests/setup.ts'];
 
 export default defineConfig({
   plugins: [react()],

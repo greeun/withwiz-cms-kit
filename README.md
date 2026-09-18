@@ -36,7 +36,7 @@ pnpm add @withwiz/cms-kit
 yarn add @withwiz/cms-kit
 ```
 
-`@withwiz/toolkit` is a peer dependency (`>=0.7.1`). Depending on your package manager and resolution strategy, you may need to install it explicitly:
+`@withwiz/toolkit` is a peer dependency (`>=0.8.0`; the type declarations in 0.7.1 import packages that do not exist, so the JWT and middleware types cms-kit uses are not type-checked). Depending on your package manager and resolution strategy, you may need to install it explicitly:
 
 ```bash
 npm install @withwiz/toolkit
