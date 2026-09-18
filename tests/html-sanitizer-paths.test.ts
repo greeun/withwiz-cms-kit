@@ -406,3 +406,21 @@ describe('html-sanitizer 정규식 경로 태그 이름 경계 (CMS-HSP)', () =>
     expect(sanitize(html)).toBe(html);
   });
 });
+
+describe('html-sanitizer 정규식 경로 기존 제거 목록의 태그 이름 경계 (CMS-HSP)', () => {
+  const sanitize = createSanitizer({ purify: null });
+
+  it('CMS-HSP-SPEC-09: 기존 제거 목록과 이름이 다른 사용자 정의 태그는 건드리지 않는다', () => {
+    const html =
+      '<style-guide>a</style-guide><form-field>b</form-field>' +
+      '<input-group>c</input-group><button-bar>d</button-bar>' +
+      '<select-box>e</select-box><object-list>f</object-list>';
+    expect(sanitize(html)).toBe(html);
+  });
+
+  it('CMS-HSP-SPEC-10: 기존 제거 목록의 태그는 이름이 정확히 같을 때만 지운다', () => {
+    expect(sanitize('<form>a</form>')).toBe('a');
+    expect(sanitize('<button>b</button>')).toBe('b');
+    expect(sanitize('<object>c</object>')).toBe('c');
+  });
+});

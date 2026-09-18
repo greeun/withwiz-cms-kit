@@ -31,14 +31,6 @@ import { resolveTrustedIframeOrigins } from '../config';
 
 // ── 정규식 패턴 (defense-in-depth fallback 전용) ──
 
-/**
- * 항상 제거할 태그. 여는·닫는 태그만 지우고 사이 내용은 남긴다(내용까지 지우는
- * 것은 script·style 에 한해 STRIP_TAG_CONTENT 가 먼저 처리한다). style 은 닫는
- * 태그가 없으면 STRIP_TAG_CONTENT 에 걸리지 않으므로 여기서도 지운다.
- */
-const STRIP_TAGS_WITH_CONTENT =
-  /(<\s*\/?\s*(script|object|embed|applet|form|input|textarea|select|button|style)\b[^>]*>)/gi;
-
 /** script/style 태그 사이 콘텐츠 */
 const STRIP_TAG_CONTENT = /<\s*(script|style)\b[^>]*>[\s\S]*?<\s*\/\s*\1\s*>/gi;
 
@@ -82,13 +74,31 @@ const URL_ATTR_NAMES: ReadonlySet<string> = new Set([
 ]);
 
 /**
- * 태그만 지우는 요소 (소문자 이름). SVG 애니메이션 요소(animate·set 등)는 실행
- * 시점에 부모 요소의 href 같은 속성을 `javascript:` 로 바꿀 수 있고, meta·base·
- * link 는 문서 이동(refresh)·기준 URL·외부 스타일시트를 바꾼다. 토크나이저가 끊은
- * 태그 이름 전체와 비교하므로 `<settings>`·`<linkbox>` 같은 다른 이름의 태그와
- * 태그 밖 텍스트는 해당하지 않는다. 여는·닫는·자체 닫는 태그를 모두 지운다.
+ * 태그만 지우는 요소 (소문자 이름). 여는·닫는 태그만 지우고 사이 내용은 남긴다.
+ * 내용까지 지우는 것은 script·style 에 한해 STRIP_TAG_CONTENT 가 먼저 처리하며,
+ * 닫는 태그가 없어 거기 걸리지 않는 script·style 의 여는 태그는 여기서 지운다.
+ *
+ * 스크립트를 실행하거나(script) 외부 자원을 끌어오는 요소(object·embed·applet),
+ * 사용자 입력을 받는 요소(form·input·textarea·select·button), SVG 애니메이션
+ * 요소(animate·set 등, 실행 시점에 부모 요소의 href 같은 속성을 `javascript:` 로
+ * 바꿀 수 있다), 문서 수준 요소(meta·base·link, 문서 이동·기준 URL·외부
+ * 스타일시트를 바꾼다)가 대상이다.
+ *
+ * 토크나이저가 끊은 태그 이름 전체와 비교하므로 `<settings>`·`<linkbox>`·
+ * `<style-guide>` 처럼 이름이 다른 태그와 태그 밖 텍스트는 해당하지 않는다.
+ * 여는·닫는·자체 닫는 태그를 모두 지운다.
  */
 const REMOVED_ELEMENTS: ReadonlySet<string> = new Set([
+  'script',
+  'style',
+  'object',
+  'embed',
+  'applet',
+  'form',
+  'input',
+  'textarea',
+  'select',
+  'button',
   'animate',
   'animatemotion',
   'animatetransform',
@@ -355,11 +365,8 @@ function regexSanitizePass(html: string, trustedOrigins: readonly string[]): str
   // 1. script/style 태그 사이 콘텐츠 제거
   result = result.replace(STRIP_TAG_CONTENT, '');
 
-  // 2. 위험한 태그 제거
-  result = result.replace(STRIP_TAGS_WITH_CONTENT, '');
-
-  // 3. 태그 단위 정리: SVG 애니메이션·meta·base·link 태그 제거, 이벤트·srcdoc 속성
-  //    제거, 위험 URL 무력화(엔티티 디코딩 후 판정), 비신뢰 iframe 제거. 태그 밖
+  // 2. 태그 단위 정리: REMOVED_ELEMENTS 태그 제거, 이벤트·srcdoc 속성 제거,
+  //    위험 URL 무력화(엔티티 디코딩 후 판정), 비신뢰 iframe 제거. 태그 밖
   //    텍스트와 주석은 바꾸지 않는다.
   return sanitizeMarkup(result, trustedOrigins);
 }
