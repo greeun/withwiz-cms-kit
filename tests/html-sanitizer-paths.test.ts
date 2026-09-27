@@ -118,7 +118,7 @@ function encodePayload(data: unknown): string {
 
 const PAYLOAD = encodePayload({
   blocks: [
-    { type: 'paragraph', text: '댄스시어터샤하르 <b>"정기공연"</b> & 안내 > 예매' },
+    { type: 'paragraph', text: '샘플 사이트 <b>"정기 행사"</b> & 안내 > 신청' },
     { type: 'image', src: 'https://cdn.example.com/a.jpg', caption: "it's /on=1" },
   ],
   version: 2,
@@ -340,11 +340,11 @@ describe.each(PATHS)('html-sanitizer $name (CMS-HSP)', ({ purify }) => {
     it('CMS-HSP-CMT-DOC: 데이터 주석 4종이 섞인 실제 형태의 본문이 바이트 그대로 보존된다', () => {
       const html =
         `<!-- pme-data:${PAYLOAD} -->\n` +
-        '<h2 class="pme-title">정기공연</h2>\n' +
+        '<h2 class="pme-title">정기 행사</h2>\n' +
         '<p style="text-align: center;">본문 <strong>강조</strong></p>\n' +
         `<!-- abe-blocks:${PAYLOAD} -->\n` +
         `<!-- rme-data:${PAYLOAD} -->\n` +
-        '<!-- nbe-cta-start --><div class="nbe-cta"><p>단체관람 문의</p>' +
+        '<!-- nbe-cta-start --><div class="nbe-cta"><p>단체 문의</p>' +
         '<a href="https://example.com/contact" target="_blank" rel="noopener noreferrer">문의하기</a>' +
         '</div><!-- nbe-cta-end -->\n' +
         `<!-- nbe-cta:${PAYLOAD} -->`;
