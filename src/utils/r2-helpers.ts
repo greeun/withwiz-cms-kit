@@ -19,7 +19,7 @@ import {
  *  - `storage.publicBaseUrl` 설정 시: 그 base/origin 으로 시작하는 모든
  *    `<img src>` 의 path 가 폴더 무관하게 key 로 수집된다.
  *  - `storage.inlineKeyPrefixes` 설정 시: path 의 최상위 세그먼트가 목록에
- *    있는 key 만 수집된다 (예: `['news/', 'performances/', 'artists/']`).
+ *    있는 key 만 수집된다 (예: `['news/', 'events/', 'products/']`).
  *  - 미설정(unconfigured) 기본값: 어떤 prefix 도 *silently drop 하지 않는다*.
  *    하드코딩 `news/`-only regex 와 달리 모든 inline 이미지의 host 이후
  *    path 를 수집한다 (orphan 방지). 정밀 cleanup 을 위해 prefix/base 설정을

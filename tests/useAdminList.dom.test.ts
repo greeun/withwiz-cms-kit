@@ -94,10 +94,10 @@ describe('useAdminList 훅', () => {
     );
 
     act(() => {
-      result.current.setSearchQuery('발레');
+      result.current.setSearchQuery('검색어');
     });
 
-    expect(result.current.searchQuery).toBe('발레');
+    expect(result.current.searchQuery).toBe('검색어');
   });
 
   it('CMS-UAL-05: setFilterValue 상태 변경', () => {

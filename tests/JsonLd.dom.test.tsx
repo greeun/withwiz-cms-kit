@@ -17,7 +17,7 @@ describe('JsonLd 컴포넌트', () => {
     // raw U+2028 and U+2029 code points.
     const data = {
       '@type': 'Organization',
-      name: 'Dance Theater Shahar',
+      name: 'Sample Organization',
       evil: '</script><!-- < > & end',
       ls: `line${U2028}sep`,
       ps: `para${U2029}sep`,
@@ -60,13 +60,13 @@ describe('JsonLd 컴포넌트', () => {
 
   it('CMS-JL-04: 특수 문자 포함 값 처리', () => {
     const data = {
-      name: 'Ballet "Swan Lake" <2024>',
-      description: "공연 & 전시 '특별'",
+      name: 'Sample "Title" <2024>',
+      description: "행사 & 전시 '특별'",
     };
     const { container } = render(<JsonLd data={data} />);
     const script = container.querySelector('script[type="application/ld+json"]');
     const parsed = JSON.parse(script!.innerHTML);
-    expect(parsed.name).toBe('Ballet "Swan Lake" <2024>');
-    expect(parsed.description).toBe("공연 & 전시 '특별'");
+    expect(parsed.name).toBe('Sample "Title" <2024>');
+    expect(parsed.description).toBe("행사 & 전시 '특별'");
   });
 });
