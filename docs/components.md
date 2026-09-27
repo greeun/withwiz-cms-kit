@@ -60,7 +60,7 @@ interface AdminManagerConfig<TItem extends { id: string }, TForm extends object>
 import { AdminManagerBase, type AdminManagerConfig } from '@withwiz/cms-kit/components';
 
 const newsConfig: AdminManagerConfig<NewsItem, NewsForm> = {
-  meta: { appTitle: '댄스시어터샤하르', pageTitle: '뉴스 관리', ... },
+  meta: { appTitle: 'My CMS', pageTitle: '뉴스 관리', ... },
   apiPath: '/api/admin/news',
   defaultSortKey: 'createdAt_desc',
   sortOptions: [...],
