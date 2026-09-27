@@ -9,7 +9,7 @@
 | 범위 | `src/` 전체 (components/, hooks/, infrastructure/, services/, types/, utils/, validators/, config/) |
 | 환경 | Vitest 4.1.11, Node.js 22.22.0, 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2). devDependency `@withwiz/toolkit` 0.15.0, `isomorphic-dompurify` 2.36.0. peerDependency `@withwiz/toolkit` `>=0.8.0` (2026-09-17 에 `>=0.7.1` 에서 변경) |
 | 목표 커버리지 | 미설정 (`vitest.config.ts` 에 coverage 설정이 없고 `@vitest/coverage-*` 패키지도 설치되어 있지 않음) |
-| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음). 2026-09-18 `fix/residual-defects-a` 기준 갱신: 정규식 경로가 하이픈이 들어간 사용자 정의 태그를 지우는 결함(TC-S-010)을 고쳤다. 40개 파일 472건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26, 변화 없음) |
+| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음). 2026-09-18 `fix/residual-defects-a` 기준 갱신: 정규식 경로가 하이픈이 들어간 사용자 정의 태그를 지우는 결함(TC-S-010)을 고쳤다. 40개 파일 472건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26, 변화 없음). 2026-09-28 `chore/remove-consumer-mentions` 기준 갱신: 독립 패키지에서 소비 프로젝트 언급을 모두 없앴다. 브랜드·관리자 경로 가드 테스트 파일(TC-SM-002)을 삭제해 소비 프로젝트 저장소로 옮기고, AdminShell 설정 테스트(TC-U-017)의 단언과 테스트 데이터(TC-U-009·U-012·U-016·I-002·S-003·S-009)를 중립 값으로 바꿨다. 39개 파일 469건, SC/TC 66개 (✅ 38 / ⚠️ 1 / 🔲 26 / 이전 1) |
 
 ### 실측 기록 (2026-09-17): `@withwiz/toolkit` peer 하한
 
@@ -66,6 +66,18 @@ dist 스모크 항목은 다음과 같다.
 
 결론: 테스트와 dist 스모크 기준으로는 11개 게시 버전과 0.16.0 후보가 모두 호환된다. 타입 호환이 실제로 확인되는 가장 낮은 버전은 0.8.0 이므로 `peerDependencies['@withwiz/toolkit']` 을 `>=0.7.1` 에서 `>=0.8.0` 으로 올렸다. 상한은 다른 @withwiz 패키지의 관례(`@withwiz/ui` `>=0.8.0`, `@withwiz/blog-system` `>=0.11.0`)에 맞춰 두지 않았다. `npm install --package-lock-only` 로 동기화한 `package-lock.json` 의 변경은 루트 항목 `packages[""].peerDependencies` 한 줄이다. 변경 후 `npm ci` 로 toolkit 0.15.0 레지스트리본을 복원하고 `npx tsc --noEmit` 오류 0건, `npm run build` 성공, `npm test` 40개 파일 470건 통과, dist 스모크 CJS·ESM 12/12 를 다시 확인했다. `README.md`·`README.ko.md`·`docs/README.md`·`docs/README.ko.md` 의 peer 요구 버전도 고쳤다.
 
+### 실측 기록 (2026-09-28)
+
+측정 위치는 `chore/remove-consumer-mentions` 브랜치 워크트리(`node-packages/.worktrees/cms-kit-remove-consumer-mentions`, develop `f97c912` 에서 분기)이다. Node.js 22.22.0, `package-lock.json` 기준 `npm ci` 로 설치했다.
+
+| 항목 | 결과 |
+|------|------|
+| 변경 전 (develop `f97c912`) | `npx vitest run` 결과 40개 파일, 472건 통과 |
+| 최종 (`npm test`) | **39개 파일, 469건 통과, 실패 0건, 스킵 0건** |
+| 타입 검사·빌드 | `npx tsc --noEmit` 오류 0건, `npm run build` 성공 (ESM·CJS·타입 선언) |
+| 도메인별 재확인 | 아래 도메인별 실행 명령으로 다시 실행했을 때 Unit 22개 파일 174건, Integration 3개 파일 17건, API 4개 파일 32건, Security 5개 파일 210건, Accessibility 2개 파일 19건, Smoke 3개 파일 17건이 모두 통과했다 (합계 39개 파일 469건) |
+| 이전 실측과 비교 | 40개 파일 472건 → 39개 파일 469건. 줄어든 1개 파일은 `tests/no-consumer-literals.test.ts`(3건, TC-SM-002)이다. `tests/admin-shell-config.dom.test.tsx` 는 단언만 바꿔 3건을 유지했고, 테스트 데이터만 바꾼 `JsonLd.dom`·`html-sanitizer-paths`·`useAdminList.dom`·`r2-helpers`·`r2-key-sanitization`·`integration/r2-pipeline` 의 파일별 테스트 수는 바뀌지 않았다 |
+
 ### 실측 기록 (2026-09-16)
 
 측정 위치는 `fix/residual-defects` 브랜치 워크트리(`node-packages/.worktrees/cms-kit-residual-defects`)이다. 이 워크트리는 추적 파일만 있는 새 체크아웃이며, gitignore 대상 파일은 복사하지 않았다. JSON 리포터 출력 파일은 저장소 밖에 두었다.
@@ -76,7 +88,7 @@ dist 스모크 항목은 다음과 같다.
 | 수정 전 (develop `431d2de`) | `npx vitest run` 결과 37개 파일이 모두 `Cannot find module .../tests-harness/env-setup.ts` 로 로드 실패, 실행 0건 (2026-09-15 기록과 같다) |
 | TC-SM-005 수정 직후 (커밋 `4fe6ce2`) | 38개 파일 393건 통과 (기존 390건 + `tests/fresh-checkout.test.ts` 3건) |
 | 최종 (`npm test`, 커밋 `c741e11`) | **40개 파일, 470건 통과, 실패 0건, 스킵 0건** |
-| 타입 검사·빌드 | `npx tsc --noEmit` 오류 0건, `npm run build` 성공 (ESM·CJS·DTS) |
+| 타입 검사·빌드 | `npx tsc --noEmit` 오류 0건, `npm run build` 성공 (ESM·CJS·타입 선언) |
 | 정적 집계 | `it()`/`it.each()` 호출은 309개이다. 실행 시 470건이 되는 이유는 세 가지이다. `exports-superset.test.ts` 가 반복문 안의 `it()` 1개로 9건을 생성한다(+8). `html-sanitizer-paths.test.ts` 는 `describe.each` 로 두 경로(DOMPurify·정규식)를 돌리고 그 안의 `it.each` 가 행마다 케이스를 만들어 정적 호출 21개가 157건이 된다(+136). `variant-key-edge.test.ts` 는 `it.each` 3개가 행마다 케이스를 만들어 정적 호출 7개가 24건이 된다(+17) |
 | 도메인별 재확인 | 아래 도메인별 실행 명령으로 다시 실행했을 때 Unit 22개 파일 174건, Integration 3개 파일 17건, API 4개 파일 32건, Security 5개 파일 208건, Accessibility 2개 파일 19건, Smoke 4개 파일 20건이 모두 통과했다 |
 | 이전 실측과 비교 | 2026-09-15(커밋 `550ba30`) 37개 파일 390건 → 40개 파일 470건. 늘어난 3개 파일은 `tests/fresh-checkout.test.ts`(3건), `tests/variant-key-edge.test.ts`(24건), `tests/admin-manager-tabs.dom.test.tsx`(12건)이다. 기존 파일 중에서는 `tests/html-sanitizer-paths.test.ts` 가 116건에서 157건으로 늘었고(+41), 나머지 36개 파일의 파일별 테스트 수는 바뀌지 않았다 |
@@ -131,6 +143,7 @@ dist 스모크 항목은 다음과 같다.
 - ✅ 완료: 테스트가 존재하고 통과한다
 - 🔲 계획: 테스트가 없다. 단계와 예상 결과는 대상 소스 코드를 읽고 작성했다
 - ⚠️ 교체 필요: 테스트가 존재하고 통과하지만, 현재 형태로는 소스 회귀를 보장하지 못해 교체가 필요하다
+- 이전: 이 패키지에서 테스트를 삭제하고 소비 프로젝트 저장소로 옮겼다
 
 | ID | 시나리오 | 유형 | 우선순위 | 상태 |
 |----|---------|------|---------|------|
@@ -193,7 +206,7 @@ dist 스모크 항목은 다음과 같다.
 | SC-L-001 | 동시 401 응답 시 토큰 갱신 단일화 | Load/Stress | Medium | 🔲 계획 |
 | SC-L-002 | 인메모리 limiter 동시 호출 일관성 | Load/Stress | Low | 🔲 계획 |
 | SC-SM-001 | 공개 export 상위집합 유지 | Smoke | High | ✅ 완료 |
-| SC-SM-002 | 소비자 종속 리터럴 금지 | Smoke | High | ✅ 완료 |
+| SC-SM-002 | 소비자 종속 리터럴 금지 | Smoke | High | 소비 프로젝트 저장소로 이전(2026-09-28) |
 | SC-SM-003 | Zod peer 범위 정합성 | Smoke | Medium | ✅ 완료 |
 | SC-SM-004 | dist 빌드 산출물 스모크 | Smoke | High | 🔲 계획 |
 | SC-SM-005 | 새로 받은 체크아웃에서 스위트 실행 | Smoke | Critical | ✅ 완료 |
@@ -412,8 +425,8 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | # | 단계 | 예상 결과 |
 |---|------|---------|
 | 1 | `<img src="https://cdn.r2.dev/news/1234-abc.jpg">` 추출 | `['news/1234-abc.jpg']` |
-| 2 | `performances/p1.jpg`, `artists/a1.png` 추출 후 `collectR2Keys(null, html)` | 두 키 포함, `performances/p1-lg/md/sm/thumb.webp` 4개 포함 (비 `news/` 접두어 수집) |
-| 3 | `inlineKeyPrefixes: ['performances/']` + 상대 경로 `/performances/x.jpg`, `/news/y.jpg` | `performances/x.jpg` 포함, `news/y.jpg` 미포함 |
+| 2 | `events/p1.jpg`, `products/a1.png` 추출 후 `collectR2Keys(null, html)` | 두 키 포함, `events/p1-lg/md/sm/thumb.webp` 4개 포함 (비 `news/` 접두어 수집) |
+| 3 | `inlineKeyPrefixes: ['events/']` + 상대 경로 `/events/x.jpg`, `/news/y.jpg` | `events/x.jpg` 포함, `news/y.jpg` 미포함 |
 | 4 | `https://attacker.example/news/...`, `http://cdn.r2.dev/...`, `//cdn.r2.dev/...`, `https://cdn.r2.dev.evil.example/...`, `https://cdn.r2.devX/...` | `[]` (외부 호스트·접두 혼동 거부) |
 | 5 | 미설정 기본값에서 외부 호스트와 `/news/relative.jpg` / `R2_PUBLIC_URL`·`my-bucket.r2.dev`·`other-bucket.r2.dev` | `['news/relative.jpg']` / `['news/a.jpg', 'news/b.jpg']` (다른 버킷 거부) |
 | 6 | `collectR2Keys('news/same.jpg', 같은 키 img)`, `getVariantKeys('news/abc.jpg')` | 중복 없음 / 변형 키 4개 |
@@ -571,7 +584,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 2 | 탈출 페이로드 픽스처 렌더링 | `innerHTML` 에 `</script`, `<!--`, `<`, `>`, U+2028, U+2029 가 없다 |
 | 3 | 2번 결과를 `JSON.parse` | 원본 객체와 deep equal |
 | 4 | 중첩 객체 렌더링 후 parse | `location.address.addressLocality === '서울'` |
-| 5 | `'Ballet "Swan Lake" <2024>'` 렌더링 후 parse | 원문 그대로 복원 |
+| 5 | `'Sample "Title" <2024>'`, `"행사 & 전시 '특별'"` 렌더링 후 parse | 원문 그대로 복원 |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 4개 (현재)
 - **관련:** 2~3번 단계는 스크립트 요소 탈출 XSS 방지로, Security 도메인과 관련된다.
@@ -590,11 +603,12 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | # | 단계 | 예상 결과 |
 |---|------|---------|
 | 1 | `brandLabel="ACME Corp"`, `navItems` 2개 props | 텍스트 표시, `.admin-sidebar-nav a` 의 href 가 `['/x/home', '/x/reports']` |
-| 2 | 1번 HTML 검사 | `'DTS BALLET'`, `'Performances'` 등 옛 하드코딩 메뉴 문자열이 없다 |
-| 3 | props 없이 `setCmsConfig({ brand: { brandLabel: 'Configured Brand', navItems: [...] } })` | `'Configured Brand'`, `'Only'` 표시 |
-| 4 | props·설정 모두 없음 | nav 링크 0개, `console.warn` 1회, 메시지에 `@withwiz/cms-kit` 포함 |
+| 2 | 1번 사이드바 링크 검사 | 링크가 넘긴 2개(`Home`, `Reports`)뿐이다 (옛 하드코딩 메뉴가 없다) |
+| 3 | props 없이 `setCmsConfig({ brand: { brandLabel: 'Configured Brand', navItems: [...] } })` | `'Configured Brand'`, `'Only'` 표시, 링크 href 가 `['/only']` |
+| 4 | props·설정 모두 없음 | 자식 요소 렌더링, nav 링크 0개, `console.warn` 1회, 메시지에 `@withwiz/cms-kit` 포함 |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 3개 (현재)
+- **변경 이력:** 2026-09-18 판까지는 2·4번에서 HTML 전체에 소비 프로젝트 브랜드 문자열과 옛 하드코딩 메뉴 문자열이 없다는 것을 단언했다. 이 단언은 소비 프로젝트 문자열을 패키지 테스트에 적어야 하므로, 사이드바 링크가 설정으로 넘긴 항목뿐이라는 단언으로 바꿨다. 옛 하드코딩 메뉴가 되살아나면 링크 수가 늘어 실패한다.
 
 ---
 
@@ -877,7 +891,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 2 | `collectR2Keys('news/main.jpg', inline img HTML)` | `main`·`inline` 원본과 각 변형 4개 포함 |
 | 3 | `deleteR2Keys(collectR2Keys('news/photo.jpg'))` | `deleteFromR2` 5회 (`'news/photo.jpg'`, `'news/photo-lg.webp'`, `'news/photo-thumb.webp'` 포함) |
 | 4 | `deleteR2Keys([])` | `deleteFromR2` 미호출 |
-| 5 | `performances/show.jpg` 수집 후 삭제 | 변형 4개 수집, `deleteFromR2('performances/show.jpg')`·`('performances/show-lg.webp')` 호출 |
+| 5 | `events/banner.jpg` 수집 후 삭제 | 변형 4개 수집, `deleteFromR2('events/banner.jpg')`·`('events/banner-lg.webp')` 호출 |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 6개 (현재)
 
@@ -1128,7 +1142,7 @@ createSanitizer(config)(html)
 - TC-U-007 (CMS-JWT-03): JWT 서명 비밀 누락·32자 미만 거부
 - TC-U-009 (CMS-R2-13~17): 본문 이미지 키 수집 시 외부 호스트 거부
 - TC-U-016 (CMS-JL-02): JSON-LD 스크립트 탈출 방지
-- TC-SM-002 (CMS-NCL-02~03): 소비자 브랜드·관리자 경로 리터럴 유출 방지
+- TC-SM-002 (CMS-NCL-02~03): 소비자 브랜드·관리자 경로 리터럴 유출 방지 (소비 프로젝트 저장소로 이전(2026-09-28))
 
 ---
 
@@ -1196,8 +1210,8 @@ createSanitizer(config)(html)
 |---|------|---------|
 | 1 | 악성 키 5종으로 `uploadToR2()` | 모두 `@withwiz/cms-kit` 오류로 reject, `PutObjectCommand` 생성 0, `send` 0 |
 | 2 | 악성 키 5종으로 `deleteFromR2()` | 같은 결과, `DeleteObjectCommand` 생성 0 |
-| 3 | `uploadToR2('news/x.jpg')`, `('performances/y-thumb.webp')` | `Key` 가 입력과 같고, `/` 로 시작하지 않으며 `..` 세그먼트가 없다 |
-| 4 | 같은 양성 키로 `deleteFromR2()` | `Key` 배열이 `['news/x.jpg', 'performances/y-thumb.webp']` |
+| 3 | `uploadToR2('news/x.jpg')`, `('events/y-thumb.webp')` | `Key` 가 입력과 같고, `/` 로 시작하지 않으며 `..` 세그먼트가 없다 |
+| 4 | 같은 양성 키로 `deleteFromR2()` | `Key` 배열이 `['news/x.jpg', 'events/y-thumb.webp']` |
 | 5 | 악성 키를 1종씩 개별 실행 (업로드·삭제) | 각 경우 Command 생성과 `send` 가 없다 |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 6개 (현재)
@@ -1544,7 +1558,7 @@ createSanitizer(config)(html)
 
 - **자동화:** 가능 ✅ | **테스트 수:** 12개 (현재)
 - **비고:**
-  - 수동 활성화를 택했다. 목록 탭 선택은 클릭과 같이 `config.onNavigateToList` 를 부르고 호스트(dts-ballet-homepage 관리자 5개 화면)는 이 콜백에서 `router.push` 로 목록 경로로 이동한다. 자동 활성화(포커스 이동 = 선택)를 쓰면 화살표 키만 눌러도 라우터 이동이 일어나므로, 화살표·Home·End 는 포커스만 옮기고 Enter·Space·클릭으로 선택한다.
+  - 수동 활성화를 택했다. 목록 탭 선택은 클릭과 같이 `config.onNavigateToList` 를 부르고 호스트(소비 프로젝트의 관리자 화면)는 이 콜백에서 `router.push` 로 목록 경로로 이동한다. 자동 활성화(포커스 이동 = 선택)를 쓰면 화살표 키만 눌러도 라우터 이동이 일어나므로, 화살표·Home·End 는 포커스만 옮기고 Enter·Space·클릭으로 선택한다.
   - 호스트 CSS 가 `.pm-tabs`, `.pm-tab`, `.pm-tab.on`, `.pm-panel.on` 을 쓰므로 클래스 이름과 탭 요소 종류(`div`)를 유지했다. `button` 으로 바꾸면 브라우저 기본 버튼 스타일이 호스트 화면에 적용된다.
   - 패널에는 `tabIndex` 를 지정하지 않았다. 두 패널 모두 필터·폼 같은 포커스 가능한 요소를 담는다. 시각적 포커스 표시는 jsdom 에서 계산할 수 없어 브라우저에서 확인해야 한다 (호스트 CSS 에 `.pm-tab` 포커스 스타일이 없어 브라우저 기본 표시를 쓴다).
 - **결함 이력:** 2026-09-13·2026-09-15 판에서는 요구 사항 1·2·4번을 "현재 코드 미충족" 으로 기록한 🔲 계획 TC 였다. 0.2.2 이하의 탭은 `onClick` 만 가진 `<div>` 여서 포커스를 받을 수 없었고 역할·선택 상태가 노출되지 않았으며, 모바일 미리보기 버튼은 `on` 클래스로만 상태를 바꿨다. 2026-09-16 커밋 `c741e11` 에서 수정하고 12건을 추가했다. 수정 전 실행에서 12건이 모두 실패했다. 계획 당시의 파일 이름 `tests/accessibility/AdminManagerBase.a11y.dom.test.tsx` 대신, 테스트를 `tests/` 바로 아래에 두는 기존 배치에 맞춰 `tests/admin-manager-tabs.dom.test.tsx` 로 만들었다.
@@ -1676,9 +1690,9 @@ createSanitizer(config)(html)
 
 **목적:** 공개 export, 소비자 결합 금지, peer 의존 범위 같은 패키지 계약과 빌드 산출물, 테스트 실행 가능성을 확인한다.
 
-**실행 명령:** `npx vitest run tests/exports-superset.test.ts tests/no-consumer-literals.test.ts tests/zod-compat.test.ts tests/fresh-checkout.test.ts`
+**실행 명령:** `npx vitest run tests/exports-superset.test.ts tests/zod-compat.test.ts tests/fresh-checkout.test.ts`
 
-2026-09-15 실측에서는 추적 파일만 있는 체크아웃에서 세 파일 모두 `tests-harness/env-setup.ts` 를 찾지 못해 0건 실행이었고, `env-setup.ts` 만 복사한 상태에서는 `exports-superset.test.ts` 가 기준선 파일을 찾지 못해 2개 파일 7건 통과와 1개 파일 실패였다. 2026-09-16 수정(TC-SM-005) 이후에는 추적 파일만으로 4개 파일 20건이 통과한다.
+2026-09-15 실측에서는 추적 파일만 있는 체크아웃에서 세 파일 모두 `tests-harness/env-setup.ts` 를 찾지 못해 0건 실행이었고, `env-setup.ts` 만 복사한 상태에서는 `exports-superset.test.ts` 가 기준선 파일을 찾지 못해 2개 파일 7건 통과와 1개 파일 실패였다. 2026-09-16 수정(TC-SM-005) 이후에는 추적 파일만으로 4개 파일 20건이 통과했다. 2026-09-28 에 `tests/no-consumer-literals.test.ts`(TC-SM-002)를 삭제한 뒤에는 3개 파일 17건이 통과한다.
 
 ---
 
@@ -1704,23 +1718,24 @@ createSanitizer(config)(html)
 
 ---
 
-### TC-SM-002: 소비자 종속 리터럴 금지
+### TC-SM-002: 소비자 종속 리터럴 금지 (소비 프로젝트 저장소로 이전(2026-09-28))
 
 | 항목 | 내용 |
 |------|------|
-| **파일** | `tests/no-consumer-literals.test.ts` |
+| **파일** | 없음 (2026-09-28 에 `tests/no-consumer-literals.test.ts` 삭제) |
 | **대상** | `src/**` 의 `.ts`·`.tsx` 전체 (정적 스캔) |
 | **우선순위** | High |
-| **전제조건** | 없음 (파일 시스템 읽기) |
+| **상태** | 소비 프로젝트 저장소로 이전(2026-09-28) |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
 | 1 | `src/**` 재귀 탐색 | 파일 20개 초과, `config/index.ts`·`components/AdminShell.tsx` 포함 |
-| 2 | `DTS BALLET`, `Dance Theater`, `Shahar` 검사 (대소문자 무시, 주석 포함) | 발견 0 |
+| 2 | 소비 프로젝트 브랜드 문자열 검사 (대소문자 무시, 주석 포함) | 발견 0 |
 | 3 | 관리자 경로 리터럴 10종 (`'/admin/login'`, `'/api/admin/auth/'`, `'/api/admin/upload'` 등) 검사 (주석 줄 제외) | 발견 0 |
 
-- **자동화:** 가능 ✅ | **테스트 수:** 3개 (현재)
-- **비고:** `src/config/index.ts` 는 기본 경로를 문자열 조각으로 조립해 이 검사 대상 리터럴이 생기지 않게 한다 (151~161행).
+- **자동화:** 이 패키지에서는 없음 | **테스트 수:** 0개 (2026-09-18 판까지 3개)
+- **이전 사유:** 검사할 브랜드 문자열과 소비 프로젝트 관리자 경로를 테스트 파일에 적어야 하므로, 독립 패키지가 소비 프로젝트를 언급하지 않는다는 규칙과 충돌한다. 같은 검사는 설치된 패키지를 대상으로 소비 프로젝트 저장소에서 수행한다.
+- **비고:** `src/config/index.ts` 는 기본 경로를 문자열 조각으로 조립해 3번 검사 대상 리터럴이 생기지 않게 한다 (151~161행). 이 패키지 안에서는 이 규칙을 지키는 테스트가 더 이상 없다.
 
 ---
 
@@ -1868,24 +1883,25 @@ createSanitizer(config)(html)
 | **Integration** | 3개 | 17개 | 4 | 4 (2 / 1 / 1) | +1개 (교체 1개 별도) |
 | **API** | 4개 | 32개 | 6 | 6 (4 / 0 / 2) | +2개 |
 | **E2E** | 0개 | 0개 | 0 | 0 | 미적용 |
-| **Security** | 5개 | 208개 | 11 | 11 (9 / 0 / 2) | +2개 |
+| **Security** | 5개 | 210개 | 11 | 11 (9 / 0 / 2) | +2개 |
 | **Performance** | 0개 | 0개 | 2 | 2 (0 / 0 / 2) | +2개 |
 | **Accessibility** | 2개 | 19개 | 6 | 6 (2 / 0 / 4) | +4개 |
 | **Load/Stress** | 0개 | 0개 | 2 | 2 (0 / 0 / 2) | +2개 |
-| **Smoke** | 4개 | 20개 | 5 | 5 (4 / 0 / 1) | +1개 |
+| **Smoke** | 3개 | 17개 | 5 | 5 (3 / 0 / 1, 이전 1) | +1개 |
 | **Chaos** | 0개 | 0개 | 3 | 3 (0 / 0 / 3) | +3개 |
-| **합계** | **40개** | **470개** | **66** | **66 (39 / 1 / 26)** | **+22개** |
+| **합계** | **39개** | **469개** | **66** | **66 (38 / 1 / 26, 이전 1)** | **+22개** |
 
+- 2026-09-28 판 변화는 다음과 같다. TC-SM-002 가 ✅ 완료에서 이전으로 바뀌어 Smoke 에서 1개 파일 3건이 줄었다. Security 210건은 2026-09-18 커밋 `a2ef0fd` 의 2건(CMS-HSP-SPEC-09~10)을 반영한 실측값이다.
 - 2026-09-15 판 대비 변화는 다음과 같다. 🔲 계획에서 ✅ 완료로 바뀐 TC 는 TC-U-027·TC-AC-003·TC-SM-005 3건이고, ⚠️ 교체 필요에서 ✅ 완료로 바뀐 TC 는 TC-SM-001 1건이다. 새 SC/TC 는 TC-S-010·TC-S-011 2건이다. 테스트 파일은 Unit·Accessibility·Smoke 에 1개씩 늘었고, Security 는 기존 `html-sanitizer-paths.test.ts` 에 41건이 늘었다.
 - 2026-09-13 판(0.2.0) 대비 2026-09-15 판에서는 Security 에 1개 파일 116건(SC/TC-S-007~009), Accessibility 에 1개 파일 7건(SC/TC-AC-006)이 늘었다.
-- Security 208개 중 157개는 `html-sanitizer-paths.test.ts` 가 DOMPurify·정규식 두 경로에 같은 케이스를 반복해 만든 수이다 (정규식 경로만 실행하는 SPEC-08 1건 포함).
-- Smoke 20개는 모두 추적 파일만으로 실행된다 (`exports-superset.test.ts` 10건 포함).
+- Security 210개 중 159개는 `html-sanitizer-paths.test.ts` 가 DOMPurify·정규식 두 경로에 같은 케이스를 반복해 만든 수이다 (정규식 경로만 실행하는 SPEC-08~10 3건 포함).
+- Smoke 17개는 모두 추적 파일만으로 실행된다 (`exports-superset.test.ts` 10건 포함).
 - Unit 계획 신규 파일 5개는 `AdminManagerBase.dom.test.tsx`(TC-U-018~021 공용), `AdminShell.dom.test.tsx`, `ResizableImage.dom.test.tsx`(TC-U-023~024 공용), `useImageDropZone-paths.dom.test.ts`, `image-resize-canvas.dom.test.ts` 이다.
 - 계획 테스트 수는 구현 전이므로 집계하지 않았다.
 
 ### 테스트 파일 대조표
 
-모든 테스트 파일(40개)이 한 개 이상의 TC "파일" 칸에 등장한다. 누락 파일은 0개이다. 테스트 수는 2026-09-16 JSON 리포터 실행 결과이다.
+모든 테스트 파일(39개)이 한 개 이상의 TC "파일" 칸에 등장한다. 누락 파일은 0개이다. 테스트 수는 2026-09-28 JSON 리포터 실행 결과이다. 2026-09-28 에 삭제한 `tests/no-consumer-literals.test.ts`(3건, TC-SM-002)는 표에서 뺐다.
 
 | # | 파일 | 환경 | 테스트 수 | TC |
 |---|------|------|---------|-----|
@@ -1913,23 +1929,22 @@ createSanitizer(config)(html)
 | 22 | `tests/integration/r2-pipeline.test.ts` | node | 6 | TC-I-002 |
 | 23 | `tests/JsonLd.dom.test.tsx` | jsdom | 4 | TC-U-016 |
 | 24 | `tests/jwt.test.ts` | node | 3 | TC-U-007 |
-| 25 | `tests/no-consumer-literals.test.ts` | node | 3 | TC-SM-002 |
-| 26 | `tests/pagination.test.ts` | node | 7 | TC-U-003 |
-| 27 | `tests/prisma-di.test.ts` | node | 4 | TC-U-006 |
-| 28 | `tests/r2-helpers.test.ts` | node | 18 | TC-U-009 |
-| 29 | `tests/r2-key-sanitization.test.ts` | node | 6 | TC-S-003 |
-| 30 | `tests/r2-storage.test.ts` | node | 13 | TC-U-010 |
-| 31 | `tests/rate-limit-identity.test.ts` | node | 12 | TC-S-004 |
-| 32 | `tests/route-params.test.ts` | node | 3 | TC-A-003 |
-| 33 | `tests/shared-validators.test.ts` | node | 12 | TC-U-004 |
-| 34 | `tests/ToggleSwitch.dom.test.tsx` | jsdom | 6 | TC-U-015 |
-| 35 | `tests/useAdminForm.dom.test.ts` | jsdom | 7 | TC-U-012 |
-| 36 | `tests/useAdminList.dom.test.ts` | jsdom | 7 | TC-U-012 |
-| 37 | `tests/useImageDropZone.dom.test.ts` | jsdom | 7 | TC-U-013 |
-| 38 | `tests/useScrollReveal.dom.test.ts` | jsdom | 5 | TC-U-014 |
-| 39 | `tests/variant-key-edge.test.ts` | node | 24 | TC-U-027 |
-| 40 | `tests/zod-compat.test.ts` | node | 4 | TC-SM-003 |
-| | **합계** | node 28개, jsdom 12개 | **470** | |
+| 25 | `tests/pagination.test.ts` | node | 7 | TC-U-003 |
+| 26 | `tests/prisma-di.test.ts` | node | 4 | TC-U-006 |
+| 27 | `tests/r2-helpers.test.ts` | node | 18 | TC-U-009 |
+| 28 | `tests/r2-key-sanitization.test.ts` | node | 6 | TC-S-003 |
+| 29 | `tests/r2-storage.test.ts` | node | 13 | TC-U-010 |
+| 30 | `tests/rate-limit-identity.test.ts` | node | 12 | TC-S-004 |
+| 31 | `tests/route-params.test.ts` | node | 3 | TC-A-003 |
+| 32 | `tests/shared-validators.test.ts` | node | 12 | TC-U-004 |
+| 33 | `tests/ToggleSwitch.dom.test.tsx` | jsdom | 6 | TC-U-015 |
+| 34 | `tests/useAdminForm.dom.test.ts` | jsdom | 7 | TC-U-012 |
+| 35 | `tests/useAdminList.dom.test.ts` | jsdom | 7 | TC-U-012 |
+| 36 | `tests/useImageDropZone.dom.test.ts` | jsdom | 7 | TC-U-013 |
+| 37 | `tests/useScrollReveal.dom.test.ts` | jsdom | 5 | TC-U-014 |
+| 38 | `tests/variant-key-edge.test.ts` | node | 24 | TC-U-027 |
+| 39 | `tests/zod-compat.test.ts` | node | 4 | TC-SM-003 |
+| | **합계** | node 27개, jsdom 12개 | **469** | |
 
 ---
 
@@ -1985,7 +2000,7 @@ createSanitizer(config)(html)
 | 기존 ID | 개수 | 참조 절 (로컬 하네스 spec.md) | 추가 시점 | 파일 | 새 TC |
 |--------|-----|------------------------|---------|------|------|
 | `CMS-EXP` (9건 생성), `CMS-EXP-TOUCHED` | 10 | §3 I1, CHK-I1 | Sprint 1 (기준선 경로는 2026-09-16 커밋 `4fe6ce2` 에서 추적 fixture 로 변경) | `tests/exports-superset.test.ts` | TC-SM-001 |
-| `CMS-NCL-01` ~ `CMS-NCL-03` | 3 | §4.1, AC-4.1.3, CHK-41-2 | Sprint 1 | `tests/no-consumer-literals.test.ts` | TC-SM-002 |
+| `CMS-NCL-01` ~ `CMS-NCL-03` | 3 | §4.1, AC-4.1.3, CHK-41-2 | Sprint 1 (2026-09-28 삭제) | `tests/no-consumer-literals.test.ts` (삭제) | TC-SM-002 (소비 프로젝트 저장소로 이전(2026-09-28)) |
 | `CMS-ZC-01` ~ `CMS-ZC-04` | 4 | §4.7, AC-4.7.1 | Sprint 1 | `tests/zod-compat.test.ts` | TC-SM-003 |
 | `CMS-CB-01` ~ `CMS-CB-06` | 6 | §5, CHK-5-1 ~ CHK-5-3 | Sprint 1 | `tests/config-boundary.test.ts` | TC-U-008 |
 | `CMS-CB-07`, `CMS-CB-08` | 2 | §5 | 커밋 `c4aeb8e` | `tests/config-boundary.test.ts` | TC-U-008 |
@@ -2046,11 +2061,11 @@ createSanitizer(config)(html)
 | API | 부분 | 6 | 응답·검증 헬퍼와 `adminFetch` 는 패키지에 있지만 HTTP 라우트 자체는 호스트 앱이 소유한다 |
 | Integration | 적용(약함) | 4 | `tests/integration/` 3개 파일 중 1개는 복제 구현을 검증하고, 1개는 서비스 모듈을 import 하지 않는다 |
 | E2E | 미적용 | 0 | 패키지에 실행 가능한 앱·라우트가 없고 컴포넌트는 호스트 Next.js 앱 안에서만 동작한다 |
-| Security | 적용(강함) | 11 | 새니타이저·키 검증·식별자 위조 방지 5개 파일 208건이 있고(그중 157건은 새니타이저 두 경로를 같은 명세로 검증), 다른 도메인 파일에도 보안 케이스가 있다 |
+| Security | 적용(강함) | 11 | 새니타이저·키 검증·식별자 위조 방지 5개 파일 210건이 있고(그중 159건은 새니타이저 두 경로를 같은 명세로 검증), 다른 도메인 파일에도 보안 케이스가 있다 |
 | Accessibility | 적용, 0건 | 6 | UI 컴포넌트 6개(AdminShell, AdminManagerBase, ToggleSwitch, ImageDropUpload, ResizableImage, JsonLd)를 export 하고 jsdom·testing-library 가 설치되어 있다. 사전 조사 시점에는 접근성 케이스가 0건이었고, 0.2.1 에서 AdminShell 현재 페이지 표시 7건(TC-AC-006), 2026-09-16 에 AdminManagerBase 탭 키보드 접근 12건(TC-AC-003)이 생겼다 |
 | Performance | 부분 | 2 | 가상 스크롤과 대용량 본문 처리 경로가 있지만 합의된 기준값이 없다 |
 | Load/Stress | 낮음 | 2 | 라이브러리 안의 동시성 코드는 토큰 갱신 단일화와 인메모리 limiter 두 곳뿐이다 |
-| Smoke | 부분(dist 없음) | 5 | 계약 가드 3개 파일과 새로 받은 체크아웃 실행 가드 1개 파일이 있지만, vitest alias 가 항상 `src` 로 연결되어 dist 산출물을 검증하지 않는다 |
+| Smoke | 부분(dist 없음) | 5 | 계약 가드 2개 파일(소비자 리터럴 가드는 2026-09-28 에 소비 프로젝트 저장소로 이전)과 새로 받은 체크아웃 실행 가드 1개 파일이 있지만, vitest alias 가 항상 `src` 로 연결되어 dist 산출물을 검증하지 않는다 |
 | Chaos | 낮음 | 3 | 외부 의존 실패 격리 코드(`Promise.allSettled`, 변형 업로드 `try/catch`, DOMPurify 대체 경로)가 있어 비용이 낮은 케이스만 계획한다 |
 
 ---
@@ -2114,6 +2129,7 @@ createSanitizer(config)(html)
 - [x] 2026-09-16 `fix/residual-defects` 변경을 반영했다 (완료 전환 4건: TC-U-027·TC-AC-003·TC-SM-005·TC-SM-001, 새 SC/TC 2건: TC-S-010·TC-S-011, 해결한 결함의 당시 동작을 결함 이력·교체 이력으로 기록)
 - [x] 새로 받은 체크아웃에서 스위트 실행 (TC-SM-005)
 - [x] `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보에서 타입 검사·타입 해석·테스트·빌드·dist 스모크를 실측하고 peer 하한을 `>=0.8.0` 으로 조정했다 (2026-09-17)
+- [x] 2026-09-28 소비 프로젝트 언급 제거를 반영했다 (TC-SM-002 이전, TC-U-017 단언 교체, 테스트 데이터 중립화, 39개 파일 469건 실측)
 - [ ] AdminManagerBase 계획 테스트 구현 (TC-AC-003 완료, TC-U-018~021·TC-P-001 남음)
 - [ ] middleware-wrappers 교체 구현
 - [ ] 접근성 도구 도입 결정과 계획 테스트 구현
