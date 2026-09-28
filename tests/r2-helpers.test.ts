@@ -61,30 +61,30 @@ describe('extractR2KeysFromHtml', () => {
     // pre-fix `R2_KEY_REGEX = /\/(news\/.../` would have returned [] for
     // these — proving the orphaned-object bug is now fixed.
     const html =
-      '<img src="https://cdn.r2.dev/performances/p1.jpg">' +
-      '<img src="https://cdn.r2.dev/artists/a1.png">';
+      '<img src="https://cdn.r2.dev/events/p1.jpg">' +
+      '<img src="https://cdn.r2.dev/products/a1.png">';
     const keys = extractR2KeysFromHtml(html);
-    expect(keys).toContain('performances/p1.jpg');
-    expect(keys).toContain('artists/a1.png');
+    expect(keys).toContain('events/p1.jpg');
+    expect(keys).toContain('products/a1.png');
 
     // collectR2Keys must also pull the EXACT four variant keys for the
     // non-`news` inline image (no silent orphaning of variants).
     const all = collectR2Keys(null, html);
-    expect(all).toContain('performances/p1-lg.webp');
-    expect(all).toContain('performances/p1-md.webp');
-    expect(all).toContain('performances/p1-sm.webp');
-    expect(all).toContain('performances/p1-thumb.webp');
+    expect(all).toContain('events/p1-lg.webp');
+    expect(all).toContain('events/p1-md.webp');
+    expect(all).toContain('events/p1-sm.webp');
+    expect(all).toContain('events/p1-thumb.webp');
   });
 
   it('CMS-R2-12: inlineKeyPrefixes 규칙으로도 구동 가능', () => {
     resetCmsConfig();
-    setCmsConfig({ storage: { inlineKeyPrefixes: ['performances/'] } });
+    setCmsConfig({ storage: { inlineKeyPrefixes: ['events/'] } });
     // 상대 경로는 같은 origin 으로 간주되어 prefix 규칙만 적용된다.
     const html =
-      '<img src="/performances/x.jpg">' +
+      '<img src="/events/x.jpg">' +
       '<img src="/news/y.jpg">';
     const keys = extractR2KeysFromHtml(html);
-    expect(keys).toContain('performances/x.jpg');
+    expect(keys).toContain('events/x.jpg');
     expect(keys).not.toContain('news/y.jpg'); // not in configured prefix set
   });
 

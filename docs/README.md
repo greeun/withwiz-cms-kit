@@ -2,7 +2,7 @@
 
 A CMS framework package for Next.js + React based web admin panels.
 
-This package bundles the common admin layer for Withwiz projects (infrastructure, base services, shared UI components, hooks, utilities, validators). It is designed so that domain-specific code (news, performances, artists, etc.) stays in the application's `src/`, while reusing the base building blocks this package provides.
+This package bundles the common admin layer for Withwiz projects (infrastructure, base services, shared UI components, hooks, utilities, validators). It is designed so that domain-specific code (news, events, products, etc.) stays in the application's `src/`, while reusing the base building blocks this package provides.
 
 ## Key Features
 

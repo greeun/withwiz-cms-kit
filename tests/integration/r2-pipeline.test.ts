@@ -90,18 +90,18 @@ describe('R2 파이프라인 통합 테스트', () => {
   it('CMS-R2P-06: 비-news prefix 수집 + 변형키 (orphan-bug fix)', async () => {
     // pre-fix `news/`-only regex would have dropped this inline image,
     // orphaning its R2 objects forever. Now collected + all 4 variants.
-    const html = '<img src="https://cdn.r2.dev/performances/show.jpg">';
+    const html = '<img src="https://cdn.r2.dev/events/banner.jpg">';
     const inline = extractR2KeysFromHtml(html);
-    expect(inline).toContain('performances/show.jpg');
+    expect(inline).toContain('events/banner.jpg');
 
     const all = collectR2Keys(null, html);
-    expect(all).toContain('performances/show-lg.webp');
-    expect(all).toContain('performances/show-md.webp');
-    expect(all).toContain('performances/show-sm.webp');
-    expect(all).toContain('performances/show-thumb.webp');
+    expect(all).toContain('events/banner-lg.webp');
+    expect(all).toContain('events/banner-md.webp');
+    expect(all).toContain('events/banner-sm.webp');
+    expect(all).toContain('events/banner-thumb.webp');
 
     await deleteR2Keys(all);
-    expect(mockDeleteFromR2).toHaveBeenCalledWith('performances/show.jpg');
-    expect(mockDeleteFromR2).toHaveBeenCalledWith('performances/show-lg.webp');
+    expect(mockDeleteFromR2).toHaveBeenCalledWith('events/banner.jpg');
+    expect(mockDeleteFromR2).toHaveBeenCalledWith('events/banner-lg.webp');
   });
 });
