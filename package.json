@@ -1,6 +1,6 @@
 {
   "name": "@withwiz/cms-kit",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "packageManager": "npm@11.16.0",
   "description": "Reusable CMS framework for Next.js + React admin panels — AdminShell, AdminManagerBase, middleware wrappers, image pipeline, and shared admin utilities.",
   "license": "MIT",
