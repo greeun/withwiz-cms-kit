@@ -13,7 +13,7 @@
  *   호스트는 `createSanitizer({ purify: DOMPurify })` 로 인스턴스를 주입한다.
  * - `createSanitizer(config)` 로 신뢰 iframe origin 과 DOMPurify 인스턴스를
  *   주입할 수 있다 (`purify: null` 은 정규식 경로 강제).
- * - 두 경로 모두 블록 에디터 데이터 주석(`<!-- abe-blocks:... -->` 등)을
+ * - 두 경로 모두 블록 에디터 데이터 주석(`<!-- xbe-blocks:... -->` 등)을
  *   원문 그대로 보존한다.
  *
  * `sanitizeHtmlContent` 는 하위 호환을 위해 기본 안전 설정으로 동작한다
@@ -392,7 +392,7 @@ function dompurifySanitize(
 ): string {
   const options: Record<string, unknown> = {
     // iframe 은 hook 에서 origin 검증 후 허용.
-    // `#comment` 는 블록 에디터 데이터 주석(`<!-- abe-blocks:... -->` 등) 보존용.
+    // `#comment` 는 블록 에디터 데이터 주석(`<!-- xbe-blocks:... -->` 등) 보존용.
     ADD_TAGS: ['iframe', '#comment'],
     ADD_ATTR: ['allowfullscreen', 'frameborder', 'allow', 'target'],
     // 본문 맨 앞의 주석이 <body> 밖으로 밀려나 사라지지 않도록 한다.
