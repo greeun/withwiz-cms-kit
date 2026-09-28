@@ -36,7 +36,7 @@ createSanitizer({ trustedIframeOrigins?, allowedTags?, allowedAttributes?, purif
 ```
 
 - `purify` 에 DOMPurify 인스턴스를 넘기면 동적 로딩(`require('isomorphic-dompurify')`) 대신 그 인스턴스를 씁니다. `null` 은 정규식 경로를 강제하고, 지정하지 않으면 동적 로딩을 시도합니다. Next.js Turbopack 서버 번들처럼 `require` 가 항상 실패하는 환경에서는 인스턴스를 주입해야 DOMPurify 경로로 동작합니다.
-- 두 경로 모두 블록 에디터 데이터 주석(`<!-- abe-blocks:... -->`, `<!-- pme-data:... -->`, `<!-- rme-data:... -->`, `<!-- nbe-cta-start -->` 등)과 `target` 속성을 보존합니다.
+- 두 경로 모두 블록 에디터 데이터 주석(`<!-- xbe-blocks:... -->`, `<!-- alpha-data:... -->`, `<!-- beta-data:... -->`, `<!-- nbe-cta-start -->` 등)과 `target` 속성을 보존합니다.
 - 정규식 경로는 `script`·`object`·`embed`·`applet`·`form`·`input`·`textarea`·`select`·`button`·`style` 태그(닫는 태그가 없는 경우 포함)와 SVG 애니메이션 요소(`animate`·`animateMotion`·`animateTransform`·`animateColor`·`set`), `meta`·`base`·`link` 태그를 지웁니다. 태그 이름 전체로 비교하므로 `<settings>` 같은 다른 이름의 태그와 본문 텍스트는 바꾸지 않습니다. DOMPurify 경로는 DOMPurify 허용 목록을 따르므로 `animateMotion`·`animateTransform`·`animateColor` 요소는 남기고, 소문자 `href` 가 들어 있는 `attributeName` 과 `to`·`from` 속성, `javascript:` 로 시작하는 `values`·`by` 값을 지웁니다. 값 중간의 `javascript:`(`values="#;javascript:…"`)나 대문자 `attributeName="HREF"` 는 남을 수 있지만, href 를 바꿀 수 있는 조합이 함께 남지는 않습니다.
 
 ## `api-response` / `api-helpers` / `route-params`

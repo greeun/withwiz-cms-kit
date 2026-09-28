@@ -1355,8 +1355,8 @@ createSanitizer(config)(html)
 |---|------|---------|
 | 1 | TXT-01: `<p>설정값 "online=true" 와 "one=1", 예시 href="javascript:void(0)" 문구</p>` | 두 경로 모두 출력이 입력과 같다 (속성처럼 보이는 본문 텍스트를 바꾸지 않는다) |
 | 2 | TXT-02: `<p onclick="x()">onclick="x()" 와 srcdoc="y" 설명</p>` | `onclick` 속성은 없고 본문 텍스트는 `'onclick="x()" 와 srcdoc="y" 설명'` 그대로이다 |
-| 3 | CMT 8건: `abe-blocks`, `pme-data`, `rme-data` 주석(공백 있음·없음 각각)과 `nbe-cta-start`/`nbe-cta-end` 주석으로 감싼 CTA 블록(공백 있음·없음)을 문서 맨 앞과 본문 사이에 둔다 | 두 위치 모두 출력이 입력과 바이트 단위로 같다 (맨 앞 주석은 DOMPurify 경로에서 `FORCE_BODY` 가 있어야 남는다) |
-| 4 | CMT-DOC: 데이터 주석 4종과 `h2.pme-title`, `style` 속성 `p`, `target="_blank"`·`rel` 링크, `nbe-cta` 주석이 섞인 실제 형태의 본문 | 두 경로 모두 출력이 입력과 바이트 단위로 같다 |
+| 3 | CMT 8건: `xbe-blocks`, `alpha-data`, `beta-data` 주석(공백 있음·없음 각각)과 `nbe-cta-start`/`nbe-cta-end` 주석으로 감싼 CTA 블록(공백 있음·없음)을 문서 맨 앞과 본문 사이에 둔다 | 두 위치 모두 출력이 입력과 바이트 단위로 같다 (맨 앞 주석은 DOMPurify 경로에서 `FORCE_BODY` 가 있어야 남는다) |
+| 4 | CMT-DOC: 데이터 주석 4종과 `h2.alpha-title`, `style` 속성 `p`, `target="_blank"`·`rel` 링크, `nbe-cta` 주석이 섞인 실제 형태의 본문 | 두 경로 모두 출력이 입력과 바이트 단위로 같다 |
 | 5 | KEEP-01: `class`·`style` 이 있는 `p`, `target="_blank"` 링크, `width`·`height`·`frameborder`·`allow`·`allowfullscreen` 이 있는 YouTube iframe | TC-S-008 판정을 통과하고 `class`, `style`, `href`, `target`, iframe `src`·`allowfullscreen`·`frameborder`·`allow` 값이 유지된다 |
 | 6 | KEEP-02: `<img src="data:image/png;base64,…">` / KEEP-03: `<a href="https://example.com/?a=1&amp;b=2">` | `data:image` src 유지 / 출력이 입력과 같다 |
 | 7 | EMPTY-01: `''`, `null`, `undefined` | 각각 `''`, `null`, `undefined` |
