@@ -10,7 +10,7 @@ import path from 'path';
 //
 // Behavior-neutral: adds ONLY a runner. No src/** runtime change.
 //
-// - globals: true is MANDATORY. Every existing PMS test file relies on the
+// - globals: true is MANDATORY. Every existing test file relies on the
 //   GLOBAL describe/it/expect/beforeEach (some import nothing from vitest;
 //   the rest import only vi/beforeEach but still call bare globals).
 // - Prefix alias maps `@withwiz/cms-kit/<anySubpath>` -> `src/<anySubpath>` and

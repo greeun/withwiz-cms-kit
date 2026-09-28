@@ -2,9 +2,9 @@
 
 > **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan task-by-task.
 
-**Goal:** 현재 `@withwiz/web-admin` + `src/` 내 CMS 기능들을 `@withwiz/pms` (Performance Management System) 패키지로 전면 재설계하여 완전한 CMS 프레임워크 패키지로 분리
+**Goal:** 현재 `@withwiz/web-admin` + `src/` 내 CMS 기능들을 `@withwiz/pms` 패키지로 전면 재설계하여 완전한 CMS 프레임워크 패키지로 분리
 
-**Architecture:** `packages/pms/`에 소스 직접 참조(`file:` 프로토콜) 방식으로 구성. 프로젝트 독립적인 코드(인프라, 베이스 서비스, 공통 UI, 훅, 유틸)는 패키지로 이동하고, 도메인 특화 코드(뉴스·공연·아티스트 등 개별 서비스/폼/프리뷰)는 `src/`에 유지하되 패키지의 베이스 클래스/인터페이스를 활용하도록 리팩토링
+**Architecture:** `packages/pms/`에 소스 직접 참조(`file:` 프로토콜) 방식으로 구성. 프로젝트 독립적인 코드(인프라, 베이스 서비스, 공통 UI, 훅, 유틸)는 패키지로 이동하고, 도메인 특화 코드(뉴스·이벤트·제품 등 개별 서비스/폼/프리뷰)는 `src/`에 유지하되 패키지의 베이스 클래스/인터페이스를 활용하도록 리팩토링
 
 **Tech Stack:** TypeScript, React 19, Next.js 15, Prisma, Zod, Sonner, @tanstack/react-virtual
 
@@ -16,7 +16,7 @@
 ```
 packages/web-admin/src/     ← 공유 유틸 (prisma, middleware, hooks, utils 등)
 src/components/admin/       ← 관리자 UI (AdminShell, AdminManagerBase, 각 도메인 매니저/폼/프리뷰)
-src/lib/services/           ← CRUD 서비스 (news, artist, performance, gallery, repertoire)
+src/lib/services/           ← CRUD 서비스 (news, event, product, gallery, faq)
 src/lib/validators/         ← Zod 검증 스키마
 src/lib/hooks/              ← 커스텀 훅
 src/types/                  ← TypeScript 타입
@@ -107,7 +107,7 @@ mkdir -p packages/pms/src/{components,hooks,infrastructure/middleware,services,t
   "name": "@withwiz/pms",
   "version": "0.1.0",
   "private": true,
-  "description": "Performance Management System - CMS framework for web admin panels",
+  "description": "CMS framework for web admin panels",
   "main": "./src/index.ts",
   "exports": {
     ".": "./src/index.ts",
@@ -315,7 +315,7 @@ git commit -m "refactor: 공통 밸리데이터 스키마를 pms 패키지로 �
 
 **Step 1: 현재 서비스 패턴 분석**
 
-5개 서비스(news, artist, performance, gallery, repertoire)에 공통으로 반복되는 패턴:
+5개 서비스(news, event, product, gallery, faq)에 공통으로 반복되는 패턴:
 - `prisma` 클라이언트 import
 - `listSelect` / `detailSelect` 정의
 - `buildPaginatedResult` 사용
@@ -426,7 +426,7 @@ npm run local
 
 - `/admin` 접속 → AdminShell 렌더링 확인
 - `/admin/news` → NewsManagerClient 목록/편집 동작 확인
-- `/admin/performances` → PerformanceManagerClient 동작 확인
+- `/admin/events` → EventManagerClient 동작 확인
 
 **Step 4: 커밋 (수정사항이 있을 경우)**
 

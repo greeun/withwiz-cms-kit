@@ -32,13 +32,12 @@ import { render, screen, waitFor } from '@testing-library/react';
 import AdminShell from '@withwiz/cms-kit/components/AdminShell';
 import { resetCmsConfig, setCmsConfig } from '@withwiz/cms-kit/config';
 
-const OLD_NAV = [
-  'Performances',
-  'Repertoires',
-  'Artists',
-  'Gallery',
-  'Dashboard',
-];
+/** Labels of every link rendered in the sidebar nav, in DOM order. */
+function navLabels(container: HTMLElement): string[] {
+  return Array.from(container.querySelectorAll('.admin-sidebar-nav a')).map(
+    (a) => (a.textContent ?? '').replace(/\s+/g, ' ').trim(),
+  );
+}
 
 describe('AdminShell consumer config (CMS-ASC / §4.1 C1/C2)', () => {
   let warnSpy: ReturnType<typeof vi.spyOn>;
@@ -64,7 +63,7 @@ describe('AdminShell consumer config (CMS-ASC / §4.1 C1/C2)', () => {
     resetCmsConfig();
   });
 
-  it('CMS-ASC-01: injected brand + nav rendered exactly; no old hardcoded ones', async () => {
+  it('CMS-ASC-01: injected brand + nav rendered exactly; nothing else in the nav', async () => {
     const { container } = render(
       <AdminShell
         brandLabel="ACME Corp"
@@ -88,12 +87,11 @@ describe('AdminShell consumer config (CMS-ASC / §4.1 C1/C2)', () => {
       container.querySelectorAll('.admin-sidebar-nav a'),
     ).map((a) => a.getAttribute('href'));
     expect(hrefs).toEqual(['/x/home', '/x/reports']);
-
-    const html = container.innerHTML;
-    expect(html).not.toContain('DTS BALLET');
-    for (const old of OLD_NAV) {
-      expect(html).not.toContain(old);
-    }
+    // only the injected nav items are rendered (no built-in/hardcoded menu).
+    const labels = navLabels(container);
+    expect(labels).toHaveLength(2);
+    expect(labels[0]).toContain('Home');
+    expect(labels[1]).toContain('Reports');
   });
 
   it('CMS-ASC-02: brand/nav via §5 setCmsConfig (no props)', async () => {
@@ -113,7 +111,10 @@ describe('AdminShell consumer config (CMS-ASC / §4.1 C1/C2)', () => {
     );
     expect(screen.getByText('Configured Brand')).toBeTruthy();
     expect(screen.getByText('Only')).toBeTruthy();
-    expect(container.innerHTML).not.toContain('DTS BALLET');
+    const hrefs = Array.from(
+      container.querySelectorAll('.admin-sidebar-nav a'),
+    ).map((a) => a.getAttribute('href'));
+    expect(hrefs).toEqual(['/only']);
   });
 
   it('CMS-ASC-03: unconfigured = safe neutral render + exactly one namespaced warn', async () => {
@@ -126,14 +127,10 @@ describe('AdminShell consumer config (CMS-ASC / §4.1 C1/C2)', () => {
       expect(container.querySelector('.admin-sidebar-nav')).not.toBeNull(),
     );
 
-    // (a) safe neutral: no crash, no DTS BALLET, none of the old nav items.
-    const html = container.innerHTML;
-    expect(html).not.toContain('DTS BALLET');
-    for (const old of OLD_NAV) {
-      expect(html).not.toContain(old);
-    }
+    // (a) safe neutral: no crash, child rendered, no built-in nav items.
+    expect(screen.getByText('safe-child')).toBeTruthy();
     // empty nav list, no nav links rendered.
-    expect(container.querySelectorAll('.admin-sidebar-nav a').length).toBe(0);
+    expect(navLabels(container)).toEqual([]);
 
     // (b) exactly one @withwiz/cms-kit-namespaced warn naming the missing config.
     expect(warnSpy).toHaveBeenCalledTimes(1);

@@ -2,9 +2,9 @@
 
 # @withwiz/cms-kit
 
-**Performance Management System** — a CMS framework package for building web admin panels with Next.js and React.
+A CMS framework package for building web admin panels with Next.js and React.
 
-`@withwiz/cms-kit` consolidates the common admin layer (infrastructure, base services, shared UI components, hooks, utilities, and validators) used across Withwiz projects. Domain-specific code (news, performances, artists, etc.) stays in your application's `src/`, while this package provides the reusable scaffolding underneath.
+`@withwiz/cms-kit` consolidates the common admin layer (infrastructure, base services, shared UI components, hooks, utilities, and validators) used across Withwiz projects. Domain-specific code (news, events, products, etc.) stays in your application's `src/`, while this package provides the reusable scaffolding underneath.
 
 ## Features
 

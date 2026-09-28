@@ -96,11 +96,11 @@ describe('r2 storage-key sanitization (CMS-RKS)', () => {
     const { uploadToR2 } = await import('@withwiz/cms-kit/utils/r2-storage');
 
     await uploadToR2('news/x.jpg', Buffer.from('a'), 'image/jpeg');
-    await uploadToR2('performances/y-thumb.webp', Buffer.from('b'), 'image/webp');
+    await uploadToR2('events/y-thumb.webp', Buffer.from('b'), 'image/webp');
 
     const keys = putArgs.map((a) => (a as { Key: string }).Key);
     expect(keys).toContain('news/x.jpg');
-    expect(keys).toContain('performances/y-thumb.webp');
+    expect(keys).toContain('events/y-thumb.webp');
     // Byte-identical: no traversal, no leading slash, no mangling.
     for (const k of keys) {
       expect(k.startsWith('/')).toBe(false);
@@ -112,10 +112,10 @@ describe('r2 storage-key sanitization (CMS-RKS)', () => {
     const { deleteFromR2 } = await import('@withwiz/cms-kit/utils/r2-storage');
 
     await deleteFromR2('news/x.jpg');
-    await deleteFromR2('performances/y-thumb.webp');
+    await deleteFromR2('events/y-thumb.webp');
 
     const keys = delArgs.map((a) => (a as { Key: string }).Key);
-    expect(keys).toEqual(['news/x.jpg', 'performances/y-thumb.webp']);
+    expect(keys).toEqual(['news/x.jpg', 'events/y-thumb.webp']);
   });
 
   it('CMS-RKS-05: each malicious class individually (upload) — discrete coverage', async () => {
