@@ -1,6 +1,6 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { basename, join, resolve } from 'node:path';
 
 /**
  * CMS-ESM — 순수 Node ESM 에서 import 되는 서브패스 범위 (TC-SM-006).
@@ -22,6 +22,12 @@ import { resolve } from 'node:path';
  * - CMS-ESM-01: NEXT_APP_ONLY 밖의 모든 JS 서브패스가 순수 Node ESM 에서 import 된다.
  * - CMS-ESM-02: NEXT_APP_ONLY 의 서브패스는 실제로 순수 Node ESM 에서 실패한다
  *   (목록이 실제보다 넓어지지 않게 한다. 실패하지 않게 되면 목록에서 빼고 문서를 고친다).
+ * - CMS-ESM-03: `./config` 로 불러온 설정 API 가 순수 Node ESM 에서 동작한다
+ *   (공개 이름이 정해진 목록과 같고, `setCmsConfig` 로 넣은 값을 `getCmsConfig` 가 돌려준다).
+ * - CMS-ESM-04: `./config` 와 `./utils` 가 빌드 산출물에서 같은 설정 저장소를 공유한다
+ *   (설정 모듈이 ESM·CJS 각각 한 파일에만 번들되고, 두 진입점이 그 파일을 불러오며,
+ *   CJS 에서 한쪽으로 설정한 값이 다른 쪽에서 보인다). `./utils` 는 순수 Node ESM 에서
+ *   import 되지 않으므로 런타임 공유는 `next/server` 를 해석할 수 있는 CJS `require` 로 확인한다.
  *
  * 전제: dist 가 최신이어야 한다. `dist/` 가 없으면 `npm run build` 를 먼저 실행한다.
  * src 를 바꾼 뒤에는 `npm run build` 를 다시 실행하고 이 테스트를 돌린다.
@@ -88,6 +94,44 @@ function importInPureNode(specifiers: string[]): Record<string, string> {
   return JSON.parse(output.trim().split('\n').pop()!) as Record<string, string>;
 }
 
+/** 별도 node 프로세스에서 스크립트를 실행하고 마지막 줄의 JSON 을 돌려준다. */
+function runInNode(script: string, inputType: 'module' | 'commonjs'): unknown {
+  const output = execFileSync(process.execPath, [`--input-type=${inputType}`, '-e', script], {
+    cwd: PKG_ROOT,
+    encoding: 'utf8',
+    stdio: ['ignore', 'pipe', 'ignore'],
+  });
+  return JSON.parse(output.trim().split('\n').pop()!);
+}
+
+/** `./config` 가 공개하는 런타임 이름 (`./utils` 배럴이 내보내는 설정 API 와 같다). */
+const CONFIG_RUNTIME_EXPORTS = [
+  'JWT_SECRET_MIN_LENGTH',
+  'SHARED_ANON_IDENTITY',
+  'createForwardedIdentityExtractor',
+  'getCmsConfig',
+  'hasIdentityExtractor',
+  'resetCmsConfig',
+  'setCmsConfig',
+];
+
+/** dist 아래에서 확장자가 ext 인 파일 가운데 needle 을 포함하는 파일 (dist 기준 상대 경로). */
+function distFilesContaining(ext: '.mjs' | '.js', needle: string): string[] {
+  const distDir = resolve(PKG_ROOT, 'dist');
+  const found: string[] = [];
+  const walk = (dir: string) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (entry.name.endsWith(ext) && readFileSync(full, 'utf8').includes(needle)) {
+        found.push(full.slice(distDir.length + 1));
+      }
+    }
+  };
+  walk(distDir);
+  return found;
+}
+
 beforeAll(() => {
   if (!existsSync(resolve(PKG_ROOT, 'dist/index.mjs'))) {
     execFileSync('npm', ['run', 'build'], { cwd: PKG_ROOT, stdio: 'ignore' });
@@ -98,7 +142,8 @@ describe('순수 Node ESM 소비 범위 (CMS-ESM)', () => {
   it('CMS-ESM-01: Next.js 앱 전용이 아닌 모든 서브패스를 Next.js 없이 import 할 수 있다', () => {
     const subpaths = jsSubpaths().filter((key) => !isNextAppOnly(key));
 
-    expect(subpaths.length).toBeGreaterThanOrEqual(22);
+    expect(subpaths).toContain('./config');
+    expect(subpaths.length).toBeGreaterThanOrEqual(23);
     expect(importInPureNode(subpaths.map(toSpecifier))).toEqual({});
   });
 
@@ -112,5 +157,80 @@ describe('순수 Node ESM 소비 범위 (CMS-ESM)', () => {
     const failures = importInPureNode(excluded.map(toSpecifier));
     const nowImportable = excluded.map(toSpecifier).filter((specifier) => !(specifier in failures));
     expect(nowImportable).toEqual([]);
+  });
+
+  it('CMS-ESM-03: ./config 의 설정 API 가 순수 Node ESM 에서 동작한다', () => {
+    const result = runInNode(
+      `
+      const config = await import('${PKG_NAME}/config');
+      const names = Object.keys(config).sort();
+      const before = config.getCmsConfig();
+      config.setCmsConfig({ routes: { loginPath: '/signin' }, jwt: { secret: 's'.repeat(40) } });
+      const after = config.getCmsConfig();
+      config.resetCmsConfig();
+      const reset = config.getCmsConfig();
+      process.stdout.write('\\n' + JSON.stringify({
+        names,
+        before,
+        loginPath: after.routes?.loginPath,
+        secretLength: after.jwt?.secret?.length,
+        reset,
+        minLength: config.JWT_SECRET_MIN_LENGTH,
+      }));
+      `,
+      'module',
+    );
+
+    expect(result).toEqual({
+      names: CONFIG_RUNTIME_EXPORTS,
+      before: {},
+      loginPath: '/signin',
+      secretLength: 40,
+      reset: {},
+      minLength: 32,
+    });
+  });
+
+  it('CMS-ESM-04: ./config 와 ./utils 가 빌드 산출물에서 같은 설정 저장소를 공유한다', () => {
+    // 설정 모듈이 ESM·CJS 각각 한 파일에만 들어 있다 (두 번 번들되면 저장소가 갈라진다).
+    for (const [ext, configEntry, utilsEntry] of [
+      ['.mjs', 'config/index.mjs', 'utils/index.mjs'],
+      ['.js', 'config/index.js', 'utils/index.js'],
+    ] as const) {
+      const defining = distFilesContaining(ext, 'function setCmsConfig(');
+      expect(defining).toHaveLength(1);
+      const chunk = basename(defining[0]);
+      for (const entry of [configEntry, utilsEntry]) {
+        expect(readFileSync(resolve(PKG_ROOT, 'dist', entry), 'utf8')).toContain(chunk);
+      }
+    }
+
+    // CJS 런타임에서 한쪽으로 설정한 값이 다른 쪽에서 보인다.
+    const result = runInNode(
+      `
+      const config = require('${PKG_NAME}/config');
+      const utils = require('${PKG_NAME}/utils');
+      config.setCmsConfig({ routes: { loginPath: '/from-config' } });
+      const seenByUtils = utils.getCmsConfig().routes?.loginPath;
+      utils.setCmsConfig({ routes: { uploadEndpoint: '/from-utils' } });
+      const seenByConfig = config.getCmsConfig().routes?.uploadEndpoint;
+      utils.resetCmsConfig();
+      const resetSeenByConfig = config.getCmsConfig();
+      process.stdout.write('\\n' + JSON.stringify({
+        sameFunction: config.setCmsConfig === utils.setCmsConfig,
+        seenByUtils,
+        seenByConfig,
+        resetSeenByConfig,
+      }));
+      `,
+      'commonjs',
+    );
+
+    expect(result).toEqual({
+      sameFunction: true,
+      seenByUtils: '/from-config',
+      seenByConfig: '/from-utils',
+      resetSeenByConfig: {},
+    });
   });
 });
