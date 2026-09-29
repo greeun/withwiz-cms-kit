@@ -58,6 +58,7 @@ npm install @withwiz/toolkit
 |---|---|
 | `@withwiz/cms-kit` | 전체 barrel export |
 | `@withwiz/cms-kit/components` | `AdminShell`, `AdminManagerBase`, `ImageDropUpload`, `ToggleSwitch` 등 |
+| `@withwiz/cms-kit/config` | 설정 API — `setCmsConfig`, `getCmsConfig`, `resetCmsConfig`, `createForwardedIdentityExtractor` 등 (Next.js 없이도 import 됨) |
 | `@withwiz/cms-kit/hooks` | `useAdminList`, `useAdminForm`, `useImageDropZone`, `useScrollReveal` |
 | `@withwiz/cms-kit/infrastructure` | Prisma proxy, 미들웨어 래퍼 |
 | `@withwiz/cms-kit/infrastructure/middleware` | `withPublicApi` / `withAuthApi` / `withAdminApi` |
@@ -71,9 +72,9 @@ npm install @withwiz/toolkit
 일부 진입점은 확장자 없는 `next/server`·`next/link`·`next/navigation`·`next/dynamic` 이나 CSS 파일을 import 하므로 Next.js 번들러를 거쳐야 동작한다. `next` 패키지에는 `exports` 맵이 없어, 번들러 없이 `node` 로 직접 import 하면 이 지정자를 해석하지 못한다. 이 import 는 Next.js 가 런타임별 구현으로 연결하도록 그대로 둔다.
 
 - **Next.js 앱 안에서만 동작:** `@withwiz/cms-kit`, `/components`, `/components/AdminShell`, `/components/ToggleSwitch`(CSS), `/infrastructure`, `/infrastructure/middleware`, `/infrastructure/middleware/wrappers`, `/utils`, `/utils/api-helpers`
-- **순수 Node ESM 에서도 import 됨:** 그 밖의 모든 JS 진입점 — `/hooks`, `/services`, `/types`, `/validators`, `/infrastructure/prisma`, `/types/common`, `/validators/shared`, `/components/{AdminManagerBase,AdminManagerConfig,JsonLd,ResizableImage}`, `/hooks/{useImageDropZone,useScrollReveal}`, `/utils/{admin-fetch,date,html-sanitizer,image-variant-utils,image-variants,jwt,r2-helpers,r2-storage,route-params}`
+- **순수 Node ESM 에서도 import 됨:** 그 밖의 모든 JS 진입점 — `/config`, `/hooks`, `/services`, `/types`, `/validators`, `/infrastructure/prisma`, `/types/common`, `/validators/shared`, `/components/{AdminManagerBase,AdminManagerConfig,JsonLd,ResizableImage}`, `/hooks/{useImageDropZone,useScrollReveal}`, `/utils/{admin-fetch,date,html-sanitizer,image-variant-utils,image-variants,jwt,r2-helpers,r2-storage,route-params}`
 
-Next.js 밖(스크립트, 워커 등)에서는 `/utils` 배럴 대신 개별 `/utils/*` 경로를 쓴다. 설정 API(`setCmsConfig` 등)는 현재 `/utils` 배럴로만 공개되므로 순수 Node ESM 에서는 불러올 수 없다. 이 경계는 `tests/smoke/pure-node-esm.test.ts` 가 빌드 산출물로 검사한다.
+Next.js 밖(스크립트, 워커 등)에서는 `/utils` 배럴 대신 개별 `/utils/*` 경로를 쓰고, 설정 API(`setCmsConfig` 등)는 `/config` 에서 불러온다. `/config` 는 `/utils` 배럴이 다시 내보내는 설정 API 와 같은 이름을 공개하고 같은 설정 저장소를 쓰므로, 어느 쪽으로 설정해도 다른 쪽에서 같은 값이 보인다. `/utils` 배럴의 설정 API export 는 호환을 위해 그대로 둔다. 이 경계는 `tests/smoke/pure-node-esm.test.ts` 가 빌드 산출물로 검사한다.
 
 ## 사용법
 
@@ -98,7 +99,7 @@ export { prisma };
 소비자 고유 값(brand, route, JWT 시크릿, 신뢰 새니타이저 origin, 스토리지 공개 URL, rate-limit identity)은 하드코딩하지 않고 모두 주입합니다.
 
 ```ts
-import { setCmsConfig, createForwardedIdentityExtractor } from '@withwiz/cms-kit/utils';
+import { setCmsConfig, createForwardedIdentityExtractor } from '@withwiz/cms-kit/config';
 
 setCmsConfig({
   brand: { brandLabel: 'ACME', navItems: [{ label: 'Home', href: '/x', glyph: 'H' }] },

@@ -90,7 +90,7 @@ export const GET = withAdminApi(async (req, ctx) => {
 보호를 켜려면 신뢰 프록시 수를 지정한 추출기를 주입합니다. 패키지가 팩토리를 제공합니다.
 
 ```ts
-import { setCmsConfig, createForwardedIdentityExtractor } from '@withwiz/cms-kit/utils';
+import { setCmsConfig, createForwardedIdentityExtractor } from '@withwiz/cms-kit/config';
 
 setCmsConfig({
   rateLimit: {

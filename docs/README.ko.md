@@ -43,6 +43,7 @@ npm install @withwiz/toolkit
 |---|---|
 | `@withwiz/cms-kit` | 전체 barrel export |
 | `@withwiz/cms-kit/components` | AdminShell, AdminManagerBase, ImageDropUpload, ToggleSwitch 등 |
+| `@withwiz/cms-kit/config` | setCmsConfig, getCmsConfig, resetCmsConfig, createForwardedIdentityExtractor (Next.js 없이도 import 됨) |
 | `@withwiz/cms-kit/hooks` | useAdminList, useAdminForm, useImageDropZone, useScrollReveal |
 | `@withwiz/cms-kit/infrastructure` | prisma proxy, middleware wrappers |
 | `@withwiz/cms-kit/infrastructure/middleware` | withPublicApi/withAuthApi/withAdminApi |
