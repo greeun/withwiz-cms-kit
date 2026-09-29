@@ -66,6 +66,15 @@ For monorepo development the `file:` protocol is also supported:
 | `@withwiz/cms-kit/utils` | `adminFetch`, `r2-storage`, `image-variants`, `jwt`, `date`, `html-sanitizer` |
 | `@withwiz/cms-kit/validators` | `slugSchema`, `optionalUrlSchema` |
 
+### Next.js-only entry points and pure Node ESM
+
+Some entry points import `next/server`, `next/link`, `next/navigation`, `next/dynamic` without a file extension, or import CSS files, so they only work through the Next.js bundler. The `next` package has no `exports` map, so importing them directly with `node` (no bundler) fails to resolve these specifiers. The imports are kept as-is so that Next.js can map them to its runtime-specific implementations.
+
+- **Next.js app only:** `@withwiz/cms-kit`, `/components`, `/components/AdminShell`, `/components/ToggleSwitch` (CSS), `/infrastructure`, `/infrastructure/middleware`, `/infrastructure/middleware/wrappers`, `/utils`, `/utils/api-helpers`
+- **Also importable from pure Node ESM:** every other JS entry point — `/hooks`, `/services`, `/types`, `/validators`, `/infrastructure/prisma`, `/types/common`, `/validators/shared`, `/components/{AdminManagerBase,AdminManagerConfig,JsonLd,ResizableImage}`, `/hooks/{useImageDropZone,useScrollReveal}`, `/utils/{admin-fetch,date,html-sanitizer,image-variant-utils,image-variants,jwt,r2-helpers,r2-storage,route-params}`
+
+Outside Next.js (scripts, workers, …) use the individual `/utils/*` paths instead of the `/utils` barrel. The configuration API (`setCmsConfig`, …) is currently exposed only through the `/utils` barrel, so it cannot be imported from pure Node ESM. `tests/smoke/pure-node-esm.test.ts` checks this boundary against the build output.
+
 ## Usage
 
 ### 1. Inject the Prisma client
