@@ -97,11 +97,11 @@ import { prisma } from '@withwiz/cms-kit/infrastructure';
 
 패키지는 소비자 고유 값(brand/nav, route/endpoint map, JWT 비밀, sanitizer
 신뢰 origin, R2 inline-key prefix, rate-limit identity)을 하드코딩하지
-않습니다. 모두 중앙 설정 경계(`src/config`, `@withwiz/cms-kit/utils` 를 통해
-re-export)를 거칩니다. Prisma DI 패턴과 동형입니다.
+않습니다. 모두 중앙 설정 경계(`src/config`, `@withwiz/cms-kit/config` 로 공개하고
+호환을 위해 `@withwiz/cms-kit/utils` 로도 re-export)를 거칩니다. Prisma DI 패턴과 동형입니다.
 
 ```ts
-import { setCmsConfig } from '@withwiz/cms-kit/utils';
+import { setCmsConfig } from '@withwiz/cms-kit/config';
 
 setCmsConfig({
   brand: { brandLabel: 'ACME', navItems: [{ label: 'Home', href: '/x', glyph: 'H' }] },

@@ -43,6 +43,7 @@ For development inside a monorepo, the `file:` protocol is also supported.
 |---|---|
 | `@withwiz/cms-kit` | Full barrel export |
 | `@withwiz/cms-kit/components` | AdminShell, AdminManagerBase, ImageDropUpload, ToggleSwitch, etc. |
+| `@withwiz/cms-kit/config` | setCmsConfig, getCmsConfig, resetCmsConfig, createForwardedIdentityExtractor (importable without Next.js) |
 | `@withwiz/cms-kit/hooks` | useAdminList, useAdminForm, useImageDropZone, useScrollReveal |
 | `@withwiz/cms-kit/infrastructure` | prisma proxy, middleware wrappers |
 | `@withwiz/cms-kit/infrastructure/middleware` | withPublicApi/withAuthApi/withAdminApi |

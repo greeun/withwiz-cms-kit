@@ -4,12 +4,12 @@
 
 | 항목 | 내용 |
 |------|------|
-| 대상 | `@withwiz/cms-kit` 0.3.1 (Next.js + React 관리자 패널용 CMS 프레임워크 라이브러리) + `test/pure-node-esm-scope` 브랜치 테스트·문서 추가 (코드 동작 변경 없음, 버전 미변경, 미게시) |
-| 기준 | `fix/residual-defects` 코드 커밋 `c741e11` (develop `431d2de` 에서 분기), 2026-09-16 갱신. `@withwiz/toolkit` peer 하한 실측은 커밋 `aa96df1` 기준, 2026-09-17 추가. 순수 Node ESM 소비 범위 실측은 develop `aaf0852`(0.3.1) 에서 분기한 `test/pure-node-esm-scope` 기준, 2026-09-29 추가 |
+| 대상 | `@withwiz/cms-kit` 0.3.2 (Next.js + React 관리자 패널용 CMS 프레임워크 라이브러리) + `feat/config-subpath` 브랜치의 `./config` 서브패스 추가 (기존 export 동작 변경 없음, 버전 미변경, 미게시) |
+| 기준 | `fix/residual-defects` 코드 커밋 `c741e11` (develop `431d2de` 에서 분기), 2026-09-16 갱신. `@withwiz/toolkit` peer 하한 실측은 커밋 `aa96df1` 기준, 2026-09-17 추가. 순수 Node ESM 소비 범위 실측은 develop `aaf0852`(0.3.1) 에서 분기한 `test/pure-node-esm-scope` 기준, 2026-09-29 추가. `./config` 서브패스 실측은 develop `688f4e1`(0.3.2) 에서 분기한 `feat/config-subpath` 기준, 2026-09-30 추가 |
 | 범위 | `src/` 전체 (components/, hooks/, infrastructure/, services/, types/, utils/, validators/, config/) |
 | 환경 | Vitest 4.1.11, Node.js 22.22.0, 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2). devDependency `@withwiz/toolkit` 0.15.0, `isomorphic-dompurify` 2.36.0. peerDependency `@withwiz/toolkit` `>=0.8.0` (2026-09-17 에 `>=0.7.1` 에서 변경) |
 | 목표 커버리지 | 미설정 (`vitest.config.ts` 에 coverage 설정이 없고 `@vitest/coverage-*` 패키지도 설치되어 있지 않음) |
-| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음). 2026-09-18 `fix/residual-defects-a` 기준 갱신: 정규식 경로가 하이픈이 들어간 사용자 정의 태그를 지우는 결함(TC-S-010)을 고쳤다. 40개 파일 472건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26, 변화 없음). 2026-09-28 `chore/remove-consumer-mentions` 기준 갱신: 독립 패키지에서 소비 프로젝트 언급을 모두 없앴다. 브랜드·관리자 경로 가드 테스트 파일(TC-SM-002)을 삭제해 소비 프로젝트 저장소로 옮기고, AdminShell 설정 테스트(TC-U-017)의 단언과 테스트 데이터(TC-U-009·U-012·U-016·I-002·S-003·S-009)를 중립 값으로 바꿨다. 39개 파일 469건, SC/TC 66개 (✅ 38 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-29 `test/pure-node-esm-scope` 기준 갱신: `exports` 의 JS 서브패스 31개를 순수 Node ESM 으로 import 해 22개 성공·9개 실패를 실측하고, 실패 9개를 Next.js 앱 전용으로 정한 경계를 빌드 테스트(TC-SM-006, `tests/smoke/pure-node-esm.test.ts`)로 고정했다. README 에 경계를 적었다. 40개 파일 471건, SC/TC 67개 (✅ 39 / ⚠️ 1 / 🔲 26 / 이전 1) |
+| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음). 2026-09-18 `fix/residual-defects-a` 기준 갱신: 정규식 경로가 하이픈이 들어간 사용자 정의 태그를 지우는 결함(TC-S-010)을 고쳤다. 40개 파일 472건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26, 변화 없음). 2026-09-28 `chore/remove-consumer-mentions` 기준 갱신: 독립 패키지에서 소비 프로젝트 언급을 모두 없앴다. 브랜드·관리자 경로 가드 테스트 파일(TC-SM-002)을 삭제해 소비 프로젝트 저장소로 옮기고, AdminShell 설정 테스트(TC-U-017)의 단언과 테스트 데이터(TC-U-009·U-012·U-016·I-002·S-003·S-009)를 중립 값으로 바꿨다. 39개 파일 469건, SC/TC 66개 (✅ 38 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-29 `test/pure-node-esm-scope` 기준 갱신: `exports` 의 JS 서브패스 31개를 순수 Node ESM 으로 import 해 22개 성공·9개 실패를 실측하고, 실패 9개를 Next.js 앱 전용으로 정한 경계를 빌드 테스트(TC-SM-006, `tests/smoke/pure-node-esm.test.ts`)로 고정했다. README 에 경계를 적었다. 40개 파일 471건, SC/TC 67개 (✅ 39 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-30 `feat/config-subpath` 기준 갱신: 설정 API 를 순수 Node ESM 에서 불러오도록 `./config` 서브패스를 추가했다. `./config` 가 TC-SM-006 의 순수 Node import 대상에 들어가고(JS 서브패스 32개 중 23개 성공), `./config` 의 동작·공개 이름·`./utils` 와의 설정 저장소 공유를 검사하는 SC/TC-SM-007 을 추가했다. README 의 순수 Node ESM 제약 문장을 `./config` 사용 안내로 고쳤다. 40개 파일 474건, SC/TC 68개 (✅ 40 / ⚠️ 1 / 🔲 26 / 이전 1) |
 
 ### 실측 기록 (2026-09-17): `@withwiz/toolkit` peer 하한
 
@@ -66,6 +66,25 @@ dist 스모크 항목은 다음과 같다.
 
 결론: 테스트와 dist 스모크 기준으로는 11개 게시 버전과 0.16.0 후보가 모두 호환된다. 타입 호환이 실제로 확인되는 가장 낮은 버전은 0.8.0 이므로 `peerDependencies['@withwiz/toolkit']` 을 `>=0.7.1` 에서 `>=0.8.0` 으로 올렸다. 상한은 다른 @withwiz 패키지의 관례(`@withwiz/ui` `>=0.8.0`, `@withwiz/blog-system` `>=0.11.0`)에 맞춰 두지 않았다. `npm install --package-lock-only` 로 동기화한 `package-lock.json` 의 변경은 루트 항목 `packages[""].peerDependencies` 한 줄이다. 변경 후 `npm ci` 로 toolkit 0.15.0 레지스트리본을 복원하고 `npx tsc --noEmit` 오류 0건, `npm run build` 성공, `npm test` 40개 파일 470건 통과, dist 스모크 CJS·ESM 12/12 를 다시 확인했다. `README.md`·`README.ko.md`·`docs/README.md`·`docs/README.ko.md` 의 peer 요구 버전도 고쳤다.
 
+### 실측 기록 (2026-09-30): `./config` 서브패스
+
+측정 위치는 `feat/config-subpath` 브랜치 워크트리(`node-packages/.worktrees/cms-kit-config-subpath`, develop `688f4e1`(0.3.2) 에서 분기)이다. Node.js 22.22.0, `package-lock.json` 기준 `npm ci` 로 설치하고 `npm run build` 로 dist 를 만들었다.
+
+설정 모듈 `src/config/index.ts` 는 다른 모듈을 import 하지 않는다 (`import` 문 0개, `next/*` 직간접 의존 없음). `./utils` 배럴(`src/utils/index.ts`)은 이 모듈에서 런타임 이름 7개(`setCmsConfig`·`resetCmsConfig`·`getCmsConfig`·`JWT_SECRET_MIN_LENGTH`·`createForwardedIdentityExtractor`·`hasIdentityExtractor`·`SHARED_ANON_IDENTITY`)와 타입 11개(`CmsConfig`·`CmsNavItem`·`CmsBrandConfig`·`CmsRouteConfig`·`CmsJwtConfig`·`CmsSanitizerConfig`·`CmsStorageConfig`·`CmsR2CredentialsConfig`·`CmsRateLimitConfig`·`CmsIdentityExtractor`·`ForwardedIdentityOptions`)를 다시 내보낸다. 내부 해석 함수(`resolve*`·`warnOnceMissingConfig`·`namespacedError`)는 공개하지 않는다.
+
+같은 18개 이름만 다시 내보내는 `src/config/public.ts` 를 만들고, `package.json` `exports` 에 `./config`(`types`·`import`·`require` → `dist/config/index.{d.ts,mjs,js}`)를, `tsup.config.ts` 엔트리에 `config/index` 를 추가했다. `./utils` 배럴의 export 는 바꾸지 않았다.
+
+| 항목 | 결과 |
+|------|------|
+| 순수 Node ESM import | `exports` 34개 항목 중 CSS 2개를 뺀 JS 서브패스 32개 중 23개 성공, 9개 실패 (늘어난 1개가 `./config`, 실패 9개는 2026-09-29 와 같다) |
+| `./config` 동작 | 별도 `node --input-type=module` 프로세스에서 `setCmsConfig` 후 `getCmsConfig` 가 넣은 값을 돌려주고, `resetCmsConfig` 후 `{}` 가 된다 |
+| 설정 저장소 공유 (dist) | `function setCmsConfig(` 를 정의하는 파일이 ESM(`dist/chunk-*.mjs`)·CJS(`dist/chunk-*.js`) 각각 1개이고, `dist/config/index.*` 와 `dist/utils/index.*` 가 모두 그 청크를 불러온다. `./utils` 는 순수 Node ESM 에서 import 되지 않으므로 런타임 공유는 CJS `require` 로 확인했다: `./config` 로 설정한 값이 `./utils` 에서, `./utils` 로 설정한 값이 `./config` 에서 보이고 두 `setCmsConfig` 는 같은 함수이다 |
+| 회귀 확인 | (1) `src/config/public.ts` 맨 위에 `import { NextResponse } from 'next/server';` 와 `void NextResponse;` 를 임시로 넣고 빌드하자 CMS-ESM-01(`"@withwiz/cms-kit/config": "ERR_MODULE_NOT_FOUND"`)과 CMS-ESM-03 이 실패했다. (2) 같은 파일에서 `setCmsConfig`·`getCmsConfig` 를 별도 저장소를 쓰는 구현으로 바꾸고 빌드하자 CMS-ESM-03 과 CMS-ESM-04(정의 파일 2개)가 실패했다. 두 경우 모두 원본으로 되돌리고 다시 빌드한 뒤 4건 통과를 확인했다 |
+| 최종 (`npm test`) | **40개 파일, 474건 통과, 실패 0건, 스킵 0건** |
+| 타입 검사·빌드 | `npx tsc --noEmit` 오류 0건, `npm run build` 성공 (ESM·CJS·타입 선언) |
+| 도메인별 재확인 | Smoke 4개 파일 22건 통과 (아래 "9. Smoke Tests" 실행 명령). 다른 도메인의 파일·건수는 2026-09-29 와 같다 |
+| 이전 실측과 비교 | 40개 파일 471건 → 40개 파일 474건. 늘어난 3건은 `tests/smoke/pure-node-esm.test.ts` 의 CMS-ESM-03·04(2건)와 `tests/exports-superset.test.ts` 의 CMS-EXP-CONFIG(1건)이며 모두 TC-SM-007 이다 |
+
 ### 실측 기록 (2026-09-29): 순수 Node ESM 소비 범위
 
 측정 위치는 `test/pure-node-esm-scope` 브랜치 워크트리(`node-packages/.worktrees/cms-kit-pure-node-esm`, develop `aaf0852`(0.3.1) 에서 분기)이다. Node.js 22.22.0, `package-lock.json` 기준 `npm ci` 로 설치하고(`@withwiz/toolkit` 0.15.0, `next` 16.x) `npm run build` 로 dist 를 만들었다.
@@ -90,7 +109,7 @@ dist 스모크 항목은 다음과 같다.
 
 Next.js 와 무관한 코드가 실패하는 경우는 다음과 같다. 동작은 바꾸지 않고 기록만 한다.
 
-- **`./utils` 배럴:** `cn`·`date`·`html-sanitizer`·`r2-*`·`jwt`·`admin-fetch` 같은 순수 유틸이 같은 배럴에 있는 `api-response.ts`·`api-helpers.ts` 의 `next/server` 때문에 함께 불러와지지 않는다. 개별 서브패스(`./utils/date` 등)는 불러와진다. 설정 API(`setCmsConfig`·`resetCmsConfig`·`getCmsConfig`·`createForwardedIdentityExtractor` 등, `src/utils/index.ts` 19~40행)는 `./utils` 배럴로만 공개되므로 순수 Node ESM 에서는 불러올 수 없다. `./utils/cn` 과 `./utils/image-resize` 는 `exports` 에 없다.
+- **`./utils` 배럴:** `cn`·`date`·`html-sanitizer`·`r2-*`·`jwt`·`admin-fetch` 같은 순수 유틸이 같은 배럴에 있는 `api-response.ts`·`api-helpers.ts` 의 `next/server` 때문에 함께 불러와지지 않는다. 개별 서브패스(`./utils/date` 등)는 불러와진다. 설정 API(`setCmsConfig`·`resetCmsConfig`·`getCmsConfig`·`createForwardedIdentityExtractor` 등, `src/utils/index.ts` 19~40행)는 `./utils` 배럴로만 공개되므로 순수 Node ESM 에서는 불러올 수 없다. (2026-09-30 해소: 같은 이름을 공개하는 `./config` 서브패스를 추가했다. 아래 "실측 기록 (2026-09-30)" 과 TC-SM-007 참고) `./utils/cn` 과 `./utils/image-resize` 는 `exports` 에 없다.
 - **`./utils/api-helpers` 의 `parseSortKey`:** 요청 객체나 응답을 쓰지 않는 순수 함수이지만 같은 파일의 `validateIds`·`validateAndParse` 가 `NextResponse` 를 import 해 함께 실패한다.
 - **`./components/ToggleSwitch`:** Next.js 를 import 하지 않는 React 컴포넌트이지만 `toggle-switch.css` import 때문에 실패한다. `ImageDropUpload` 도 `image-drop-zone.css` 를 import 하며 개별 서브패스가 없다.
 - **`./infrastructure` 배럴:** 순수 모듈인 `prisma` 를 `middleware/wrappers` 와 함께 내보낸다. `./infrastructure/prisma` 는 불러와진다.
@@ -251,6 +270,7 @@ Next.js 와 무관한 코드가 실패하는 경우는 다음과 같다. 동작�
 | SC-SM-004 | dist 빌드 산출물 스모크 | Smoke | High | 🔲 계획 |
 | SC-SM-005 | 새로 받은 체크아웃에서 스위트 실행 | Smoke | Critical | ✅ 완료 |
 | SC-SM-006 | 순수 Node ESM 에서 import 되는 서브패스 범위 유지 | Smoke | High | ✅ 완료 |
+| SC-SM-007 | 설정 API 서브패스(`./config`)의 순수 Node 동작과 `./utils` 와의 설정 저장소 공유 | Smoke | High | ✅ 완료 |
 | SC-C-001 | 변형 이미지 업로드 부분 실패 격리 | Chaos | Low | 🔲 계획 |
 | SC-C-002 | R2 일괄 삭제 부분 실패 격리 | Chaos | Low | 🔲 계획 |
 | SC-C-003 | DOMPurify 로드 실패 시 정규식 대체 경로 | Chaos | Low | 🔲 계획 |
@@ -1733,7 +1753,7 @@ createSanitizer(config)(html)
 
 **실행 명령:** `npx vitest run tests/exports-superset.test.ts tests/zod-compat.test.ts tests/fresh-checkout.test.ts tests/smoke/pure-node-esm.test.ts`
 
-2026-09-15 실측에서는 추적 파일만 있는 체크아웃에서 세 파일 모두 `tests-harness/env-setup.ts` 를 찾지 못해 0건 실행이었고, `env-setup.ts` 만 복사한 상태에서는 `exports-superset.test.ts` 가 기준선 파일을 찾지 못해 2개 파일 7건 통과와 1개 파일 실패였다. 2026-09-16 수정(TC-SM-005) 이후에는 추적 파일만으로 4개 파일 20건이 통과했다. 2026-09-28 에 `tests/no-consumer-literals.test.ts`(TC-SM-002)를 삭제한 뒤에는 3개 파일 17건이 통과했다. 2026-09-29 에 `tests/smoke/pure-node-esm.test.ts`(TC-SM-006)를 추가한 뒤에는 4개 파일 19건이 통과한다. TC-SM-006 은 dist 를 검사하므로 `dist/` 가 없으면 테스트가 먼저 `npm run build` 를 실행한다.
+2026-09-15 실측에서는 추적 파일만 있는 체크아웃에서 세 파일 모두 `tests-harness/env-setup.ts` 를 찾지 못해 0건 실행이었고, `env-setup.ts` 만 복사한 상태에서는 `exports-superset.test.ts` 가 기준선 파일을 찾지 못해 2개 파일 7건 통과와 1개 파일 실패였다. 2026-09-16 수정(TC-SM-005) 이후에는 추적 파일만으로 4개 파일 20건이 통과했다. 2026-09-28 에 `tests/no-consumer-literals.test.ts`(TC-SM-002)를 삭제한 뒤에는 3개 파일 17건이 통과했다. 2026-09-29 에 `tests/smoke/pure-node-esm.test.ts`(TC-SM-006)를 추가한 뒤에는 4개 파일 19건이 통과했다. 2026-09-30 에 TC-SM-007 3건(같은 두 파일에 추가)을 더한 뒤에는 4개 파일 22건이 통과한다. TC-SM-006·TC-SM-007 은 dist 를 검사하므로 `dist/` 가 없으면 테스트가 먼저 `npm run build` 를 실행한다.
 
 ---
 
@@ -1753,7 +1773,7 @@ createSanitizer(config)(html)
 | 3 | `./services` 12개, `./types` 3개, `./utils` 29개, `./validators` 2개 | 누락 0 |
 | 4 | CMS-EXP-TOUCHED | `utils` 에 `sanitizeHtmlContent`·`createSanitizer`·`setCmsConfig`·`DOMPurifyLike`(0.2.2 추가 타입, 커밋 `679fb96`) 등, `components` 에 `JsonLd`·`AdminShell`, `validators` 에 `slugSchema`·`optionalUrlSchema`, `infrastructure` 에 `prisma`·`withPublicApi`, 루트에 `parseSortParam`·`parseSortKey` |
 
-- **자동화:** 가능 ✅ | **테스트 수:** 10개 (현재, 새로 받은 체크아웃 포함)
+- **자동화:** 가능 ✅ | **테스트 수:** 10개 (현재, 새로 받은 체크아웃 포함. 같은 파일의 CMS-EXP-CONFIG 1건은 TC-SM-007 로 센다)
 - **비고:** 기준선은 2026-05-15 에 dist `.d.ts` 에서 캡처했고 테스트는 `src` 배럴과 비교한다. dist 기준 비교는 TC-SM-004 에서 다룬다. fixture 의 `_meta.update` 는 export 를 추가할 때는 갱신하지 않고, 의도적으로 제거할 때만 목록에서 빼고 호환성 변경으로 기록하도록 적는다.
 - **교체 이력:** 2026-09-15 판에서는 기준선이 gitignore 대상 `.claude/harness/pms-refactor/baseline-exports.json` 에만 있어, 새로 받은 체크아웃에서 모듈 최상위 `readFileSync` 가 ENOENT 로 실패해 파일 전체가 로드되지 않았다(0건 실행). 이 때문에 ⚠️ 교체 필요로 분류했다. 2026-09-16 커밋 `4fe6ce2` 에서 이름 목록을 바꾸지 않고 추적 fixture 로 옮긴 뒤 읽기 경로를 바꿨다. `_meta` 는 출처와 갱신 규칙으로 다시 썼다.
 
@@ -1812,16 +1832,16 @@ createSanitizer(config)(html)
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | JS 서브패스 31개의 `types`·`import`·`require` 조건 경로 | 모든 파일 존재 |
+| 1 | JS 서브패스 32개의 `types`·`import`·`require` 조건 경로 | 모든 파일 존재 |
 | 2 | `tsup.config.ts` `CLIENT_ENTRIES` 9개의 `.js`·`.mjs` | 첫 줄이 `"use client";` |
 | 3 | `dist/` 와 `dist/components/` | `image-drop-zone.css`, `toggle-switch.css` 존재 |
 | 4 | 9개 배럴의 dist `.d.ts` 를 TypeScript 컴파일러 API 로 읽기 | export 이름 집합이 `src` 배럴과 같다 |
-| 5 | `dist/utils/index.d.ts` | `setCmsConfig`, `resetCmsConfig`, `createForwardedIdentityExtractor`, `DOMPurifyLike` 포함 (설정 API 는 `./config` 서브패스가 없어 `./utils` 로만 공개된다) |
+| 5 | `dist/utils/index.d.ts` | `setCmsConfig`, `resetCmsConfig`, `createForwardedIdentityExtractor`, `DOMPurifyLike` 포함 (설정 API 는 호환을 위해 `./utils` 로도 공개된다. `./config` 의 공개 이름은 TC-SM-007 이 `src` 기준으로 검사한다) |
 
 - **자동화:** 가능 ✅
-- **비고:** 현재 테스트가 import 하는 `@withwiz/cms-kit/*` 경로 39개 중 17개는 `exports` 에 없다. 그중 9개는 `/index` 표기로 배럴과 같고, 나머지 8개(`components/ImageDropUpload`, `config`, `hooks/useAdminForm`, `hooks/useAdminList`, `services/base-service`, `utils/api-response`, `utils/cn`, `utils/image-resize`)는 소비자가 사용할 수 없는 깊은 경로이다.
+- **비고:** 현재 테스트가 import 하는 `@withwiz/cms-kit/*` 경로 39개 중 16개는 `exports` 에 없다 (2026-09-30 에 `config` 가 `exports` 에 들어가 17개에서 줄었다). 그중 9개는 `/index` 표기로 배럴과 같고, 나머지 7개(`components/ImageDropUpload`, `hooks/useAdminForm`, `hooks/useAdminList`, `services/base-service`, `utils/api-response`, `utils/cn`, `utils/image-resize`)는 소비자가 사용할 수 없는 깊은 경로이다.
 - **실행 검증 참고 (2026-09-17):** toolkit peer 하한 실측(개요 "실측 기록 (2026-09-17)")에서 dist 를 순수 Node 로 불러오면 `next/server` 해석 실패(`ERR_MODULE_NOT_FOUND`)로 CJS 는 미들웨어 래퍼와 배럴을, ESM 은 `utils/index` 를 포함한 대부분의 진입점을 불러오지 못했다. toolkit 이 ESM 전용이어서 CJS dist 의 래퍼도 같은 경로로 실패한다. 이 TC 에 실행 검증을 넣으려면 `next/` 로 시작하는 확장자 없는 지정자만 `.js` 로 다시 해석하는 resolve 훅이 필요하다.
-- **순수 Node ESM 범위 (2026-09-29):** 훅 없이 import 되는 ESM 서브패스 범위(31개 중 22개)는 TC-SM-006 이 dist 로 검사한다. 이 TC 의 나머지 단계(파일 존재, `"use client"`, CSS 복사, d.ts export 비교)는 여전히 계획이다.
+- **순수 Node ESM 범위 (2026-09-29, 2026-09-30 갱신):** 훅 없이 import 되는 ESM 서브패스 범위(32개 중 23개)는 TC-SM-006 이 dist 로 검사한다. `./config` 와 `./utils` 의 설정 저장소 공유는 TC-SM-007 이 dist 로 검사한다. 이 TC 의 나머지 단계(파일 존재, `"use client"`, CSS 복사, d.ts export 비교)는 여전히 계획이다.
 
 ---
 
@@ -1852,21 +1872,45 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/smoke/pure-node-esm.test.ts` |
-| **대상** | `package.json` `exports` 의 JS 서브패스 31개(CSS·와일드카드 제외)와 dist ESM 산출물(`dist/**/*.mjs`) |
+| **대상** | `package.json` `exports` 의 JS 서브패스 32개(CSS·와일드카드 제외)와 dist ESM 산출물(`dist/**/*.mjs`) |
 | **우선순위** | High |
 | **전제조건** | 최신 dist. `dist/index.mjs` 가 없으면 `beforeAll` 이 `npm run build` 를 실행한다(약 5초). src 를 바꾼 뒤에는 `npm run build` 를 다시 실행하고 테스트를 돌린다. vitest 는 자체 해석기와 `@withwiz/cms-kit/*` → `src` alias 를 쓰므로, 검사는 `process.execPath` 로 띄운 별도 `node --input-type=module` 프로세스에서 패키지 자기 이름으로 import 한다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | CMS-ESM-01: `exports` 에서 JS 서브패스를 모으고 Next.js 앱 전용(접두사 규칙 `./infrastructure/middleware` + 명시 목록 `NEXT_APP_ONLY` 7개)을 뺀다 | 22개 이상 |
+| 1 | CMS-ESM-01: `exports` 에서 JS 서브패스를 모으고 Next.js 앱 전용(접두사 규칙 `./infrastructure/middleware` + 명시 목록 `NEXT_APP_ONLY` 7개)을 뺀다 | `./config` 를 포함해 23개 이상 |
 | 2 | CMS-ESM-01: 남은 서브패스를 하나의 node 프로세스에서 차례로 `import()` | 실패 0개 (`{}`) |
 | 3 | CMS-ESM-02: 명시 목록 `NEXT_APP_ONLY` 의 키 | 모두 `exports` 에 있다 |
 | 4 | CMS-ESM-02: Next.js 앱 전용 9개(`.`, `./components`, `./components/AdminShell`, `./components/ToggleSwitch`, `./infrastructure`, `./infrastructure/middleware`, `./infrastructure/middleware/wrappers`, `./utils`, `./utils/api-helpers`)를 같은 방식으로 `import()` | 모두 실패한다 (실패하지 않게 된 서브패스가 0개) |
 
-- **자동화:** 가능 ✅ | **테스트 수:** 2개 (현재)
-- **대상 선정 규칙:** 새 서브패스는 기본으로 순수 Node ESM 검사 대상이 된다. 미들웨어 래퍼는 접두사 규칙으로 뺀다. 나머지 7개는 배럴과 개별 모듈이 같은 디렉터리에 섞여 있어(`./utils` 아래 순수 유틸과 `api-helpers`, `./components` 아래 `JsonLd` 와 `AdminShell`) 접두사로 빼면 검사해야 할 서브패스까지 빠지므로, 이유를 주석에 적은 명시 목록으로 뺀다.
+- **자동화:** 가능 ✅ | **테스트 수:** 2개 (현재. 같은 파일의 CMS-ESM-03·04 는 TC-SM-007 로 센다)
+- **대상 선정 규칙:** 새 서브패스는 기본으로 순수 Node ESM 검사 대상이 된다. 2026-09-30 에 추가한 `./config` 도 목록을 고치지 않고 이 규칙으로 들어왔다. 미들웨어 래퍼는 접두사 규칙으로 뺀다. 나머지 7개는 배럴과 개별 모듈이 같은 디렉터리에 섞여 있어(`./utils` 아래 순수 유틸과 `api-helpers`, `./components` 아래 `JsonLd` 와 `AdminShell`) 접두사로 빼면 검사해야 할 서브패스까지 빠지므로, 이유를 주석에 적은 명시 목록으로 뺀다.
 - **회귀 확인 (2026-09-29):** `src/utils/date.ts` 에 `import { NextResponse } from 'next/server';` 와 `void NextResponse;` 를 임시로 넣고 빌드하면 CMS-ESM-01 이 `"@withwiz/cms-kit/utils/date": "ERR_MODULE_NOT_FOUND"` 로 실패했다. import 만 넣으면 쓰지 않는 import 를 esbuild 가 지워 dist 에 남지 않으므로 통과한다. 되돌리고 다시 빌드한 뒤 통과를 확인했다.
-- **비고:** Next.js 앱 전용 9개의 실패 원인과 Next.js 와 무관한 코드가 함께 실패하는 경우(`./utils` 배럴의 순수 유틸과 설정 API, `parseSortKey`, `ToggleSwitch` 의 CSS, `./infrastructure` 배럴의 `prisma`)는 개요 "실측 기록 (2026-09-29)" 에 적었다. 확장자 없는 `next/*` import 는 Next.js 번들러가 런타임별 구현으로 연결하도록 그대로 두는 것이 결정 사항이며, 이 TC 는 동작을 바꾸지 않고 경계만 고정한다. CJS(`require`) 경로는 검사하지 않는다. README(`README.md`·`README.ko.md` "진입점" 절)에 같은 경계를 적었다.
+- **비고:** Next.js 앱 전용 9개의 실패 원인과 Next.js 와 무관한 코드가 함께 실패하는 경우(`./utils` 배럴의 순수 유틸과 설정 API(2026-09-30 에 `./config` 로 해소), `parseSortKey`, `ToggleSwitch` 의 CSS, `./infrastructure` 배럴의 `prisma`)는 개요 "실측 기록 (2026-09-29)" 에 적었다. 확장자 없는 `next/*` import 는 Next.js 번들러가 런타임별 구현으로 연결하도록 그대로 두는 것이 결정 사항이며, 이 TC 는 동작을 바꾸지 않고 경계만 고정한다. CJS(`require`) 경로는 검사하지 않는다. README(`README.md`·`README.ko.md` "진입점" 절)에 같은 경계를 적었다.
+
+---
+
+### TC-SM-007: 설정 API 서브패스(`./config`)의 순수 Node 동작과 설정 저장소 공유
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/smoke/pure-node-esm.test.ts` (CMS-ESM-03·04), `tests/exports-superset.test.ts` (CMS-EXP-CONFIG) |
+| **대상** | `package.json` `exports` 의 `./config`, `src/config/public.ts`, dist 산출물(`dist/config/index.*`, `dist/utils/index.*`, 설정 모듈을 담은 공용 청크) |
+| **우선순위** | High |
+| **전제조건** | TC-SM-006 과 같다 (최신 dist, 없으면 `beforeAll` 이 빌드). CMS-ESM-03 은 `node --input-type=module`, CMS-ESM-04 의 런타임 단계는 `node --input-type=commonjs` 별도 프로세스에서 패키지 자기 이름으로 불러온다. `./utils` 는 순수 Node ESM 에서 import 되지 않으므로(`next/server`) 런타임 공유는 CJS `require` 로 확인한다 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | CMS-ESM-03: `@withwiz/cms-kit/config` 를 순수 Node ESM 으로 import 하고 런타임 export 이름을 정렬 | `JWT_SECRET_MIN_LENGTH`·`SHARED_ANON_IDENTITY`·`createForwardedIdentityExtractor`·`getCmsConfig`·`hasIdentityExtractor`·`resetCmsConfig`·`setCmsConfig` 7개 |
+| 2 | CMS-ESM-03: 설정 전 `getCmsConfig()`, `setCmsConfig({ routes: { loginPath: '/signin' }, jwt: { secret: 40자 } })` 후 `getCmsConfig()`, `resetCmsConfig()` 후 `getCmsConfig()` | `{}` → `loginPath` `'/signin'`·비밀 길이 40 → `{}`. `JWT_SECRET_MIN_LENGTH` 는 32 |
+| 3 | CMS-ESM-04: dist 에서 `function setCmsConfig(` 를 정의하는 `.mjs`·`.js` 파일 | 확장자마다 1개 (설정 모듈이 두 번 번들되지 않는다) |
+| 4 | CMS-ESM-04: `dist/config/index.{mjs,js}` 와 `dist/utils/index.{mjs,js}` | 둘 다 3번의 청크 파일 이름을 포함한다 |
+| 5 | CMS-ESM-04: CJS 로 `./config`·`./utils` 를 `require` 하고 `./config` 로 `loginPath`, `./utils` 로 `uploadEndpoint` 를 설정한 뒤 `./utils` 로 `resetCmsConfig()` | 반대쪽에서 각각 `'/from-config'`·`'/from-utils'` 가 보이고, 초기화 후 `./config` 에서 `{}`. 두 `setCmsConfig` 가 같은 함수이다 |
+| 6 | CMS-EXP-CONFIG: `src/config/public.ts` 의 export 이름 (TypeScript 컴파일러 API, 타입 포함) | 런타임 7개 + 타입 11개 = 18개와 정확히 같고, 18개 모두 `./utils` 배럴에도 있다 |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 3개 (현재. CMS-ESM-03·04 2건, CMS-EXP-CONFIG 1건)
+- **회귀 확인 (2026-09-30):** `src/config/public.ts` 에 `next/server` import 를 넣으면 CMS-ESM-01·03 이, `setCmsConfig`·`getCmsConfig` 를 별도 저장소 구현으로 바꾸면 CMS-ESM-03·04 가 실패했다 (개요 "실측 기록 (2026-09-30)").
+- **비고:** `./config` 는 `./utils` 배럴과 같은 18개 이름만 공개하고 내부 해석 함수(`resolve*` 등)는 공개하지 않는다. vitest 의 `@withwiz/cms-kit/config` alias 는 `src/config/index.ts`(내부 함수 포함)로 연결되어 TC-U-008 이 계속 내부 함수를 검사하며, 게시되는 `./config` 와는 범위가 다르다. `./utils` 배럴의 설정 API export 는 호환을 위해 유지한다.
 
 ---
 
@@ -1952,22 +1996,23 @@ createSanitizer(config)(html)
 | **Performance** | 0개 | 0개 | 2 | 2 (0 / 0 / 2) | +2개 |
 | **Accessibility** | 2개 | 19개 | 6 | 6 (2 / 0 / 4) | +4개 |
 | **Load/Stress** | 0개 | 0개 | 2 | 2 (0 / 0 / 2) | +2개 |
-| **Smoke** | 4개 | 19개 | 6 | 6 (4 / 0 / 1, 이전 1) | +1개 |
+| **Smoke** | 4개 | 22개 | 7 | 7 (5 / 0 / 1, 이전 1) | +1개 |
 | **Chaos** | 0개 | 0개 | 3 | 3 (0 / 0 / 3) | +3개 |
-| **합계** | **40개** | **471개** | **67** | **67 (39 / 1 / 26, 이전 1)** | **+22개** |
+| **합계** | **40개** | **474개** | **68** | **68 (40 / 1 / 26, 이전 1)** | **+22개** |
 
+- 2026-09-30 판 변화는 다음과 같다. SC/TC-SM-007(✅ 완료)을 추가해 Smoke 에 3건이 늘었다 (기존 파일 `pure-node-esm.test.ts` 2건, `exports-superset.test.ts` 1건. 파일 수 변화 없음).
 - 2026-09-29 판 변화는 다음과 같다. SC/TC-SM-006(✅ 완료)을 추가해 Smoke 에 1개 파일 2건이 늘었다.
 - 2026-09-28 판 변화는 다음과 같다. TC-SM-002 가 ✅ 완료에서 이전으로 바뀌어 Smoke 에서 1개 파일 3건이 줄었다. Security 210건은 2026-09-18 커밋 `a2ef0fd` 의 2건(CMS-HSP-SPEC-09~10)을 반영한 실측값이다.
 - 2026-09-15 판 대비 변화는 다음과 같다. 🔲 계획에서 ✅ 완료로 바뀐 TC 는 TC-U-027·TC-AC-003·TC-SM-005 3건이고, ⚠️ 교체 필요에서 ✅ 완료로 바뀐 TC 는 TC-SM-001 1건이다. 새 SC/TC 는 TC-S-010·TC-S-011 2건이다. 테스트 파일은 Unit·Accessibility·Smoke 에 1개씩 늘었고, Security 는 기존 `html-sanitizer-paths.test.ts` 에 41건이 늘었다.
 - 2026-09-13 판(0.2.0) 대비 2026-09-15 판에서는 Security 에 1개 파일 116건(SC/TC-S-007~009), Accessibility 에 1개 파일 7건(SC/TC-AC-006)이 늘었다.
 - Security 210개 중 159개는 `html-sanitizer-paths.test.ts` 가 DOMPurify·정규식 두 경로에 같은 케이스를 반복해 만든 수이다 (정규식 경로만 실행하는 SPEC-08~10 3건 포함).
-- Smoke 19개는 모두 추적 파일만으로 실행된다 (`exports-superset.test.ts` 10건 포함). `pure-node-esm.test.ts` 2건은 `dist/` 가 없으면 먼저 빌드한다.
+- Smoke 22개는 모두 추적 파일만으로 실행된다 (`exports-superset.test.ts` 11건 포함). `pure-node-esm.test.ts` 4건은 `dist/` 가 없으면 먼저 빌드한다.
 - Unit 계획 신규 파일 5개는 `AdminManagerBase.dom.test.tsx`(TC-U-018~021 공용), `AdminShell.dom.test.tsx`, `ResizableImage.dom.test.tsx`(TC-U-023~024 공용), `useImageDropZone-paths.dom.test.ts`, `image-resize-canvas.dom.test.ts` 이다.
 - 계획 테스트 수는 구현 전이므로 집계하지 않았다.
 
 ### 테스트 파일 대조표
 
-모든 테스트 파일(40개)이 한 개 이상의 TC "파일" 칸에 등장한다. 누락 파일은 0개이다. 테스트 수는 2026-09-28 JSON 리포터 실행 결과에 2026-09-29 추가 파일(`tests/smoke/pure-node-esm.test.ts`)의 실행 결과를 더한 값이다. 2026-09-28 에 삭제한 `tests/no-consumer-literals.test.ts`(3건, TC-SM-002)는 표에서 뺐다.
+모든 테스트 파일(40개)이 한 개 이상의 TC "파일" 칸에 등장한다. 누락 파일은 0개이다. 테스트 수는 2026-09-28 JSON 리포터 실행 결과에 2026-09-29 추가 파일(`tests/smoke/pure-node-esm.test.ts`)의 실행 결과와 2026-09-30 추가 3건(같은 파일 2건, `tests/exports-superset.test.ts` 1건)을 더한 값이다. 2026-09-28 에 삭제한 `tests/no-consumer-literals.test.ts`(3건, TC-SM-002)는 표에서 뺐다.
 
 | # | 파일 | 환경 | 테스트 수 | TC |
 |---|------|------|---------|-----|
@@ -1981,7 +2026,7 @@ createSanitizer(config)(html)
 | 8 | `tests/cn.test.ts` | node | 6 | TC-U-002 |
 | 9 | `tests/config-boundary.test.ts` | node | 8 | TC-U-008 |
 | 10 | `tests/date.test.ts` | node | 10 | TC-U-001 |
-| 11 | `tests/exports-superset.test.ts` | node | 10 | TC-SM-001 |
+| 11 | `tests/exports-superset.test.ts` | node | 11 | TC-SM-001 (10), TC-SM-007 (1) |
 | 12 | `tests/fresh-checkout.test.ts` | node | 3 | TC-SM-005 |
 | 13 | `tests/html-sanitizer-bypass.test.ts` | node | 11 | TC-S-002 |
 | 14 | `tests/html-sanitizer-paths.test.ts` | node | 159 | TC-S-007 (4), TC-S-008 (82), TC-S-009 (30), TC-S-010 (22), TC-S-011 (21) |
@@ -2003,7 +2048,7 @@ createSanitizer(config)(html)
 | 30 | `tests/rate-limit-identity.test.ts` | node | 12 | TC-S-004 |
 | 31 | `tests/route-params.test.ts` | node | 3 | TC-A-003 |
 | 32 | `tests/shared-validators.test.ts` | node | 12 | TC-U-004 |
-| 33 | `tests/smoke/pure-node-esm.test.ts` | node | 2 | TC-SM-006 |
+| 33 | `tests/smoke/pure-node-esm.test.ts` | node | 4 | TC-SM-006 (2), TC-SM-007 (2) |
 | 34 | `tests/ToggleSwitch.dom.test.tsx` | jsdom | 6 | TC-U-015 |
 | 35 | `tests/useAdminForm.dom.test.ts` | jsdom | 7 | TC-U-012 |
 | 36 | `tests/useAdminList.dom.test.ts` | jsdom | 7 | TC-U-012 |
@@ -2097,11 +2142,13 @@ createSanitizer(config)(html)
 | `CMS-VKE-01` ~ `17`, `CMS-VKE-20` ~ `23`, `CMS-VKE-30` ~ `32` | 24 (정적 7개) | 없음 (변형 URL·키 계산 결함 수정) | 커밋 `d59774c` (2026-09-16) | `tests/variant-key-edge.test.ts` | TC-U-027 |
 | `CMS-AMT-01` ~ `CMS-AMT-12` | 12 | 없음 (접근성 수정, AdminManagerBase 탭 키보드 조작) | 커밋 `c741e11` (2026-09-16) | `tests/admin-manager-tabs.dom.test.tsx` | TC-AC-003 |
 | `CMS-ESM-01`, `CMS-ESM-02` | 2 | 없음 (순수 Node ESM 소비 범위 고정) | `test/pure-node-esm-scope` (2026-09-29) | `tests/smoke/pure-node-esm.test.ts` | TC-SM-006 |
+| `CMS-ESM-03`, `CMS-ESM-04` | 2 | 없음 (`./config` 순수 Node 동작과 설정 저장소 공유) | `feat/config-subpath` (2026-09-30) | `tests/smoke/pure-node-esm.test.ts` | TC-SM-007 |
+| `CMS-EXP-CONFIG` | 1 | 없음 (`./config` 공개 이름 고정) | `feat/config-subpath` (2026-09-30) | `tests/exports-superset.test.ts` | TC-SM-007 |
 
 - "Sprint 1" 은 로컬 하네스 `archive/sprint-1/sprint_contract.md` 에 8개 파일 이름이 모두 등장하고 `archive/sprint-0/sprint_contract.md` 에는 없다는 사실에 근거한다.
 - "기준선 이후, 최초 커밋 이전" 은 로컬 `baseline-test-inventory.txt` 의 파일별 `it_test_count` 와 최초 커밋 `7b0c0dc`(2026-05-24)의 테스트 ID 목록을 비교한 결과이다. "커밋 `c4aeb8e`"·"커밋 `797595f`"·"커밋 `679fb96`"·"커밋 `f0193e1`" 은 각 커밋 전후의 테스트 ID 목록을 비교한 결과이다. 2026-09-16 커밋은 이 문서 작업과 같은 브랜치에서 추가한 번호이다.
 - `CMS-HSP-*` 의 개수 칸은 실행 건수이다. `CMS-HSP-INJ-*` 와 `CMS-HSP-SPEC-08` ~ `10` 을 뺀 나머지는 한 ID 가 DOMPurify·정규식 두 경로에서 각각 1건씩 실행된다. `CMS-HSP-HBP-*` 는 `CMS-HBP-*` 와, `CMS-HSP-CMT-01` ~ `04` 는 `CMS-HSP-CMT <라벨>` 과 이름이 비슷하지만 서로 다른 케이스이다.
-- 집계 확인: A 140개 + B 51개 = 기준선 191개이다. C 의 정적 `it()`/`it.each()` 호출 120개(0.2.0 까지 68개, `CMS-ASC-CUR` 7개, `CMS-HSP` 23개, `CMS-FRESH` 3개, `CMS-VKE` 7개, `CMS-AMT` 12개. CMS-EXP 는 1개로 계산)를 더하면 정적 집계 311개와 같다 (2026-09-16 기준). 2026-09-29 에 `CMS-ESM` 2개를 더해 C 는 122개, 정적 집계는 313개이다 (2026-09-28 에 삭제한 `CMS-NCL` 3개는 빼지 않은 값).
+- 집계 확인: A 140개 + B 51개 = 기준선 191개이다. C 의 정적 `it()`/`it.each()` 호출 120개(0.2.0 까지 68개, `CMS-ASC-CUR` 7개, `CMS-HSP` 23개, `CMS-FRESH` 3개, `CMS-VKE` 7개, `CMS-AMT` 12개. CMS-EXP 는 1개로 계산)를 더하면 정적 집계 311개와 같다 (2026-09-16 기준). 2026-09-29 에 `CMS-ESM` 2개를 더해 C 는 122개, 정적 집계는 313개이다. 2026-09-30 에 `CMS-ESM-03`·`04` 2개와 `CMS-EXP-CONFIG` 1개를 더해 C 는 125개, 정적 집계는 316개이다 (두 값 모두 2026-09-28 에 삭제한 `CMS-NCL` 3개는 빼지 않은 값).
 
 ### 이전 문서
 
@@ -2133,7 +2180,7 @@ createSanitizer(config)(html)
 | Accessibility | 적용, 0건 | 6 | UI 컴포넌트 6개(AdminShell, AdminManagerBase, ToggleSwitch, ImageDropUpload, ResizableImage, JsonLd)를 export 하고 jsdom·testing-library 가 설치되어 있다. 사전 조사 시점에는 접근성 케이스가 0건이었고, 0.2.1 에서 AdminShell 현재 페이지 표시 7건(TC-AC-006), 2026-09-16 에 AdminManagerBase 탭 키보드 접근 12건(TC-AC-003)이 생겼다 |
 | Performance | 부분 | 2 | 가상 스크롤과 대용량 본문 처리 경로가 있지만 합의된 기준값이 없다 |
 | Load/Stress | 낮음 | 2 | 라이브러리 안의 동시성 코드는 토큰 갱신 단일화와 인메모리 limiter 두 곳뿐이다 |
-| Smoke | 부분(dist 일부) | 6 | 계약 가드 2개 파일(소비자 리터럴 가드는 2026-09-28 에 소비 프로젝트 저장소로 이전)과 새로 받은 체크아웃 실행 가드 1개 파일이 있다. vitest alias 가 항상 `src` 로 연결되므로 dist 산출물은 별도 node 프로세스로 순수 Node ESM import 범위만 검사하고(TC-SM-006, 2026-09-29), 파일 존재·`"use client"`·d.ts 비교는 검증하지 않는다 |
+| Smoke | 부분(dist 일부) | 7 | 계약 가드 2개 파일(소비자 리터럴 가드는 2026-09-28 에 소비 프로젝트 저장소로 이전)과 새로 받은 체크아웃 실행 가드 1개 파일이 있다. vitest alias 가 항상 `src` 로 연결되므로 dist 산출물은 별도 node 프로세스로 순수 Node ESM import 범위(TC-SM-006, 2026-09-29)와 `./config`·`./utils` 설정 저장소 공유(TC-SM-007, 2026-09-30)만 검사하고, 파일 존재·`"use client"`·d.ts 비교는 검증하지 않는다 |
 | Chaos | 낮음 | 3 | 외부 의존 실패 격리 코드(`Promise.allSettled`, 변형 업로드 `try/catch`, DOMPurify 대체 경로)가 있어 비용이 낮은 케이스만 계획한다 |
 
 ---
@@ -2199,6 +2246,7 @@ createSanitizer(config)(html)
 - [x] `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보에서 타입 검사·타입 해석·테스트·빌드·dist 스모크를 실측하고 peer 하한을 `>=0.8.0` 으로 조정했다 (2026-09-17)
 - [x] 2026-09-28 소비 프로젝트 언급 제거를 반영했다 (TC-SM-002 이전, TC-U-017 단언 교체, 테스트 데이터 중립화, 39개 파일 469건 실측)
 - [x] 2026-09-29 순수 Node ESM 소비 범위를 실측하고 빌드 테스트로 고정했다 (JS 서브패스 31개 중 22개 성공, TC-SM-006 추가, 회귀 주입 확인, 40개 파일 471건 실측)
+- [x] 2026-09-30 `./config` 서브패스를 추가하고 순수 Node 동작·공개 이름·설정 저장소 공유를 빌드 산출물로 검사했다 (JS 서브패스 32개 중 23개 성공, TC-SM-007 추가, 회귀 주입 2건 확인, 40개 파일 474건 실측)
 - [ ] AdminManagerBase 계획 테스트 구현 (TC-AC-003 완료, TC-U-018~021·TC-P-001 남음)
 - [ ] middleware-wrappers 교체 구현
 - [ ] 접근성 도구 도입 결정과 계획 테스트 구현
