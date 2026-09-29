@@ -66,6 +66,15 @@ npm install @withwiz/toolkit
 | `@withwiz/cms-kit/utils` | `adminFetch`, `r2-storage`, `image-variants`, `jwt`, `date`, `html-sanitizer` |
 | `@withwiz/cms-kit/validators` | `slugSchema`, `optionalUrlSchema` |
 
+### Next.js 앱 전용 진입점과 순수 Node ESM
+
+일부 진입점은 확장자 없는 `next/server`·`next/link`·`next/navigation`·`next/dynamic` 이나 CSS 파일을 import 하므로 Next.js 번들러를 거쳐야 동작한다. `next` 패키지에는 `exports` 맵이 없어, 번들러 없이 `node` 로 직접 import 하면 이 지정자를 해석하지 못한다. 이 import 는 Next.js 가 런타임별 구현으로 연결하도록 그대로 둔다.
+
+- **Next.js 앱 안에서만 동작:** `@withwiz/cms-kit`, `/components`, `/components/AdminShell`, `/components/ToggleSwitch`(CSS), `/infrastructure`, `/infrastructure/middleware`, `/infrastructure/middleware/wrappers`, `/utils`, `/utils/api-helpers`
+- **순수 Node ESM 에서도 import 됨:** 그 밖의 모든 JS 진입점 — `/hooks`, `/services`, `/types`, `/validators`, `/infrastructure/prisma`, `/types/common`, `/validators/shared`, `/components/{AdminManagerBase,AdminManagerConfig,JsonLd,ResizableImage}`, `/hooks/{useImageDropZone,useScrollReveal}`, `/utils/{admin-fetch,date,html-sanitizer,image-variant-utils,image-variants,jwt,r2-helpers,r2-storage,route-params}`
+
+Next.js 밖(스크립트, 워커 등)에서는 `/utils` 배럴 대신 개별 `/utils/*` 경로를 쓴다. 설정 API(`setCmsConfig` 등)는 현재 `/utils` 배럴로만 공개되므로 순수 Node ESM 에서는 불러올 수 없다. 이 경계는 `tests/smoke/pure-node-esm.test.ts` 가 빌드 산출물로 검사한다.
+
 ## 사용법
 
 ### 1. Prisma 클라이언트 주입
