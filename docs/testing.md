@@ -1,27 +1,23 @@
 # Testing
 
-`@withwiz/cms-kit` 는 Vitest 기반 자체 테스트 스위트를 갖습니다. 루트 `vitest.config.ts` 의 projects 에 두 개의 프로젝트로 등록되어 있습니다.
-도메인별 시나리오·케이스 분류와 실측 테스트 수는 [testing/test-classification.md](./testing/test-classification.md) 에서 확인할 수 있습니다.
+`@withwiz/cms-kit` 는 Vitest 기반 자체 테스트 스위트를 갖습니다. 패키지 루트의 `vitest.config.ts` 가 두 프로젝트를 정의하고, 패키지 안에서 단일 명령으로 전체 스위트를 실행합니다. `@withwiz/cms-kit/*` import 는 테스트에서 `src/` 로 해석됩니다.
+
+도메인별 시나리오·케이스, 파일별 테스트 수, 실측 결과는 [testing/test-classification.md](./testing/test-classification.md) 가 현행 기준입니다. 이 문서는 실행 방법과 작성 규칙만 다룹니다.
 
 | Project | 환경 | 포함 경로 | 제외 |
 |---|---|---|---|
-| `cms-kit` | node | `cms-kit/tests/**/*.test.ts` | `*.dom.test.*` |
-| `cms-kit-dom` | jsdom | `cms-kit/tests/**/*.dom.test.{ts,tsx}` | — |
+| `cms-kit` | node | `tests/**/*.test.{ts,tsx}` | `**/*.dom.test.*` |
+| `cms-kit-dom` | jsdom | `tests/**/*.dom.test.{ts,tsx}` | — |
+
+두 프로젝트 모두 `tests/setup.ts` 를 셋업 파일로 쓰고, node 프로젝트는 `@withwiz/toolkit` 을 인라인 의존성으로 변환합니다.
 
 ## 실행
 
-### 로컬 자체 실행 (패키지 내부, 권장)
-
-`@withwiz/cms-kit` 는 자체 포함형(self-contained) 로컬 Vitest 러너를 가집니다.
-패키지 루트(`node-packages/withwiz-cms-kit/`)에 `vitest.config.ts` 가 있으며,
-루트 모노레포 config 없이 패키지 안에서 단일 명령으로 전체 스위트를
-실행할 수 있습니다. `@withwiz/cms-kit/*` import 별칭은 `src/` 로 해석됩니다.
-
 ```bash
-# 전체 스위트(두 프로젝트 cms-kit + cms-kit-dom) 한 번에 실행 — 문서화된 단일 명령
+# 전체 스위트(cms-kit + cms-kit-dom)
 npm test
 
-# (선택) watch 모드
+# watch 모드
 npm run test:watch
 
 # 개별 프로젝트 (진단용)
@@ -29,68 +25,34 @@ npx vitest run --project cms-kit
 npx vitest run --project cms-kit-dom
 ```
 
-`npm test` 는 `vitest run` 으로, 로컬 `vitest.config.ts` 의
-`test.projects` 에 정의된 `cms-kit`(node) 와 `cms-kit-dom`(jsdom) 두 프로젝트를
-모두 실행합니다. 아래 표의 프로젝트 이름·환경·포함/제외 경로 규칙은
-그대로 유지됩니다.
-
-### 모노레포 루트 실행 (참고)
-
-```bash
-# 패키지 테스트만 실행
-npx vitest --project cms-kit --project cms-kit-dom
-
-# 개별 프로젝트
-npx vitest --project cms-kit-dom
-```
-
-루트 `npm run test` 는 전체 project 를 실행합니다.
+`tests/smoke/pure-node-esm.test.ts` 는 빌드 산출물(`dist/`)을 검사하므로 `dist/index.mjs` 가 없으면 테스트가 먼저 `npm run build` 를 실행합니다.
 
 ## 디렉터리
 
 ```
-cms-kit/tests/
-├── setup.ts                       # 공통 셋업 (Prisma mock, env 초기화)
-├── spec.md                        # 테스트 범위 명세
-├── integration/
-│   ├── middleware-wrappers.test.ts
-│   ├── prisma-service-flow.test.ts
-│   └── r2-pipeline.test.ts
-├── admin-fetch.dom.test.ts
-├── ImageDropUpload.dom.test.tsx
-├── JsonLd.dom.test.tsx
-├── ToggleSwitch.dom.test.tsx
-├── useAdminForm.dom.test.ts
-├── useAdminList.dom.test.ts
-├── useImageDropZone.dom.test.ts
-├── useScrollReveal.dom.test.ts
-├── api-helpers.test.ts
-├── api-response.test.ts
-├── base-service.test.ts
-├── cn.test.ts
-├── date.test.ts
-├── html-sanitizer.test.ts
-├── image-resize.dom.test.ts
-├── image-variants.test.ts
-├── image-variant-utils.test.ts
-├── jwt.test.ts
-├── pagination.test.ts
-├── prisma-di.test.ts
-├── r2-helpers.test.ts
-├── r2-storage.test.ts
-├── route-params.test.ts
-└── shared-validators.test.ts
+tests/
+├── setup.ts          # 공통 셋업
+├── spec.md           # 초기 구현 작업 계획서 (과거 기록, 현행 목록은 test-classification.md)
+├── integration/      # 여러 모듈을 조합하는 테스트
+├── smoke/            # 빌드 산출물 검사 (순수 Node ESM 소비 범위 등)
+├── *.dom.test.ts(x)  # jsdom 이 필요한 훅·컴포넌트 테스트
+└── *.test.ts         # node 환경 테스트
 ```
+
+파일 목록과 파일별 테스트 수는 test-classification.md 의 파일 대조표를 봅니다.
 
 ## 작성 규칙
 
-- **DOM이 필요한 훅/컴포넌트 테스트**는 파일명에 `.dom.test` 를 포함해야 `cms-kit-dom` project 에 편입됩니다.
-- **Prisma 테스트**는 `prisma-di.test.ts` 처럼 `setPrismaClient` 로 mock 을 주입하는 패턴을 따르세요. 실제 DB 접근은 루트 `tests/03-integration/` 에서 수행합니다.
-- **R2 네트워크 호출**은 `@aws-sdk/client-s3` 를 vi.mock 으로 대체합니다. 실제 업로드 검증은 루트 통합 스위트에서만.
-- **토큰/시그니처**는 `jose` 를 실제 호출 (inline dep) — mock 하지 말 것.
+- **DOM 이 필요한 훅·컴포넌트 테스트**는 파일명에 `.dom.test` 를 포함해야 `cms-kit-dom` 프로젝트에 편입됩니다.
+- **Prisma 테스트**는 `prisma-di.test.ts` 처럼 `setPrismaClient` 로 mock 을 주입합니다. 이 패키지의 테스트는 실제 DB 에 접속하지 않습니다.
+- **R2 네트워크 호출**은 `@aws-sdk/client-s3` 를 `vi.mock` 으로 대체합니다. 실제 업로드는 이 패키지의 테스트 범위 밖입니다.
+- **토큰·서명**은 `jose` 를 실제로 호출합니다. mock 하지 않습니다.
+- **소비 프로젝트 문구**(이 패키지를 쓰는 앱의 이름·브랜드·도메인 용어)는 테스트 데이터에도 쓰지 않습니다. 업종과 무관한 중립 값을 씁니다.
 
 ## 공통 셋업 (`tests/setup.ts`)
 
-- `process.env.RATE_LIMIT_ENABLED = 'false'` — rate limiter 비활성화
-- 환경변수가 요구되는 테스트는 `vi.stubEnv` 사용 권장
-- `setPrismaClient` 는 각 테스트 파일에서 필요 시 호출 (setup 에서 주입하면 mock 고착 위험)
+- `process.env.NODE_ENV = 'test'`
+- `RATE_LIMIT_ENABLED` 가 지정되지 않았으면 `'false'` 로 둡니다(rate limiter 비활성). 이미 지정된 값은 그대로 존중합니다.
+- `next/cache` 의 `revalidatePath`·`revalidateTag` 를 `vi.fn()` 으로 대체합니다.
+- 그 밖의 환경변수가 필요한 테스트는 `vi.stubEnv` 를 씁니다.
+- `setPrismaClient` 는 각 테스트 파일에서 필요할 때 호출합니다. 셋업에서 주입하면 mock 이 고착될 위험이 있습니다.
