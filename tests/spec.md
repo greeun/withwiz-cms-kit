@@ -1,4 +1,4 @@
-> 현행 분류 문서는 [docs/testing/test-classification.md](../docs/testing/test-classification.md) 이다.
+> **과거 기록:** 초기 구현(Sprint 1~3) 작업 계획서다. 경로는 작성 당시 저장소 구조 기준이고 현재 테스트 파일의 일부만 다룬다. 테스트 코드의 옛 ID(`CMS-D-01` 계열) 출처로만 남겨 두며, 현행 목록·분류는 [docs/testing/test-classification.md](../docs/testing/test-classification.md) 를 본다.
 # @withwiz/cms-kit 풀테스트 스펙
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
