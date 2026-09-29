@@ -43,6 +43,11 @@
     },
     "./components/image-drop-zone.css": "./dist/components/image-drop-zone.css",
     "./components/toggle-switch.css": "./dist/components/toggle-switch.css",
+    "./config": {
+      "types": "./dist/config/index.d.ts",
+      "import": "./dist/config/index.mjs",
+      "require": "./dist/config/index.js"
+    },
     "./hooks": {
       "types": "./dist/hooks/index.d.ts",
       "import": "./dist/hooks/index.mjs",

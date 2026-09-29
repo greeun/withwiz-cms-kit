@@ -32,6 +32,7 @@ export default defineConfig({
   entry: {
     'index': 'src/index.ts',
     'components/index': 'src/components/index.ts',
+    'config/index': 'src/config/public.ts',
     'hooks/index': 'src/hooks/index.ts',
     'infrastructure/index': 'src/infrastructure/index.ts',
     'infrastructure/middleware/index': 'src/infrastructure/middleware/index.ts',
