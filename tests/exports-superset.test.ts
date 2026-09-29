@@ -44,6 +44,33 @@ const SUBPATH_TO_SRC: Record<string, string> = {
   './validators': 'src/validators/index.ts',
 };
 
+/**
+ * `./config` 서브패스 (2026-09-30 추가). 기준선 fixture 캡처 이후에 생긴 진입점이라
+ * 위 9개 배럴 목록에는 없고, 아래 CMS-EXP-CONFIG 가 공개 이름을 고정한다.
+ * 이름은 `./utils` 배럴이 다시 내보내는 설정 API 와 같다 (내부 `resolve*` 는 공개하지 않는다).
+ */
+const CONFIG_SRC = 'src/config/public.ts';
+const CONFIG_PUBLIC_NAMES = [
+  'setCmsConfig',
+  'resetCmsConfig',
+  'getCmsConfig',
+  'JWT_SECRET_MIN_LENGTH',
+  'createForwardedIdentityExtractor',
+  'hasIdentityExtractor',
+  'SHARED_ANON_IDENTITY',
+  'ForwardedIdentityOptions',
+  'CmsConfig',
+  'CmsNavItem',
+  'CmsBrandConfig',
+  'CmsRouteConfig',
+  'CmsJwtConfig',
+  'CmsSanitizerConfig',
+  'CmsStorageConfig',
+  'CmsR2CredentialsConfig',
+  'CmsRateLimitConfig',
+  'CmsIdentityExtractor',
+];
+
 function exportedNames(srcRel: string): Set<string> {
   const file = resolve(PKG_ROOT, srcRel);
   const program = ts.createProgram([file], {
@@ -108,5 +135,13 @@ describe('exports superset vs baseline (CMS-EXP)', () => {
     expect(infra.has('withPublicApi')).toBe(true);
     expect(root.has('parseSortParam')).toBe(true);
     expect(root.has('parseSortKey')).toBe(true);
+  });
+
+  it('CMS-EXP-CONFIG: ./config 는 ./utils 배럴의 설정 API 와 같은 이름을 공개한다', () => {
+    const config = exportedNames(CONFIG_SRC);
+    const utils = exportedNames(SUBPATH_TO_SRC['./utils']);
+
+    expect([...config].sort()).toEqual([...CONFIG_PUBLIC_NAMES].sort());
+    expect(CONFIG_PUBLIC_NAMES.filter((n) => !utils.has(n))).toEqual([]);
   });
 });
