@@ -1,27 +1,22 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import Link from "next/link";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import dynamic from "next/dynamic";
 
 const Toaster = dynamic(
   () => import("sonner").then((m) => m.Toaster),
   { ssr: false }
 );
-import { adminFetch } from "../utils/admin-fetch";
 import {
   resolveBrandConfig,
   resolveRouteConfig,
   type CmsNavItem,
 } from "../config";
-
-interface AdminUser {
-  id: string;
-  email: string;
-  name: string | null;
-  role: string;
-}
+import { useAdminAuthGate } from "./admin-shell/useAdminAuthGate";
+import { useSidebarLayout } from "./admin-shell/useSidebarLayout";
+import { AdminSidebarBrand } from "./admin-shell/AdminSidebarBrand";
+import { AdminSidebarNav } from "./admin-shell/AdminSidebarNav";
+import { AdminLogoutButton } from "./admin-shell/AdminLogoutButton";
 
 /**
  * AdminShell props (spec.md §4.1 / Sprint 1 C1/C2).
@@ -48,6 +43,13 @@ export interface AdminShellProps {
   logoutEndpoint?: string;
 }
 
+/**
+ * 관리자 레이아웃. 책임은 하위 단위로 나뉜다 (spec.md §4.7):
+ *  - 인증 확인: `useAdminAuthGate`
+ *  - 사이드바 접기·모바일 열림·너비 조절: `useSidebarLayout`
+ *  - 로고: `AdminSidebarBrand`, 내비게이션: `AdminSidebarNav`, 로그아웃: `AdminLogoutButton`
+ * 이 컴포넌트는 설정을 해석하고(props > §5 config > 기본값) 단위들을 배치한다.
+ */
 export default function AdminShell({
   children,
   brandLabel,
@@ -59,9 +61,6 @@ export default function AdminShell({
   logoutEndpoint,
 }: AdminShellProps) {
   const pathname = usePathname();
-  const router = useRouter();
-  const routerRef = useRef(router);
-  routerRef.current = router;
 
   // props > §5 config boundary > safe default. The single
   // @withwiz/cms-kit-namespaced warn-once fires ONLY when neither props NOR §5
@@ -79,102 +78,22 @@ export default function AdminShell({
   const resolvedMeEndpoint = meEndpoint ?? routeCfg.meEndpoint;
   const resolvedLogoutEndpoint = logoutEndpoint ?? routeCfg.logoutEndpoint;
 
-  const [checking, setChecking] = useState(true);
-  const [user, setUser] = useState<AdminUser | null>(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(() => {
-    if (typeof window !== "undefined") {
-      return localStorage.getItem("admin_sidebar_collapsed") === "true";
-    }
-    return false;
-  });
-
-  const DEFAULT_WIDTH = 200;
-  const MIN_WIDTH = 200;
-  const MAX_WIDTH = 400;
-
-  const [sidebarWidth, setSidebarWidth] = useState(() => {
-    if (typeof window !== "undefined") {
-      const saved = localStorage.getItem("admin_sidebar_width");
-      return saved ? Number(saved) : DEFAULT_WIDTH;
-    }
-    return DEFAULT_WIDTH;
-  });
-  const isResizing = useRef(false);
-  const widthRef = useRef(sidebarWidth);
-  const [dragging, setDragging] = useState(false);
-
   const isLoginPage = pathname === resolvedLoginPath;
 
-  // 현재 페이지 nav 링크: 경로가 href 와 같거나 `href/` 로 시작하는 항목 중
-  // 가장 긴 href 하나. 경로 경계를 지켜 /admin/newsletter 는 /admin/news 가 아니다.
-  const currentNavHref = pathname
-    ? resolvedNav.reduce<string | null>((best, item) => {
-        const matches =
-          pathname === item.href || pathname.startsWith(`${item.href}/`);
-        return matches && (best === null || item.href.length > best.length)
-          ? item.href
-          : best;
-      }, null)
-    : null;
-
-  useEffect(() => {
-    if (isLoginPage) {
-      setChecking(false);
-      return;
-    }
-
-    let cancelled = false;
-
-    async function checkAuth() {
-      try {
-        const res = await adminFetch(resolvedMeEndpoint);
-        if (cancelled) return;
-
-        if (!res.ok) {
-          routerRef.current.replace(resolvedLoginPath);
-          return;
-        }
-
-        const data = await res.json();
-        if (data.success && data.data?.user) {
-          const u = data.data.user as AdminUser;
-          setUser((prev) =>
-            prev?.email === u.email && prev?.id === u.id ? prev : u
-          );
-        }
-      } catch {
-        if (!cancelled) {
-          routerRef.current.replace(resolvedLoginPath);
-          return;
-        }
-      }
-
-      setChecking(false);
-    }
-
-    checkAuth();
-    return () => { cancelled = true; };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isLoginPage]);
-
-  const handleMouseMove = useCallback((e: MouseEvent) => {
-    if (!isResizing.current) return;
-    const newWidth = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, e.clientX));
-    widthRef.current = newWidth;
-    setSidebarWidth(newWidth);
-  }, []);
-
-  const handleMouseUp = useCallback(() => {
-    if (!isResizing.current) return;
-    isResizing.current = false;
-    setDragging(false);
-    document.body.style.cursor = "";
-    document.body.style.userSelect = "";
-    localStorage.setItem("admin_sidebar_width", String(widthRef.current));
-    document.removeEventListener("mousemove", handleMouseMove);
-    document.removeEventListener("mouseup", handleMouseUp);
-  }, [handleMouseMove]);
+  const { checking, user } = useAdminAuthGate({
+    isLoginPage,
+    meEndpoint: resolvedMeEndpoint,
+    loginPath: resolvedLoginPath,
+  });
+  const {
+    collapsed,
+    toggleCollapsed,
+    mobileOpen,
+    setMobileOpen,
+    sidebarWidth,
+    dragging,
+    startResize,
+  } = useSidebarLayout();
 
   if (isLoginPage) {
     return <>{children}</>;
@@ -182,29 +101,6 @@ export default function AdminShell({
 
   if (checking) {
     return <div className="admin-auth-loading">인증 확인 중...</div>;
-  }
-
-  async function handleLogout() {
-    await fetch(resolvedLogoutEndpoint, { method: "POST", credentials: "same-origin" });
-    router.replace(resolvedLoginPath);
-  }
-
-  function toggleSidebar() {
-    setCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem("admin_sidebar_collapsed", String(next));
-      return next;
-    });
-  }
-
-  function startResize(e: React.MouseEvent) {
-    e.preventDefault();
-    isResizing.current = true;
-    setDragging(true);
-    document.body.style.cursor = "col-resize";
-    document.body.style.userSelect = "none";
-    document.addEventListener("mousemove", handleMouseMove);
-    document.addEventListener("mouseup", handleMouseUp);
   }
 
   return (
@@ -225,12 +121,11 @@ export default function AdminShell({
       >
         <div className="admin-sidebar-header">
           {!collapsed && (
-            <div className="admin-sidebar-logo">
-              {resolvedBrandLabel && (
-                <a href={resolvedBrandHref} className="admin-logo-home" title="사이트 보기" target="_blank" rel="noopener noreferrer">{resolvedBrandLabel}</a>
-              )}
-              <Link href={resolvedAdminHref} className="admin-logo-admin">Admin</Link>
-            </div>
+            <AdminSidebarBrand
+              brandLabel={resolvedBrandLabel}
+              brandHref={resolvedBrandHref}
+              adminHref={resolvedAdminHref}
+            />
           )}
           <button
             className="admin-sidebar-toggle"
@@ -238,7 +133,7 @@ export default function AdminShell({
               if (mobileOpen) {
                 setMobileOpen(false);
               } else {
-                toggleSidebar();
+                toggleCollapsed();
               }
             }}
             title={collapsed ? "메뉴 펼치기" : "메뉴 접기"}
@@ -249,27 +144,18 @@ export default function AdminShell({
         {!collapsed && user && (
           <div className="admin-sidebar-user">{user.email}</div>
         )}
-        <nav className="admin-sidebar-nav">
-          {resolvedNav.map((item) => {
-            const isCurrent = item.href === currentNavHref;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`admin-sidebar-link${isCurrent ? " active" : ""}`}
-                aria-current={isCurrent ? "page" : undefined}
-                title={item.label}
-                onClick={() => setMobileOpen(false)}
-              >
-                {collapsed ? item.glyph : item.label}
-              </Link>
-            );
-          })}
-        </nav>
+        <AdminSidebarNav
+          items={resolvedNav}
+          pathname={pathname}
+          collapsed={collapsed}
+          onNavigate={() => setMobileOpen(false)}
+        />
         <div className="admin-sidebar-footer">
-          <button className="admin-sidebar-logout" onClick={handleLogout} title="로그아웃">
-            {collapsed ? "✕" : "로그아웃"}
-          </button>
+          <AdminLogoutButton
+            logoutEndpoint={resolvedLogoutEndpoint}
+            loginPath={resolvedLoginPath}
+            collapsed={collapsed}
+          />
         </div>
         {!collapsed && (
           <div

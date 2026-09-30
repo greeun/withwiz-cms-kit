@@ -78,6 +78,16 @@
       "import": "./dist/utils/index.mjs",
       "require": "./dist/utils/index.js"
     },
+    "./utils/client": {
+      "types": "./dist/utils/client.d.ts",
+      "import": "./dist/utils/client.mjs",
+      "require": "./dist/utils/client.js"
+    },
+    "./utils/server": {
+      "types": "./dist/utils/server.d.ts",
+      "import": "./dist/utils/server.mjs",
+      "require": "./dist/utils/server.js"
+    },
     "./validators": {
       "types": "./dist/validators/index.d.ts",
       "import": "./dist/validators/index.mjs",
@@ -204,19 +214,17 @@
     "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },
-  "dependencies": {
-    "@tiptap/core": "^3.31.3",
-    "@tiptap/react": "^3.31.3"
-  },
   "peerDependencies": {
     "@aws-sdk/client-s3": ">=3",
     "@tanstack/react-virtual": ">=3",
-    "@withwiz/toolkit": ">=0.8.0",
+    "@tiptap/core": ">=3",
+    "@tiptap/react": ">=3",
+    "@withwiz/toolkit": ">=0.15.0",
     "clsx": ">=2",
     "isomorphic-dompurify": ">=2",
-    "next": ">=15",
-    "react": ">=18",
-    "sharp": ">=0.33",
+    "next": ">=16",
+    "react": ">=19",
+    "sharp": ">=0.35",
     "sonner": ">=2",
     "tailwind-merge": ">=3",
     "zod": ">=4"
@@ -226,6 +234,12 @@
       "optional": true
     },
     "@tanstack/react-virtual": {
+      "optional": true
+    },
+    "@tiptap/core": {
+      "optional": true
+    },
+    "@tiptap/react": {
       "optional": true
     },
     "isomorphic-dompurify": {
@@ -242,6 +256,8 @@
     "@aws-sdk/client-s3": "^3.1045.0",
     "@tanstack/react-virtual": "^3.13.24",
     "@testing-library/react": "^16.3.2",
+    "@tiptap/core": "^3.31.3",
+    "@tiptap/react": "^3.31.3",
     "@types/node": "^25.6.2",
     "@types/react": "^19.2.14",
     "@vitejs/plugin-react": "^6.0.1",

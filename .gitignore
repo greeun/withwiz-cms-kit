@@ -37,3 +37,6 @@ CLAUDE.md
 
 # Synology links restored by mac-setup (lists/project-links.txt)
 /tests-harness
+
+# git worktree (작업 격리용, 저장소 안에 생성)
+.worktrees/

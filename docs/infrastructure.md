@@ -5,10 +5,10 @@
 패키지는 특정 Prisma 스키마에 묶이지 않도록 **런타임 DI** 를 사용합니다.
 
 ```ts
-// infrastructure/prisma.ts
-setPrismaClient(client: PrismaClient): void;
-getPrisma(): PrismaClient;
-prisma: Proxy;  // 지연 평가 — getPrisma() 를 경유
+// @withwiz/cms-kit/infrastructure (또는 /infrastructure/prisma)
+setPrismaClient<T extends object>(client: T): void;
+getPrisma<T = CmsPrismaClient>(): T;
+prisma: CmsPrismaClient;  // 지연 평가 — getPrisma() 를 경유
 ```
 
 ### 부트스트랩
@@ -32,9 +32,29 @@ setPrismaClient(prisma);
 Error: @withwiz/cms-kit: Prisma client not initialized. Call setPrismaClient() first.
 ```
 
+### 타입 지정
+
+패키지는 스키마를 모르므로 기본 타입은 검사 없는 클라이언트(`UntypedPrismaClient`)
+입니다. 모듈 보강으로 클라이언트 타입을 등록하면 `prisma`·`getPrisma()` 가 그 타입이
+됩니다.
+
+```ts
+// src/types/cms-kit.d.ts
+import type { PrismaClient } from '@prisma/client';
+
+declare module '@withwiz/cms-kit/infrastructure/prisma' {
+  interface CmsPrismaRegistry {
+    client: PrismaClient;
+  }
+}
+```
+
+호출 지점에서만 타입을 지정하려면 `getPrisma<MyClient>()` 를 씁니다. 공개 타입
+계약은 `tests/smoke/public-types.test.ts` 가 빌드된 `.d.ts` 로 검사합니다.
+
 ## 미들웨어 래퍼
 
-`@withwiz/toolkit` 의 미들웨어 체인을 Next.js 15 타입과 호환되도록 re-export 합니다.
+`@withwiz/toolkit` 의 미들웨어 체인을 감싸 `TApiHandler` 를 받고 Next.js Route Handler 를 돌려줍니다. 핸들러가 첫 요청을 처리할 때 rate-limit 어댑터를 설치합니다 (아래 Rate Limit 절).
 
 ```ts
 import {
@@ -70,7 +90,16 @@ export const GET = withAdminApi(async (req, ctx) => {
 
 ## Rate Limit
 
-모듈 로드 시점에 **In-memory** 어댑터가 자동 초기화됩니다. `instrumentation.ts` 의 `register()` 가 다른 번들 스코프에서 실행되어 초기화 누락되는 문제를 방지하기 위한 설계입니다.
+어댑터는 **래퍼가 만든 핸들러가 첫 요청을 처리할 때** 설치됩니다 (`ensureRateLimitAdapter`).
+모듈을 import 하는 것만으로는 아무것도 설치하지 않습니다. 설치한 어댑터는
+`@withwiz/toolkit` 이 전역에 보관하므로 번들 범위가 달라도 공유됩니다.
+
+- `setCmsConfig` 로 rate-limit 설정을 바꾸면 다음 요청에서 새 설정으로 다시 설치합니다.
+- 소비자가 toolkit 의 `setRateLimitAdapter` 로 직접 설치한 어댑터가 있으면 덮어쓰지
+  않고 `@withwiz/cms-kit:` 경고를 1회 남깁니다. 직접 관리한다면
+  `rateLimit.manageAdapter: false` 로 설치와 경고를 모두 끕니다.
+
+기본 in-memory limiter 의 한도:
 
 | 버킷 | 한도 | 윈도우 |
 |---|---|---|
@@ -78,8 +107,29 @@ export const GET = withAdminApi(async (req, ctx) => {
 | `auth` | 10회 | 60초 |
 | `admin` | 200회 | 60초 |
 
+한도는 종류별로 바꿀 수 있고, 공유 저장소 기반 limiter 를 종류별로 주입할 수 있습니다.
+
+```ts
+import { setCmsConfig, createForwardedIdentityExtractor } from '@withwiz/cms-kit/config';
+
+setCmsConfig({
+  rateLimit: {
+    identityExtractor: createForwardedIdentityExtractor({ trustedHops: 1 }),
+    limits: { auth: { limit: 5, windowMs: 60_000 } },
+    // check(identifier) → { success, remaining, resetIn }, config: { limit }
+    rateLimiters: { api: redisLimiter(120), auth: redisLimiter(5), admin: redisLimiter(200) },
+  },
+});
+```
+
+> **주의: in-memory limiter 는 프로세스마다 따로 셉니다.** 서버리스나 다중 인스턴스
+> 배포에서는 실제 한도가 `인스턴스 수 × 한도` 가 되어 보호가 약해집니다. 이런 환경에서는
+> `rateLimit.rateLimiters` 로 Redis 등 공유 저장소 기반 limiter 를 주입하세요.
+> 제한이 켜진 상태에서 주입하지 않은 종류가 있으면, 어댑터를 설치할 때 이 한계를
+> `@withwiz/cms-kit:` 경고로 1회 알립니다.
+
 환경변수:
-- `RATE_LIMIT_ENABLED=false` — 비활성화 (테스트 환경에서 사용)
+- `RATE_LIMIT_ENABLED=false` — 비활성화 (주입값 `rateLimit.enabled` 가 우선)
 
 클라이언트 식별자(identity) 추출은 §5 config boundary 의 `resolveClientIdentity` 를 통해 결정됩니다.
 
@@ -103,5 +153,3 @@ setCmsConfig({
 `trustedHops` 는 요청이 거치는 신뢰 프록시 수입니다. `x-forwarded-for` 는 각 프록시가 값을 뒤에 덧붙이므로, 뒤에서 N 번째 값이 첫 신뢰 프록시가 본 클라이언트 주소입니다. 헤더가 없으면 `fallbackHeaders`(기본 `['x-real-ip']`)를 확인합니다.
 
 In-memory 리미터는 식별자별 항목이 일정 수를 넘으면 만료된 항목을 정리하므로, 실제 IP 기반 식별자를 써도 메모리가 무한히 늘지 않습니다.
-
-> **주의:** In-memory 구현은 단일 프로세스 전용입니다. 멀티 인스턴스 배포 시 Redis 등 공유 백엔드 어댑터로 교체가 필요합니다.

@@ -20,11 +20,11 @@ A CMS framework package for building web admin panels with Next.js and React.
 ## Tech Stack
 
 - TypeScript (strict) — `target: ES2022`, `module: ESNext`
-- React 19 / Next.js 16 (peer dependencies, `>=18` / `>=15` supported)
-- Tiptap 3 (rich text editing)
+- React 19 / Next.js 16 (peer dependencies, `>=19` / `>=16`)
+- Tiptap 3 (rich text editing, optional peer — only `ResizableImage` needs it)
 - Zod 4 (validation)
 - tsup (build) + Vitest (test)
-- Optional peers: `@aws-sdk/client-s3`, `sharp`, `isomorphic-dompurify`, `sonner`, `@tanstack/react-virtual`
+- Optional peers: `@aws-sdk/client-s3`, `sharp`, `isomorphic-dompurify`, `sonner`, `@tanstack/react-virtual`, `@tiptap/core`, `@tiptap/react`
 
 ## Installation
 
@@ -36,10 +36,16 @@ pnpm add @withwiz/cms-kit
 yarn add @withwiz/cms-kit
 ```
 
-`@withwiz/toolkit` is a peer dependency (`>=0.8.0`; the type declarations in 0.7.1 import packages that do not exist, so the JWT and middleware types cms-kit uses are not type-checked). Depending on your package manager and resolution strategy, you may need to install it explicitly:
+`@withwiz/toolkit` is a peer dependency (`>=0.15.0`, the version cms-kit is tested against). Depending on your package manager and resolution strategy, you may need to install it explicitly:
 
 ```bash
 npm install @withwiz/toolkit
+```
+
+Tiptap is an optional peer. Install it only if you use `ResizableImage` — or the `@withwiz/cms-kit` / `@withwiz/cms-kit/components` barrels, which re-export it. Every other entry point works without it.
+
+```bash
+npm install @tiptap/core @tiptap/react
 ```
 
 For monorepo development the `file:` protocol is also supported:
@@ -64,15 +70,17 @@ For monorepo development the `file:` protocol is also supported:
 | `@withwiz/cms-kit/infrastructure/middleware` | `withPublicApi` / `withAuthApi` / `withAdminApi` |
 | `@withwiz/cms-kit/services` | `base-service`, pagination |
 | `@withwiz/cms-kit/types` | `PaginatedResult`, `SortOrder` |
-| `@withwiz/cms-kit/utils` | `adminFetch`, `r2-storage`, `image-variants`, `jwt`, `date`, `html-sanitizer` |
+| `@withwiz/cms-kit/utils` | `adminFetch`, `r2-storage`, `image-variants`, `jwt`, `date`, `html-sanitizer` (server + client, kept for compatibility) |
+| `@withwiz/cms-kit/utils/client` | Browser and shared utils — never loads `@aws-sdk/client-s3`, `sharp`, `next/server`, prisma, or toolkit auth |
+| `@withwiz/cms-kit/utils/server` | Server and shared utils plus the configuration API — never loads browser-only modules |
 | `@withwiz/cms-kit/validators` | `slugSchema`, `optionalUrlSchema` |
 
 ### Next.js-only entry points and pure Node ESM
 
 Some entry points import `next/server`, `next/link`, `next/navigation`, `next/dynamic` without a file extension, or import CSS files, so they only work through the Next.js bundler. The `next` package has no `exports` map, so importing them directly with `node` (no bundler) fails to resolve these specifiers. The imports are kept as-is so that Next.js can map them to its runtime-specific implementations.
 
-- **Next.js app only:** `@withwiz/cms-kit`, `/components`, `/components/AdminShell`, `/components/ToggleSwitch` (CSS), `/infrastructure`, `/infrastructure/middleware`, `/infrastructure/middleware/wrappers`, `/utils`, `/utils/api-helpers`
-- **Also importable from pure Node ESM:** every other JS entry point — `/config`, `/hooks`, `/services`, `/types`, `/validators`, `/infrastructure/prisma`, `/types/common`, `/validators/shared`, `/components/{AdminManagerBase,AdminManagerConfig,JsonLd,ResizableImage}`, `/hooks/{useImageDropZone,useScrollReveal}`, `/utils/{admin-fetch,date,html-sanitizer,image-variant-utils,image-variants,jwt,r2-helpers,r2-storage,route-params}`
+- **Next.js app only:** `@withwiz/cms-kit`, `/components`, `/components/AdminShell`, `/components/ToggleSwitch` (CSS), `/infrastructure`, `/infrastructure/middleware`, `/infrastructure/middleware/wrappers`, `/utils`, `/utils/server`, `/utils/api-helpers`
+- **Also importable from pure Node ESM:** every other JS entry point — `/config`, `/hooks`, `/services`, `/types`, `/validators`, `/infrastructure/prisma`, `/types/common`, `/validators/shared`, `/components/{AdminManagerBase,AdminManagerConfig,JsonLd,ResizableImage}`, `/hooks/{useImageDropZone,useScrollReveal}`, `/utils/client`, `/utils/{admin-fetch,date,html-sanitizer,image-variant-utils,image-variants,jwt,r2-helpers,r2-storage,route-params}`
 
 Outside Next.js (scripts, workers, …) use the individual `/utils/*` paths instead of the `/utils` barrel, and import the configuration API (`setCmsConfig`, …) from `/config`. `/config` exposes the same names as the configuration API re-exported by the `/utils` barrel and uses the same configuration store, so a value set through either entry point is visible through the other. The `/utils` barrel keeps its configuration API exports for compatibility. `tests/smoke/pure-node-esm.test.ts` checks this boundary against the build output.
 

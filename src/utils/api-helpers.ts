@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { ZodSchema } from 'zod';
+import { pickAllowed } from './sort';
 
 export function validateIds(ids: unknown): { valid: true; ids: string[] } | { valid: false; response: NextResponse } {
   if (!Array.isArray(ids) || ids.length === 0) {
@@ -42,6 +43,5 @@ export function parseSortKey<T extends string>(
   validKeys: readonly T[],
   defaultKey: T,
 ): T {
-  const param = searchParams.get('sortBy');
-  return (validKeys as readonly string[]).includes(param ?? '') ? (param as T) : defaultKey;
+  return pickAllowed(searchParams.get('sortBy'), validKeys, defaultKey);
 }

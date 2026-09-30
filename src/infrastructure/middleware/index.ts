@@ -1,2 +1,8 @@
-export { withPublicApi, withAdminApi, withAuthApi, withCustomApi } from './wrappers';
-export type { IApiContext, IUser, TApiHandler } from './wrappers';
+export {
+  withPublicApi,
+  withAdminApi,
+  withAuthApi,
+  withCustomApi,
+  ensureRateLimitAdapter,
+} from './wrappers';
+export type { IApiContext, IUser, TApiHandler, NextRouteHandler } from './wrappers';
