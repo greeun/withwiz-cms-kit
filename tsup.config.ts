@@ -39,6 +39,8 @@ export default defineConfig({
     'services/index': 'src/services/index.ts',
     'types/index': 'src/types/index.ts',
     'utils/index': 'src/utils/index.ts',
+    'utils/client': 'src/utils/client.ts',
+    'utils/server': 'src/utils/server.ts',
     'validators/index': 'src/validators/index.ts',
     'components/AdminManagerBase': 'src/components/AdminManagerBase.tsx',
     'components/AdminManagerConfig': 'src/components/AdminManagerConfig.ts',

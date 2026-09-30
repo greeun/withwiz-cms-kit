@@ -78,6 +78,16 @@
       "import": "./dist/utils/index.mjs",
       "require": "./dist/utils/index.js"
     },
+    "./utils/client": {
+      "types": "./dist/utils/client.d.ts",
+      "import": "./dist/utils/client.mjs",
+      "require": "./dist/utils/client.js"
+    },
+    "./utils/server": {
+      "types": "./dist/utils/server.d.ts",
+      "import": "./dist/utils/server.mjs",
+      "require": "./dist/utils/server.js"
+    },
     "./validators": {
       "types": "./dist/validators/index.d.ts",
       "import": "./dist/validators/index.mjs",
