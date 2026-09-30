@@ -1,5 +1,20 @@
 # Utils
 
+## 진입점
+
+| 진입점 | 내용 | 용도 |
+|---|---|---|
+| `@withwiz/cms-kit/utils/client` | 브라우저 유틸(`adminFetch`, `resizeImageIfNeeded` 등) + 공용 유틸 | 클라이언트 컴포넌트 |
+| `@withwiz/cms-kit/utils/server` | 서버 유틸(`uploadToR2`, `getJWTManager`, `NextApiResponse` 등) + 공용 유틸 + 설정 API | Route Handler, 서버 컴포넌트, 서비스 |
+| `@withwiz/cms-kit/utils` | 위 둘의 합 (이전 버전 호환) | 기존 코드 |
+| `@withwiz/cms-kit/utils/<모듈>` | 개별 모듈 | |
+
+공용 유틸은 `cn`, `date`, `html-sanitizer`, `getVariantUrl`, `IMAGE_VARIANT_SIZES` 입니다.
+`./utils/client` 는 `@aws-sdk/client-s3`·`sharp`·`next/server`·prisma·toolkit 인증 모듈을
+import 경로에 두지 않고, `./utils/server` 는 `window`·`document` 를 쓰는 모듈을 두지
+않습니다. 넓은 `./utils` 배럴을 클라이언트 컴포넌트에서 import 하면 서버 전용 모듈이
+번들에 들어가므로 `./utils/client` 를 쓰세요.
+
 ## `adminFetch(url, options?)`
 
 401 응답 시 `/api/admin/auth/refresh` 로 자동 쿠키 갱신 후 **1회 재시도** 하는 fetch 래퍼. 갱신 실패 시 `/admin/login` 으로 리다이렉트합니다.
@@ -49,7 +64,7 @@ NextApiResponse.error(message, status?);              // { success: false, error
 
 validateIds(body, ['id']);                            // 필수 id 검증
 validateAndParse(body, schema);                       // Zod 검증
-parseSortKey(raw, allowed, defaultKey);               // sort key 파서
+parseSortKey(searchParams, allowed, defaultKey);      // sort key 파서 (허용 목록에 없으면 기본값)
 
 getRouteParam(context, 'id');                         // /[id] 파라미터 추출 (Promise params 대응)
 ```
@@ -62,7 +77,7 @@ jwt.sign(payload, ttl);
 jwt.verify(token);
 ```
 
-토큰 시크릿은 환경변수에서 로드. 자세한 구현은 `@withwiz/toolkit` 의 jwt 모듈에 위임합니다.
+시크릿·만료·알고리즘은 설정 경계에서 해석합니다 (`setCmsConfig({ jwt })` > `JWT_SECRET`·`JWT_EXPIRES_IN`·`JWT_REFRESH_TOKEN_EXPIRES_IN`). 시크릿이 없거나 32자 미만이면 처음 사용할 때 `@withwiz/cms-kit:` 에러를 던집니다. 자세한 구현은 `@withwiz/toolkit` 의 jwt 모듈에 위임합니다.
 
 ## 이미지 관련 유틸
 
@@ -105,22 +120,62 @@ getVariantUrl(originalUrl, size);  // 원본 URL → variant URL 계산
 ### `r2-storage.ts`
 
 ```ts
-isR2Enabled(): boolean;
+isR2Enabled(): boolean;   // 백엔드 주입 또는 R2 자격 증명 완비
 uploadToR2(key, buffer, contentType): Promise<{ url, key, size }>;
 uploadImageWithVariants(key, buffer, contentType): Promise<{
-  url, key, size, variants: ImageVariantUrls, variantKeys: string[]
+  url, key, size,
+  variants: ImageVariantUrls, variantKeys: string[],
+  variantStatus: 'complete' | 'partial' | 'failed' | 'skipped',
+  failedVariants: VariantSize[],
 }>;
 deleteFromR2(key): Promise<void>;
 ```
 
-환경변수:
-- `R2_ACCOUNT_ID`
-- `R2_ACCESS_KEY_ID`
-- `R2_SECRET_ACCESS_KEY`
-- `R2_BUCKET_NAME`
-- `R2_PUBLIC_URL` — 커스텀 공개 도메인 (없으면 `{bucket}.r2.dev` 사용)
+자격 증명은 `setCmsConfig({ storage: { r2 } })` 또는 legacy 환경변수로 지정합니다.
 
-`uploadImageWithVariants` 는 원본 업로드 후 variant 생성/업로드를 병렬 처리합니다. 일부 variant 가 실패해도 원본 업로드 결과는 반환하며, 실패 내역은 `logError` 로 기록합니다.
+| 주입 키 | 환경변수 | 설명 |
+|---|---|---|
+| `storage.r2.accountId` | `R2_ACCOUNT_ID` | Cloudflare endpoint `<accountId>.r2.cloudflarestorage.com` 구성 |
+| `storage.r2.endpoint` | — | S3 호환 endpoint. 지정하면 `accountId` 가 필요 없다 |
+| `storage.r2.accessKeyId` | `R2_ACCESS_KEY_ID` | |
+| `storage.r2.secretAccessKey` | `R2_SECRET_ACCESS_KEY` | |
+| `storage.r2.bucketName` | `R2_BUCKET_NAME` | |
+| `storage.publicBaseUrl` | `R2_PUBLIC_URL` | 공개 URL prefix. 없으면 `<endpoint>/<bucket>`(endpoint 주입 시) 또는 `https://<bucket>.r2.dev` |
+
+`@aws-sdk/client-s3` 는 기본 R2/S3 경로로 실제 업로드·삭제할 때 불러옵니다. 설치되어
+있지 않으면 그 시점에 `@withwiz/cms-kit:` 에러를 던집니다.
+
+#### 저장소 백엔드 주입
+
+R2/S3 대신 다른 저장소를 쓰려면 백엔드를 주입합니다. 주입하면 `@aws-sdk/client-s3` 를
+로드하지 않습니다. 키는 백엔드에 넘기기 전에 검증합니다(경로 탈출·절대 경로 거부).
+
+```ts
+import { setCmsConfig, type CmsStorageBackend } from '@withwiz/cms-kit/config';
+
+const backend: CmsStorageBackend = {
+  put: (key, body, contentType) => myStore.put(key, body, { contentType }),
+  delete: (key) => myStore.remove(key),
+  publicUrl: (key) => `https://media.example.com/${key}`, // 생략하면 storage.publicBaseUrl 사용
+};
+setCmsConfig({ storage: { backend } });
+```
+
+`publicUrl` 도 `storage.publicBaseUrl` 도 없으면 업로드 전에 에러를 던집니다.
+
+#### 변형 업로드 결과
+
+`uploadImageWithVariants` 는 원본을 올린 뒤 변형을 병렬로 만들고 올립니다. 원본 업로드가
+실패하면 예외를 던지고, 변형 처리 결과는 `variantStatus` 로 알립니다.
+
+| `variantStatus` | 의미 |
+|---|---|
+| `complete` | 만든 변형을 모두 올렸다 |
+| `partial` | 일부 변형 업로드가 실패했다 (`failedVariants` 에 크기 목록) |
+| `failed` | 변형 생성이 실패했거나 하나도 올리지 못했다 |
+| `skipped` | 만들 변형이 없다 (GIF 등) |
+
+실패 내역은 `logError` 로도 기록합니다.
 
 ### `r2-helpers.ts`
 
