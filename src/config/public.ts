@@ -28,6 +28,7 @@ export type {
   CmsJwtConfig,
   CmsSanitizerConfig,
   CmsStorageConfig,
+  CmsStorageBackend,
   CmsR2CredentialsConfig,
   CmsRateLimitConfig,
   CmsRateLimiter,

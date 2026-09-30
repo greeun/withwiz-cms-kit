@@ -3,6 +3,7 @@ import sharp from 'sharp';
 export { IMAGE_VARIANT_SIZES } from './image-variant-utils';
 export type { VariantSize } from './image-variant-utils';
 import { IMAGE_VARIANT_SIZES, type VariantSize } from './image-variant-utils';
+import { buildVariantKey } from './variant-path';
 
 export interface ImageVariant {
   size: VariantSize;
@@ -33,7 +34,7 @@ export async function generateImageVariants(
       .webp({ quality: 80 });
 
     const variantBuffer = await resized.toBuffer();
-    const variantKey = `${baseKey}-${size}.webp`;
+    const variantKey = buildVariantKey(baseKey, size);
 
     variants.push({
       size,

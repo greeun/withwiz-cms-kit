@@ -1,4 +1,5 @@
 export { prisma, setPrismaClient, getPrisma } from './prisma';
+export type { CmsPrismaRegistry, CmsPrismaClient, UntypedPrismaClient } from './prisma';
 export {
   withPublicApi,
   withAdminApi,

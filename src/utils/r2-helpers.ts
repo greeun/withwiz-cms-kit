@@ -1,6 +1,6 @@
 import { deleteFromR2 } from './r2-storage';
 import { IMAGE_VARIANT_SIZES, type VariantSize } from './image-variant-utils';
-import { stripPathExtension } from './variant-path';
+import { buildVariantKey, stripPathExtension } from './variant-path';
 import { logError } from '@withwiz/toolkit/core/logger/logger';
 import {
   resolveR2CredentialsConfig,
@@ -149,7 +149,7 @@ export function extractR2KeysFromHtml(...htmlContents: (string | null)[]): strin
  */
 export function getVariantKeys(key: string): string[] {
   const baseKey = stripPathExtension(key);
-  return VARIANT_SUFFIXES.map((suffix) => `${baseKey}-${suffix}.webp`);
+  return VARIANT_SUFFIXES.map((suffix) => buildVariantKey(baseKey, suffix));
 }
 
 export function collectR2Keys(primaryKey: string | null, ...htmlContents: (string | null)[]): string[] {

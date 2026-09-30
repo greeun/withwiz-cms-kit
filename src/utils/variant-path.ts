@@ -21,3 +21,12 @@ export function stripPathExtension(path: string): string {
   const start = extensionStart(path);
   return start === -1 ? path : path.slice(0, start);
 }
+
+/**
+ * 변형 이미지 키(또는 URL 경로)의 형식 `<base>-<size>.webp`. 변형을 만드는 쪽
+ * (`generateImageVariants`)과 지우는 쪽(`getVariantKeys`), 보여주는 쪽
+ * (`getVariantUrl`)이 모두 이 함수로 키를 만들어 형식이 갈라지지 않게 한다.
+ */
+export function buildVariantKey(baseKey: string, size: string): string {
+  return `${baseKey}-${size}.webp`;
+}
