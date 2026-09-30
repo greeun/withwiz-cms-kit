@@ -128,16 +128,29 @@ describe('rate-limit adapter lifecycle (CMS-RLA)', () => {
     expect(currentAdapter()!.rateLimiters.api.config.limit).toBe(7);
   });
 
-  it('CMS-RLA-09: 모듈이 다시 로드되어도(HMR) 이전 cms-kit 어댑터는 외부 어댑터로 보지 않는다', async () => {
+  it('CMS-RLA-09: 모듈이 여러 번들 범위에 로드되어도 어댑터를 번갈아 다시 만들지 않는다', async () => {
     const first = await import('@withwiz/cms-kit/infrastructure');
     first.ensureRateLimitAdapter();
-    const before = currentAdapter();
+    const installed = currentAdapter();
 
     vi.resetModules();
     const second = await import('@withwiz/cms-kit/infrastructure');
+    expect(second).not.toBe(first);
     second.ensureRateLimitAdapter();
-    expect(currentAdapter()).not.toBe(before);
+    first.ensureRateLimitAdapter();
+    second.ensureRateLimitAdapter();
+    // 같은 설정이면 처음 설치한 어댑터(와 카운터)를 모든 범위가 공유한다.
+    expect(currentAdapter()).toBe(installed);
     expect(warnSpy.mock.calls.some((c) => String(c[0]).includes('already installed'))).toBe(false);
+
+    // 설정이 바뀌면 어느 범위에서든 한 번만 다시 설치한다.
+    const { setCmsConfig } = await import('@withwiz/cms-kit/config');
+    setCmsConfig({ rateLimit: { limits: { api: { limit: 7, windowMs: 1_000 } } } });
+    first.ensureRateLimitAdapter();
+    const reinstalled = currentAdapter();
+    expect(reinstalled).not.toBe(installed);
+    second.ensureRateLimitAdapter();
+    expect(currentAdapter()).toBe(reinstalled);
   });
 
   it('CMS-RLA-10: 제한이 켜져 있으면 in-memory 기본값의 다중 인스턴스 한계를 1회 경고한다', async () => {

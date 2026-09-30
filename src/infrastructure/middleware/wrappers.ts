@@ -56,24 +56,23 @@ function createInMemoryLimiter(limit: number, windowMs: number): CmsRateLimiter 
 const TOOLKIT_ADAPTER_KEY = '__withwiz_rateLimitAdapter__';
 
 /**
- * cms-kit 이 설치한 어댑터 표지. 모듈 인스턴스가 바뀌어도(Next.js dev 의 HMR,
- * 테스트의 모듈 초기화) 전역에 남은 어댑터가 cms-kit 것인지 알아볼 수 있도록
- * 모듈 변수 대신 전역 심볼을 쓴다.
+ * cms-kit 이 설치한 어댑터 표지. 값은 어댑터를 만들 때의 설정 버전이다.
+ *
+ * 설치 여부를 모듈 변수로 기억하면, 같은 모듈이 여러 번들 범위(라우트별 번들,
+ * Next.js dev 의 HMR)에 따로 로드될 때 범위마다 "아직 설치하지 않았다"고 보고
+ * 어댑터를 번갈아 다시 만든다. 그러면 in-memory 카운터가 계속 초기화되어 제한이
+ * 동작하지 않는다. 그래서 전역에 있는 어댑터 자체에 버전을 기록하고 그것만 본다.
  */
 const CMS_ADAPTER_BRAND = Symbol.for('@withwiz/cms-kit/rate-limit-adapter');
 
 type RateLimitAdapter = Parameters<typeof setRateLimitAdapter>[0];
 
-function isCmsKitAdapter(value: unknown): boolean {
-  return (
-    typeof value === 'object' &&
-    value !== null &&
-    (value as Record<symbol, unknown>)[CMS_ADAPTER_BRAND] === true
-  );
+/** cms-kit 이 설치한 어댑터면 그 설정 버전, 아니면 null. */
+function cmsKitAdapterVersion(value: unknown): number | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const v = (value as Record<symbol, unknown>)[CMS_ADAPTER_BRAND];
+  return typeof v === 'number' ? v : null;
 }
-
-let _installedAdapter: RateLimitAdapter | null = null;
-let _installedVersion = -1;
 
 /**
  * rate-limit 어댑터를 필요할 때 설치한다 (spec.md §4.3 / §4.5).
@@ -94,7 +93,8 @@ export function ensureRateLimitAdapter(): void {
   if (!cfg.manageAdapter) return;
 
   const current = (globalThis as Record<string, unknown>)[TOOLKIT_ADAPTER_KEY] ?? null;
-  if (current !== null && !isCmsKitAdapter(current)) {
+  const installedVersion = cmsKitAdapterVersion(current);
+  if (current !== null && installedVersion === null) {
     warnOnceMissingConfig(
       'rateLimit.foreignAdapter',
       'a rate-limit adapter was already installed through @withwiz/toolkit ' +
@@ -105,9 +105,7 @@ export function ensureRateLimitAdapter(): void {
   }
 
   const version = getCmsConfigVersion();
-  if (_installedAdapter !== null && current === _installedAdapter && _installedVersion === version) {
-    return;
-  }
+  if (installedVersion === version) return;
 
   const injected = cfg.rateLimiters ?? {};
   const rateLimiters: Record<string, CmsRateLimiter> = { ...injected };
@@ -137,10 +135,8 @@ export function ensureRateLimitAdapter(): void {
     extractClientIp: (headers: Headers) => resolveClientIdentity(headers),
     isEnabled: async () => resolveRateLimitEnabled(),
   };
-  Object.defineProperty(adapter, CMS_ADAPTER_BRAND, { value: true });
+  Object.defineProperty(adapter, CMS_ADAPTER_BRAND, { value: version });
   setRateLimitAdapter(adapter);
-  _installedAdapter = adapter;
-  _installedVersion = version;
 }
 
 /** Next.js App Router route handler */
