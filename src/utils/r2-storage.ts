@@ -1,11 +1,33 @@
-import { S3Client, PutObjectCommand, DeleteObjectCommand } from '@aws-sdk/client-s3';
-import { logError, logInfo } from '@withwiz/toolkit/core/logger/logger';
+import type { S3Client } from '@aws-sdk/client-s3';
+import { logError } from '@withwiz/toolkit/core/logger/logger';
 import {
   namespacedError,
   resolveR2CredentialsConfig,
   resolveR2PublicUrl,
+  resolveStorageBackend,
+  type CmsStorageBackend,
 } from '../config';
+import type { VariantSize } from './image-variant-utils';
 import { stripPathExtension } from './variant-path';
+
+type S3Module = typeof import('@aws-sdk/client-s3');
+
+/**
+ * `@aws-sdk/client-s3` 는 기본 R2/S3 백엔드를 실제로 쓸 때만 불러온다.
+ * 저장소 백엔드를 주입한 소비자는 이 의존성을 설치하지 않아도 된다 (spec.md §4.5).
+ */
+let s3ModulePromise: Promise<S3Module> | null = null;
+function loadS3(): Promise<S3Module> {
+  s3ModulePromise ??= import('@aws-sdk/client-s3').catch((err: unknown) => {
+    s3ModulePromise = null;
+    throw namespacedError(
+      '`@aws-sdk/client-s3` could not be loaded. Install it to use the default ' +
+        'R2/S3 storage, or inject `setCmsConfig({ storage: { backend } })`. ' +
+        `(${err instanceof Error ? err.message : String(err)})`,
+    );
+  });
+  return s3ModulePromise;
+}
 
 /**
  * storage object key 를 검증/정규화한다 (spec.md §4.6 / Sprint 1 S5).
@@ -98,11 +120,12 @@ function requireR2Credentials(): ResolvedR2Credentials {
   };
 }
 
-function getClient(): S3Client {
+async function getClient(): Promise<{ s3: S3Client; mod: S3Module }> {
   const c = requireR2Credentials();
+  const mod = await loadS3();
   const snapshot = `${c.endpoint}|${c.accessKeyId}`;
   if (!client || clientSnapshot !== snapshot) {
-    client = new S3Client({
+    client = new mod.S3Client({
       region: 'auto',
       endpoint: c.endpoint,
       credentials: {
@@ -112,10 +135,12 @@ function getClient(): S3Client {
     });
     clientSnapshot = snapshot;
   }
-  return client;
+  return { s3: client, mod };
 }
 
+/** 업로드·삭제가 가능한 상태인지 (백엔드 주입 또는 R2 자격 증명 완비). */
 export function isR2Enabled(): boolean {
+  if (resolveStorageBackend()) return true;
   const c = resolveR2CredentialsConfig();
   return !!(
     (c.accountId || c.endpoint) &&
@@ -139,17 +164,36 @@ function buildPublicUrl(key: string, creds: ResolvedR2Credentials): string {
   return `https://${creds.bucketName}.r2.dev/${key}`;
 }
 
+/** 주입된 백엔드로 만든 공개 URL. publicUrl 도 publicBaseUrl 도 없으면 실패한다. */
+function backendPublicUrl(backend: CmsStorageBackend, key: string): string {
+  if (typeof backend.publicUrl === 'function') return backend.publicUrl(key);
+  const base = resolveR2PublicUrl();
+  if (base) return `${base}/${key}`;
+  throw namespacedError(
+    'the injected storage backend has no publicUrl(key) and storage.publicBaseUrl ' +
+      'is not configured, so the uploaded object has no public URL. Provide one of them.',
+  );
+}
+
 export async function uploadToR2(
   key: string,
   buffer: Buffer,
   contentType: string,
 ): Promise<{ url: string; key: string; size: number }> {
   const safeKey = sanitizeStorageKey(key);
-  const s3 = getClient();
+
+  const backend = resolveStorageBackend();
+  if (backend) {
+    const url = backendPublicUrl(backend, safeKey);
+    await backend.put(safeKey, buffer, contentType);
+    return { url, key: safeKey, size: buffer.length };
+  }
+
+  const { s3, mod } = await getClient();
   const creds = requireR2Credentials();
 
   await s3.send(
-    new PutObjectCommand({
+    new mod.PutObjectCommand({
       Bucket: creds.bucketName,
       Key: safeKey,
       Body: buffer,
@@ -167,6 +211,16 @@ export interface ImageVariantUrls {
   thumb?: string;
 }
 
+/**
+ * 변형 이미지 처리 결과.
+ *  - `complete`: 만든 변형을 모두 올렸다.
+ *  - `partial`: 일부 변형 업로드가 실패했다 (`failedVariants` 에 크기 목록).
+ *  - `failed`: 변형 생성이 실패했거나, 만든 변형을 하나도 올리지 못했다.
+ *  - `skipped`: 만들 변형이 없다 (GIF 등). 실패가 아니다.
+ * 원본 업로드가 실패하면 결과를 돌려주지 않고 예외를 던진다.
+ */
+export type VariantUploadStatus = 'complete' | 'partial' | 'failed' | 'skipped';
+
 export async function uploadImageWithVariants(
   originalKey: string,
   originalBuffer: Buffer,
@@ -177,6 +231,10 @@ export async function uploadImageWithVariants(
   size: number;
   variants: ImageVariantUrls;
   variantKeys: string[];
+  /** 변형 처리 결과. `complete`/`skipped` 가 아니면 일부 변형이 없다. */
+  variantStatus: VariantUploadStatus;
+  /** 업로드에 실패한 변형 크기 */
+  failedVariants: VariantSize[];
 }> {
   const { generateImageVariants } = await import('./image-variants');
 
@@ -187,18 +245,20 @@ export async function uploadImageWithVariants(
 
   const variants: ImageVariantUrls = {};
   const variantKeys: string[] = [];
+  const failedVariants: VariantSize[] = [];
+  let variantStatus: VariantUploadStatus;
 
   try {
     const imageVariants = await generateImageVariants(originalBuffer, baseKey, originalContentType);
-    const creds = requireR2Credentials();
 
     await Promise.all(
       imageVariants.map(async (v) => {
         try {
-          await uploadToR2(v.key, v.buffer, v.contentType);
-          variants[v.size] = buildPublicUrl(v.key, creds);
-          variantKeys.push(v.key);
+          const uploaded = await uploadToR2(v.key, v.buffer, v.contentType);
+          variants[v.size] = uploaded.url;
+          variantKeys.push(uploaded.key);
         } catch (err) {
+          failedVariants.push(v.size);
           logError(`[image-variant] Failed to upload variant ${v.key}`, {
             error: err instanceof Error ? err.message : err,
             originalKey,
@@ -208,10 +268,18 @@ export async function uploadImageWithVariants(
       }),
     );
 
-    if (variantKeys.length === 0) {
-      logError(`[image-variant] No variants generated for ${originalKey}`);
+    if (imageVariants.length === 0) {
+      variantStatus = 'skipped';
+    } else if (failedVariants.length === 0) {
+      variantStatus = 'complete';
+    } else if (variantKeys.length > 0) {
+      variantStatus = 'partial';
+    } else {
+      variantStatus = 'failed';
+      logError(`[image-variant] No variants uploaded for ${originalKey}`);
     }
   } catch (err) {
+    variantStatus = 'failed';
     logError(`[image-variant] Failed to generate variants for ${originalKey}`, {
       error: err instanceof Error ? err.message : err,
     });
@@ -223,15 +291,24 @@ export async function uploadImageWithVariants(
     size: original.size,
     variants,
     variantKeys,
+    variantStatus,
+    failedVariants,
   };
 }
 
 export async function deleteFromR2(key: string): Promise<void> {
   const safeKey = sanitizeStorageKey(key);
-  const s3 = getClient();
+
+  const backend = resolveStorageBackend();
+  if (backend) {
+    await backend.delete(safeKey);
+    return;
+  }
+
+  const { s3, mod } = await getClient();
   const { bucketName: bucket } = requireR2Credentials();
   await s3.send(
-    new DeleteObjectCommand({
+    new mod.DeleteObjectCommand({
       Bucket: bucket,
       Key: safeKey,
     }),

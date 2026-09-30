@@ -66,8 +66,12 @@ const CONFIG_PUBLIC_NAMES = [
   'CmsJwtConfig',
   'CmsSanitizerConfig',
   'CmsStorageConfig',
+  'CmsStorageBackend',
   'CmsR2CredentialsConfig',
   'CmsRateLimitConfig',
+  'CmsRateLimiter',
+  'CmsRateLimitWindow',
+  'CmsRateLimitType',
   'CmsIdentityExtractor',
 ];
 

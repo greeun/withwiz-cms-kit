@@ -101,6 +101,24 @@ export interface CmsR2CredentialsConfig {
   endpoint?: string;
 }
 
+/**
+ * 저장소 백엔드 계약 (spec.md §4.5). 주입하면 `uploadToR2`/`deleteFromR2`/
+ * `uploadImageWithVariants` 가 R2/S3 클라이언트 대신 이 백엔드를 쓰며,
+ * `@aws-sdk/client-s3` 를 로드하지 않는다. 키는 백엔드에 넘기기 전에
+ * `sanitizeStorageKey` 로 검증된다.
+ */
+export interface CmsStorageBackend {
+  /** 객체를 저장한다 */
+  put(key: string, body: Buffer, contentType: string): Promise<void>;
+  /** 객체를 지운다 */
+  delete(key: string): Promise<void>;
+  /**
+   * 객체의 공개 URL. 생략하면 `storage.publicBaseUrl`(또는 `R2_PUBLIC_URL`)
+   * 뒤에 키를 붙인다.
+   */
+  publicUrl?(key: string): string;
+}
+
 /** R2/storage 설정 */
 export interface CmsStorageConfig {
   /**
@@ -120,6 +138,8 @@ export interface CmsStorageConfig {
   publicBaseUrl?: string;
   /** R2 자격 증명 (계정/키/버킷). 미주입 시 legacy R2_* 환경변수 fallback. */
   r2?: CmsR2CredentialsConfig;
+  /** 저장소 백엔드. 주입하면 기본 R2/S3 구현 대신 사용한다. */
+  backend?: CmsStorageBackend;
 }
 
 /** rate-limit client-identity / IP 추출 전략 */
@@ -408,6 +428,12 @@ export function resolveStorageConfig(): {
     publicBaseUrl:
       typeof st.publicBaseUrl === 'string' ? st.publicBaseUrl : null,
   };
+}
+
+/** 주입된 저장소 백엔드. 없으면 null (기본 R2/S3 구현 사용). */
+export function resolveStorageBackend(): CmsStorageBackend | null {
+  const b = _config.storage?.backend;
+  return b && typeof b.put === 'function' && typeof b.delete === 'function' ? b : null;
 }
 
 /**

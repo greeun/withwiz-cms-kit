@@ -19,7 +19,7 @@ export { NextApiResponse } from './api-response';
 export { validateIds, validateAndParse, parseSortKey } from './api-helpers';
 export { getRouteParam } from './route-params';
 export { uploadToR2, deleteFromR2, isR2Enabled, uploadImageWithVariants } from './r2-storage';
-export type { ImageVariantUrls } from './r2-storage';
+export type { ImageVariantUrls, VariantUploadStatus } from './r2-storage';
 export { generateImageVariants } from './image-variants';
 export type { ImageVariant } from './image-variants';
 export { extractR2KeysFromHtml, collectR2Keys, deleteR2Keys } from './r2-helpers';
@@ -42,6 +42,7 @@ export type {
   CmsJwtConfig,
   CmsSanitizerConfig,
   CmsStorageConfig,
+  CmsStorageBackend,
   CmsR2CredentialsConfig,
   CmsRateLimitConfig,
   CmsRateLimiter,
