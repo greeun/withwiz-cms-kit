@@ -1,36 +1,50 @@
 import { vi, beforeEach } from 'vitest';
 
-describe('createInMemoryLimiter 동작 테스트', () => {
-  // wrappers.ts의 createInMemoryLimiter 로직을 직접 테스트
-  // (모듈 내부 함수이므로 동일 로직 재현)
-  function createInMemoryLimiter(limit: number, windowMs: number) {
-    const store = new Map<string, { count: number; resetAt: number }>();
-    return {
-      check: async (identifier: string) => {
-        const now = Date.now();
-        const entry = store.get(identifier);
-        if (!entry || now > entry.resetAt) {
-          store.set(identifier, { count: 1, resetAt: now + windowMs });
-          return { success: true, remaining: limit - 1, resetIn: windowMs };
-        }
-        entry.count++;
-        const remaining = Math.max(0, limit - entry.count);
-        const resetIn = entry.resetAt - now;
-        return { success: entry.count <= limit, remaining, resetIn };
-      },
-      config: { limit },
-    };
+const ADAPTER_KEY = '__withwiz_rateLimitAdapter__';
+
+type Limiter = {
+  check: (id: string) => Promise<{ success: boolean; remaining: number; resetIn: number }>;
+  config: { limit: number };
+};
+
+/**
+ * 실제 wrappers 모듈이 설치하는 in-memory limiter 를 꺼낸다 (spec.md §0.2:
+ * 로직을 테스트 안에서 재구현하지 않고 모듈의 주입 경계를 거친다).
+ */
+async function builtinLimiter(limit: number, windowMs: number): Promise<Limiter> {
+  vi.resetModules();
+  delete (globalThis as Record<string, unknown>)[ADAPTER_KEY];
+  const { setCmsConfig, resetCmsConfig } = await import('@withwiz/cms-kit/config');
+  resetCmsConfig();
+  setCmsConfig({ rateLimit: { limits: { api: { limit, windowMs } } } });
+  const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+  try {
+    const { ensureRateLimitAdapter } = await import(
+      '@withwiz/cms-kit/infrastructure/middleware/wrappers'
+    );
+    ensureRateLimitAdapter();
+  } finally {
+    warn.mockRestore();
   }
+  const adapter = (globalThis as Record<string, unknown>)[ADAPTER_KEY] as {
+    rateLimiters: Record<string, Limiter>;
+  };
+  return adapter.rateLimiters.api;
+}
+
+describe('createInMemoryLimiter 동작 테스트', () => {
+  // wrappers.ts 가 설치하는 실제 in-memory limiter 를 설정 경계로 만들어 검증한다.
+  const createInMemoryLimiter = builtinLimiter;
 
   it('CMS-MW-01: 제한 내 요청 허용', async () => {
-    const limiter = createInMemoryLimiter(3, 60_000);
+    const limiter = await createInMemoryLimiter(3, 60_000);
     const r1 = await limiter.check('user-1');
     expect(r1.success).toBe(true);
     expect(r1.remaining).toBe(2);
   });
 
   it('CMS-MW-02: 제한 초과 요청 차단', async () => {
-    const limiter = createInMemoryLimiter(2, 60_000);
+    const limiter = await createInMemoryLimiter(2, 60_000);
     await limiter.check('user-1'); // 1
     await limiter.check('user-1'); // 2
     const r3 = await limiter.check('user-1'); // 3 (초과)
@@ -39,7 +53,7 @@ describe('createInMemoryLimiter 동작 테스트', () => {
   });
 
   it('CMS-MW-03: 윈도우 만료 후 리셋', async () => {
-    const limiter = createInMemoryLimiter(1, 100); // 100ms 윈도우
+    const limiter = await createInMemoryLimiter(1, 100); // 100ms 윈도우
     await limiter.check('user-1'); // 1
     const r2 = await limiter.check('user-1'); // 2 (초과)
     expect(r2.success).toBe(false);
@@ -52,7 +66,7 @@ describe('createInMemoryLimiter 동작 테스트', () => {
   });
 
   it('CMS-MW-04: 서로 다른 식별자는 독립 카운팅', async () => {
-    const limiter = createInMemoryLimiter(1, 60_000);
+    const limiter = await createInMemoryLimiter(1, 60_000);
     const r1 = await limiter.check('user-1');
     const r2 = await limiter.check('user-2');
     expect(r1.success).toBe(true);
@@ -64,8 +78,8 @@ describe('createInMemoryLimiter 동작 테스트', () => {
     expect(r4.success).toBe(false);
   });
 
-  it('CMS-MW-05: config.limit 값 확인', () => {
-    const limiter = createInMemoryLimiter(120, 60_000);
+  it('CMS-MW-05: config.limit 값 확인', async () => {
+    const limiter = await createInMemoryLimiter(120, 60_000);
     expect(limiter.config.limit).toBe(120);
   });
 });

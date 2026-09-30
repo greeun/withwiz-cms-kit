@@ -36,5 +36,8 @@ export type {
   CmsStorageConfig,
   CmsR2CredentialsConfig,
   CmsRateLimitConfig,
+  CmsRateLimiter,
+  CmsRateLimitWindow,
+  CmsRateLimitType,
   CmsIdentityExtractor,
 } from '../config';

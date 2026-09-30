@@ -63,15 +63,21 @@ let client: S3Client | null = null;
 // 다음 호출에서 새 클라이언트가 만들어진다.
 let clientSnapshot: string | null = null;
 
-function requireR2Credentials(): {
-  accountId: string;
+interface ResolvedR2Credentials {
   accessKeyId: string;
   secretAccessKey: string;
   bucketName: string;
-} {
+  /** 주입한 endpoint, 없으면 accountId 로 만든 Cloudflare R2 endpoint */
+  endpoint: string;
+  /** endpoint 를 직접 주입했는지 (공개 URL fallback 결정에 쓴다) */
+  customEndpoint: boolean;
+}
+
+function requireR2Credentials(): ResolvedR2Credentials {
   const c = resolveR2CredentialsConfig();
   const missing: string[] = [];
-  if (!c.accountId) missing.push('accountId');
+  // endpoint 를 주입하면 Cloudflare endpoint 를 만들 필요가 없어 accountId 도 필요 없다.
+  if (!c.accountId && !c.endpoint) missing.push('accountId (or endpoint)');
   if (!c.accessKeyId) missing.push('accessKeyId');
   if (!c.secretAccessKey) missing.push('secretAccessKey');
   if (!c.bucketName) missing.push('bucketName');
@@ -83,21 +89,22 @@ function requireR2Credentials(): {
         'environment variables. There is no safe default for storage credentials.',
     );
   }
-  return c as {
-    accountId: string;
-    accessKeyId: string;
-    secretAccessKey: string;
-    bucketName: string;
+  return {
+    accessKeyId: c.accessKeyId as string,
+    secretAccessKey: c.secretAccessKey as string,
+    bucketName: c.bucketName as string,
+    endpoint: c.endpoint ?? `https://${c.accountId}.r2.cloudflarestorage.com`,
+    customEndpoint: c.endpoint !== null,
   };
 }
 
 function getClient(): S3Client {
   const c = requireR2Credentials();
-  const snapshot = `${c.accountId}|${c.accessKeyId}`;
+  const snapshot = `${c.endpoint}|${c.accessKeyId}`;
   if (!client || clientSnapshot !== snapshot) {
     client = new S3Client({
       region: 'auto',
-      endpoint: `https://${c.accountId}.r2.cloudflarestorage.com`,
+      endpoint: c.endpoint,
       credentials: {
         accessKeyId: c.accessKeyId,
         secretAccessKey: c.secretAccessKey,
@@ -110,12 +117,26 @@ function getClient(): S3Client {
 
 export function isR2Enabled(): boolean {
   const c = resolveR2CredentialsConfig();
-  return !!(c.accountId && c.accessKeyId && c.secretAccessKey && c.bucketName);
+  return !!(
+    (c.accountId || c.endpoint) &&
+    c.accessKeyId &&
+    c.secretAccessKey &&
+    c.bucketName
+  );
 }
 
-function buildPublicUrl(key: string, bucket: string): string {
+/**
+ * 업로드한 객체의 공개 URL.
+ * 우선순위: `storage.publicBaseUrl` / `R2_PUBLIC_URL` > (endpoint 주입 시)
+ * S3 path-style `<endpoint>/<bucket>/<key>` > Cloudflare 기본 `<bucket>.r2.dev`.
+ */
+function buildPublicUrl(key: string, creds: ResolvedR2Credentials): string {
   const base = resolveR2PublicUrl();
-  return base ? `${base}/${key}` : `https://${bucket}.r2.dev/${key}`;
+  if (base) return `${base}/${key}`;
+  if (creds.customEndpoint) {
+    return `${creds.endpoint.replace(/\/+$/, '')}/${creds.bucketName}/${key}`;
+  }
+  return `https://${creds.bucketName}.r2.dev/${key}`;
 }
 
 export async function uploadToR2(
@@ -125,18 +146,18 @@ export async function uploadToR2(
 ): Promise<{ url: string; key: string; size: number }> {
   const safeKey = sanitizeStorageKey(key);
   const s3 = getClient();
-  const { bucketName: bucket } = requireR2Credentials();
+  const creds = requireR2Credentials();
 
   await s3.send(
     new PutObjectCommand({
-      Bucket: bucket,
+      Bucket: creds.bucketName,
       Key: safeKey,
       Body: buffer,
       ContentType: contentType,
     }),
   );
 
-  return { url: buildPublicUrl(safeKey, bucket), key: safeKey, size: buffer.length };
+  return { url: buildPublicUrl(safeKey, creds), key: safeKey, size: buffer.length };
 }
 
 export interface ImageVariantUrls {
@@ -169,13 +190,13 @@ export async function uploadImageWithVariants(
 
   try {
     const imageVariants = await generateImageVariants(originalBuffer, baseKey, originalContentType);
-    const { bucketName: bucket } = requireR2Credentials();
+    const creds = requireR2Credentials();
 
     await Promise.all(
       imageVariants.map(async (v) => {
         try {
           await uploadToR2(v.key, v.buffer, v.contentType);
-          variants[v.size] = buildPublicUrl(v.key, bucket);
+          variants[v.size] = buildPublicUrl(v.key, creds);
           variantKeys.push(v.key);
         } catch (err) {
           logError(`[image-variant] Failed to upload variant ${v.key}`, {
