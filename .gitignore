@@ -34,3 +34,6 @@ CLAUDE.md
 # ast (agent session tracker) 로컬 산출물
 .ast/
 .ast*
+
+# git worktree (작업 격리용, 저장소 안에 생성)
+.worktrees/

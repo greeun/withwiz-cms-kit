@@ -28,7 +28,8 @@ import {
  * 호스트 검증(보안): 절대 URL 은 *우리 스토리지의 공개 origin* 으로 시작할
  * 때만 key 로 인정한다. 인정되는 base 는 `storage.publicBaseUrl`, legacy
  * `R2_PUBLIC_URL`, 그리고 자격 증명에서 유도한 `https://<bucket>.r2.dev`
- * 이다. 다른 호스트를 가리키는 `<img src="https://attacker/news/x.jpg">` 는
+ * (endpoint 를 주입했다면 `<endpoint>/<bucket>`) 이다. 다른 호스트를
+ * 가리키는 `<img src="https://attacker/news/x.jpg">` 는
  * 경로가 그럴듯해도 수집하지 않는다 — 그렇지 않으면 편집 권한자가 본문에
  * 외부 이미지를 넣는 것만으로 다른 글의 객체를 버킷에서 지울 수 있다.
  * 상대 경로(`/news/x.jpg`, `news/x.jpg`)는 같은 origin 으로 간주한다.
@@ -61,8 +62,12 @@ function resolveAllowedBases(configuredBase: string | null): string[] {
   };
   add(configuredBase);
   add(resolveR2PublicUrl());
-  const { bucketName } = resolveR2CredentialsConfig();
-  if (bucketName) add(`https://${bucketName}.r2.dev`);
+  // 업로드 URL fallback 규칙(r2-storage buildPublicUrl)과 같은 base 를 인정한다.
+  const { bucketName, endpoint } = resolveR2CredentialsConfig();
+  if (bucketName) {
+    if (endpoint) add(`${endpoint.replace(/\/+$/, '')}/${bucketName}`);
+    else add(`https://${bucketName}.r2.dev`);
+  }
   return Array.from(bases);
 }
 

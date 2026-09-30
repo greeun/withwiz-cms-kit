@@ -14,8 +14,9 @@
  *  - safe-default 존재 → `@withwiz/cms-kit:` 네임스페이스 warn 1회(설정명 명시) 후
  *    기본값 사용. safe-default 없음(JWT 서명 비밀) → `@withwiz/cms-kit:`
  *    네임스페이스 error 로 point-of-use fail-fast.
- *  - 환경변수 읽기는 이 모듈 안에서만 발생한다 (이번 스프린트가 라우팅하는
- *    표면 한정 — spec.md §4.2 전체 sweep 은 Sprint 2).
+ *  - 환경변수 읽기는 이 모듈 안에서만 발생한다 (spec.md §4.2). `NODE_ENV`
+ *    이외의 `process.env` 읽기가 다른 모듈에 생기면 tests/resource-lifecycle
+ *    CMS-LC-01 이 실패한다.
  */
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -92,6 +93,12 @@ export interface CmsR2CredentialsConfig {
   secretAccessKey?: string;
   /** R2 버킷 이름 */
   bucketName?: string;
+  /**
+   * S3 호환 endpoint URL. 지정하면 `accountId` 없이도 동작하며, Cloudflare
+   * 도메인(`<accountId>.r2.cloudflarestorage.com`)을 만들지 않는다. 미지정 시
+   * `accountId` 로 Cloudflare R2 endpoint 를 구성한다 (문서화된 기본값).
+   */
+  endpoint?: string;
 }
 
 /** R2/storage 설정 */
@@ -118,12 +125,54 @@ export interface CmsStorageConfig {
 /** rate-limit client-identity / IP 추출 전략 */
 export type CmsIdentityExtractor = (headers: Headers) => string;
 
+/**
+ * rate limiter 계약. `@withwiz/toolkit` 의 `IRateLimiter` 와 구조가 같다
+ * (toolkit 타입을 공개 계약에 끌어들이지 않으려고 따로 선언한다).
+ */
+export interface CmsRateLimiter {
+  check: (identifier: string) => Promise<{
+    success: boolean;
+    remaining: number;
+    resetIn: number;
+  }>;
+  config: { limit: number };
+}
+
+/** 내장 in-memory limiter 한 종류의 한도 */
+export interface CmsRateLimitWindow {
+  /** 윈도우당 허용 요청 수 */
+  limit: number;
+  /** 윈도우 길이(ms) */
+  windowMs: number;
+}
+
+/** 내장 rate-limit 종류 */
+export type CmsRateLimitType = 'api' | 'auth' | 'admin';
+
 /** rate-limit 설정 */
 export interface CmsRateLimitConfig {
   /** consumer 가 주입하는 client-identity 추출 함수 */
   identityExtractor?: CmsIdentityExtractor;
   /** rate-limit 활성화 (기본: legacy RATE_LIMIT_ENABLED env, 그 외 true) */
   enabled?: boolean;
+  /**
+   * 내장 in-memory limiter 의 종류별 한도. 미지정 종류는 기본값
+   * (api 120/분, auth 10/분, admin 200/분)을 쓴다.
+   */
+  limits?: Partial<Record<CmsRateLimitType, CmsRateLimitWindow>>;
+  /**
+   * 종류별 limiter 를 직접 주입한다 (예: Redis 같은 공유 저장소 기반).
+   * 지정한 종류는 in-memory limiter 대신 이 limiter 를 쓴다. 서버리스·다중
+   * 인스턴스 배포에서는 in-memory 카운터가 인스턴스마다 따로 세므로 이 값을
+   * 주입해야 한도가 정확해진다.
+   */
+  rateLimiters?: Record<string, CmsRateLimiter>;
+  /**
+   * false 면 cms-kit 은 `@withwiz/toolkit` 의 rate-limit 어댑터를 설치하지
+   * 않는다. 소비자가 `setRateLimitAdapter` 를 직접 호출해 관리할 때 쓴다.
+   * 기본 true.
+   */
+  manageAdapter?: boolean;
 }
 
 /** 전체 §5 설정 */
@@ -179,6 +228,14 @@ export const JWT_SECRET_MIN_LENGTH = 32;
 // ──────────────────────────────────────────────────────────────────────────
 
 let _config: CmsConfig = {};
+// setCmsConfig/resetCmsConfig 가 호출될 때마다 증가한다. 설정으로 만든
+// 파생 객체(rate-limit 어댑터 등)가 다시 만들어야 하는지 판단하는 데 쓴다.
+let _configVersion = 0;
+
+/** 설정 변경 횟수 (내부용: 설정 파생 객체 캐시 무효화). */
+export function getCmsConfigVersion(): number {
+  return _configVersion;
+}
 
 /**
  * 전체 §5 설정을 주입한다 (prisma 의 `setPrismaClient` 와 동형).
@@ -199,12 +256,14 @@ export function setCmsConfig(config: CmsConfig): void {
     },
     rateLimit: { ..._config.rateLimit, ...config.rateLimit },
   };
+  _configVersion++;
 }
 
 /** 주입된 설정을 모두 비운다 (테스트/재초기화 용도). */
 export function resetCmsConfig(): void {
   _config = {};
   _warnedKeys.clear();
+  _configVersion++;
 }
 
 /** 현재 병합된 raw 설정 (디버깅/테스트 용). */
@@ -370,6 +429,7 @@ export function resolveR2CredentialsConfig(): {
   accessKeyId: string | null;
   secretAccessKey: string | null;
   bucketName: string | null;
+  endpoint: string | null;
 } {
   const r2 = _config.storage?.r2 ?? {};
   const pick = (injected: string | undefined, env: string | undefined) =>
@@ -384,6 +444,8 @@ export function resolveR2CredentialsConfig(): {
     accessKeyId: pick(r2.accessKeyId, process.env.R2_ACCESS_KEY_ID),
     secretAccessKey: pick(r2.secretAccessKey, process.env.R2_SECRET_ACCESS_KEY),
     bucketName: pick(r2.bucketName, process.env.R2_BUCKET_NAME),
+    // endpoint 는 새 설정이라 대응하는 legacy env 가 없다 (주입 전용).
+    endpoint: pick(r2.endpoint, undefined),
   };
 }
 
@@ -482,6 +544,38 @@ export function resolveRateLimitEnabled(): boolean {
 
   if (typeof rl.enabled === 'boolean') return rl.enabled;
   return process.env.RATE_LIMIT_ENABLED !== 'false';
+}
+
+const DEFAULT_RATE_LIMITS: Record<CmsRateLimitType, CmsRateLimitWindow> = {
+  api: { limit: 120, windowMs: 60_000 },
+  auth: { limit: 10, windowMs: 60_000 },
+  admin: { limit: 200, windowMs: 60_000 },
+};
+
+/**
+ * rate-limit 어댑터 구성을 해석한다 (`infrastructure/middleware/wrappers`
+ * 가 첫 요청 시점에 사용).
+ *
+ * - `manageAdapter`: inject > 기본 true.
+ * - `limits`: 종류별로 inject > 기본값(api 120/분, auth 10/분, admin 200/분).
+ * - `rateLimiters`: 주입한 limiter 목록. 없으면 null — in-memory 기본값을 쓰며,
+ *   이 기본값은 프로세스별 카운터라 다중 인스턴스에서 한도가 부정확하므로
+ *   1회 경고한다 (safe-default + warn 정책).
+ */
+export function resolveRateLimitAdapterConfig(): {
+  manageAdapter: boolean;
+  limits: Record<CmsRateLimitType, CmsRateLimitWindow>;
+  rateLimiters: Record<string, CmsRateLimiter> | null;
+} {
+  const rl = _config.rateLimit ?? {};
+  const limits = { ...DEFAULT_RATE_LIMITS };
+  for (const type of Object.keys(DEFAULT_RATE_LIMITS) as CmsRateLimitType[]) {
+    const w = rl.limits?.[type];
+    if (w) limits[type] = w;
+  }
+  const rateLimiters =
+    rl.rateLimiters && typeof rl.rateLimiters === 'object' ? rl.rateLimiters : null;
+  return { manageAdapter: rl.manageAdapter !== false, limits, rateLimiters };
 }
 
 /** `createForwardedIdentityExtractor` 옵션 */
