@@ -140,13 +140,24 @@ describe('rate-limit adapter lifecycle (CMS-RLA)', () => {
     expect(warnSpy.mock.calls.some((c) => String(c[0]).includes('already installed'))).toBe(false);
   });
 
-  it('CMS-RLA-10: in-memory 기본값은 다중 인스턴스 한계를 1회 경고한다', async () => {
+  it('CMS-RLA-10: 제한이 켜져 있으면 in-memory 기본값의 다중 인스턴스 한계를 1회 경고한다', async () => {
+    const { setCmsConfig } = await import('@withwiz/cms-kit/config');
+    setCmsConfig({ rateLimit: { identityExtractor: () => 'id', enabled: true } });
     const { ensureRateLimitAdapter } = await import('@withwiz/cms-kit/infrastructure');
     ensureRateLimitAdapter();
     ensureRateLimitAdapter();
     const msgs = warnSpy.mock.calls.map((c) => String(c[0])).filter((m) => m.includes('rateLimiters'));
     expect(msgs).toHaveLength(1);
     expect(msgs[0]).toMatch(/per process/);
+  });
+
+  it('CMS-RLA-12: 제한이 꺼져 있으면 in-memory 한계를 경고하지 않는다', async () => {
+    const { setCmsConfig } = await import('@withwiz/cms-kit/config');
+    setCmsConfig({ rateLimit: { identityExtractor: () => 'id', enabled: false } });
+    const { ensureRateLimitAdapter } = await import('@withwiz/cms-kit/infrastructure');
+    ensureRateLimitAdapter();
+    expect(warnSpy).not.toHaveBeenCalled();
+    expect(currentAdapter()!.rateLimiters.api.config.limit).toBe(120);
   });
 
   it('CMS-RLA-11: 모든 종류를 주입하면 in-memory 경고가 없다', async () => {

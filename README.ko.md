@@ -20,11 +20,11 @@ Withwiz 프로젝트들의 어드민 공통 레이어(인프라, 베이스 서�
 ## 기술 스택
 
 - TypeScript (strict) — `target: ES2022`, `module: ESNext`
-- React 19 / Next.js 16 (peer dependency, `>=18` / `>=15` 지원)
-- Tiptap 3 (리치 텍스트 에디터)
+- React 19 / Next.js 16 (peer dependency, `>=19` / `>=16`)
+- Tiptap 3 (리치 텍스트 에디터, optional peer — `ResizableImage` 만 사용)
 - Zod 4 (검증)
 - tsup (빌드) + Vitest (테스트)
-- 옵셔널 피어: `@aws-sdk/client-s3`, `sharp`, `isomorphic-dompurify`, `sonner`, `@tanstack/react-virtual`
+- 옵셔널 피어: `@aws-sdk/client-s3`, `sharp`, `isomorphic-dompurify`, `sonner`, `@tanstack/react-virtual`, `@tiptap/core`, `@tiptap/react`
 
 ## 설치
 
@@ -36,10 +36,16 @@ pnpm add @withwiz/cms-kit
 yarn add @withwiz/cms-kit
 ```
 
-`@withwiz/toolkit` 은 peer dependency 이며 `>=0.8.0` 을 요구합니다. 0.7.1 은 타입 선언이 존재하지 않는 패키지를 import 하므로 cms-kit 이 쓰는 JWT·미들웨어 타입이 검사되지 않습니다. 패키지 매니저와 해석 전략에 따라 명시 설치가 필요할 수 있습니다.
+`@withwiz/toolkit` 은 peer dependency 이며 `>=0.15.0`(cms-kit 이 테스트하는 버전)을 요구합니다. 패키지 매니저와 해석 전략에 따라 명시 설치가 필요할 수 있습니다.
 
 ```bash
 npm install @withwiz/toolkit
+```
+
+Tiptap 은 optional peer 입니다. `ResizableImage` 나 이를 다시 내보내는 `@withwiz/cms-kit`·`@withwiz/cms-kit/components` 배럴을 쓸 때만 설치하면 되고, 그 밖의 진입점은 tiptap 없이 동작합니다.
+
+```bash
+npm install @tiptap/core @tiptap/react
 ```
 
 모노레포 내부 개발 시에는 `file:` 프로토콜도 지원합니다.
@@ -64,15 +70,17 @@ npm install @withwiz/toolkit
 | `@withwiz/cms-kit/infrastructure/middleware` | `withPublicApi` / `withAuthApi` / `withAdminApi` |
 | `@withwiz/cms-kit/services` | `base-service`, pagination |
 | `@withwiz/cms-kit/types` | `PaginatedResult`, `SortOrder` |
-| `@withwiz/cms-kit/utils` | `adminFetch`, `r2-storage`, `image-variants`, `jwt`, `date`, `html-sanitizer` |
+| `@withwiz/cms-kit/utils` | `adminFetch`, `r2-storage`, `image-variants`, `jwt`, `date`, `html-sanitizer` (서버+클라이언트, 호환용) |
+| `@withwiz/cms-kit/utils/client` | 브라우저·공용 유틸 — `@aws-sdk/client-s3`·`sharp`·`next/server`·prisma·toolkit 인증을 로드하지 않음 |
+| `@withwiz/cms-kit/utils/server` | 서버·공용 유틸과 설정 API — 브라우저 전용 모듈을 로드하지 않음 |
 | `@withwiz/cms-kit/validators` | `slugSchema`, `optionalUrlSchema` |
 
 ### Next.js 앱 전용 진입점과 순수 Node ESM
 
 일부 진입점은 확장자 없는 `next/server`·`next/link`·`next/navigation`·`next/dynamic` 이나 CSS 파일을 import 하므로 Next.js 번들러를 거쳐야 동작한다. `next` 패키지에는 `exports` 맵이 없어, 번들러 없이 `node` 로 직접 import 하면 이 지정자를 해석하지 못한다. 이 import 는 Next.js 가 런타임별 구현으로 연결하도록 그대로 둔다.
 
-- **Next.js 앱 안에서만 동작:** `@withwiz/cms-kit`, `/components`, `/components/AdminShell`, `/components/ToggleSwitch`(CSS), `/infrastructure`, `/infrastructure/middleware`, `/infrastructure/middleware/wrappers`, `/utils`, `/utils/api-helpers`
-- **순수 Node ESM 에서도 import 됨:** 그 밖의 모든 JS 진입점 — `/config`, `/hooks`, `/services`, `/types`, `/validators`, `/infrastructure/prisma`, `/types/common`, `/validators/shared`, `/components/{AdminManagerBase,AdminManagerConfig,JsonLd,ResizableImage}`, `/hooks/{useImageDropZone,useScrollReveal}`, `/utils/{admin-fetch,date,html-sanitizer,image-variant-utils,image-variants,jwt,r2-helpers,r2-storage,route-params}`
+- **Next.js 앱 안에서만 동작:** `@withwiz/cms-kit`, `/components`, `/components/AdminShell`, `/components/ToggleSwitch`(CSS), `/infrastructure`, `/infrastructure/middleware`, `/infrastructure/middleware/wrappers`, `/utils`, `/utils/server`, `/utils/api-helpers`
+- **순수 Node ESM 에서도 import 됨:** 그 밖의 모든 JS 진입점 — `/config`, `/hooks`, `/services`, `/types`, `/validators`, `/infrastructure/prisma`, `/types/common`, `/validators/shared`, `/components/{AdminManagerBase,AdminManagerConfig,JsonLd,ResizableImage}`, `/hooks/{useImageDropZone,useScrollReveal}`, `/utils/client`, `/utils/{admin-fetch,date,html-sanitizer,image-variant-utils,image-variants,jwt,r2-helpers,r2-storage,route-params}`
 
 Next.js 밖(스크립트, 워커 등)에서는 `/utils` 배럴 대신 개별 `/utils/*` 경로를 쓰고, 설정 API(`setCmsConfig` 등)는 `/config` 에서 불러온다. `/config` 는 `/utils` 배럴이 다시 내보내는 설정 API 와 같은 이름을 공개하고 같은 설정 저장소를 쓰므로, 어느 쪽으로 설정해도 다른 쪽에서 같은 값이 보인다. `/utils` 배럴의 설정 API export 는 호환을 위해 그대로 둔다. 이 경계는 `tests/smoke/pure-node-esm.test.ts` 가 빌드 산출물로 검사한다.
 

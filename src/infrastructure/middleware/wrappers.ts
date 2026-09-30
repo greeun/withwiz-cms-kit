@@ -87,7 +87,7 @@ let _installedVersion = -1;
  *    `setRateLimitAdapter` 를 직접 호출) 덮어쓰지 않고 1회 경고한다.
  *  - `setCmsConfig` 로 설정이 바뀌면 다음 요청에서 새 설정으로 다시 설치한다.
  *  - `rateLimit.rateLimiters` 를 주입하지 않은 종류는 in-memory limiter 를
- *    쓰며, 프로세스별 카운터라는 한계를 1회 경고한다.
+ *    쓰며, 제한이 켜져 있으면 프로세스별 카운터라는 한계를 1회 경고한다.
  */
 export function ensureRateLimitAdapter(): void {
   const cfg = resolveRateLimitAdapterConfig();
@@ -118,7 +118,9 @@ export function ensureRateLimitAdapter(): void {
       inMemoryTypes.push(type);
     }
   }
-  if (inMemoryTypes.length > 0) {
+  // 제한이 꺼져 있으면(추출기 미주입, RATE_LIMIT_ENABLED=false 등) 카운터를 쓰지
+  // 않으므로 다중 인스턴스 한계를 경고할 필요가 없다.
+  if (inMemoryTypes.length > 0 && resolveRateLimitEnabled()) {
     warnOnceMissingConfig(
       'rateLimit.rateLimiters',
       `rateLimit.rateLimiters is not configured for [${inMemoryTypes.join(', ')}]; ` +
