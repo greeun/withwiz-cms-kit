@@ -34,3 +34,6 @@ CLAUDE.md
 # ast (agent session tracker) 로컬 산출물
 .ast/
 .ast*
+
+# Synology links restored by mac-setup (lists/project-links.txt)
+/tests-harness
