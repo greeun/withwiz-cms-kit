@@ -53,6 +53,7 @@ const NEXT_APP_ONLY: Record<string, string> = {
   './infrastructure': 'middleware/wrappers 를 다시 내보낸다 (@withwiz/toolkit/next/middleware → next/server)',
   './utils': 'api-response·api-helpers 를 다시 내보낸다 (next/server)',
   './utils/api-helpers': 'NextResponse 로 검증 실패 응답을 만든다 (next/server)',
+  './utils/server': 'api-response·api-helpers 를 다시 내보낸다 (next/server)',
 };
 
 function isNextAppOnly(subpath: string): boolean {

@@ -14,8 +14,9 @@
  *  - safe-default 존재 → `@withwiz/cms-kit:` 네임스페이스 warn 1회(설정명 명시) 후
  *    기본값 사용. safe-default 없음(JWT 서명 비밀) → `@withwiz/cms-kit:`
  *    네임스페이스 error 로 point-of-use fail-fast.
- *  - 환경변수 읽기는 이 모듈 안에서만 발생한다 (이번 스프린트가 라우팅하는
- *    표면 한정 — spec.md §4.2 전체 sweep 은 Sprint 2).
+ *  - 환경변수 읽기는 이 모듈 안에서만 발생한다 (spec.md §4.2). `NODE_ENV`
+ *    이외의 `process.env` 읽기가 다른 모듈에 생기면 tests/resource-lifecycle
+ *    CMS-LC-01 이 실패한다.
  */
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -92,6 +93,32 @@ export interface CmsR2CredentialsConfig {
   secretAccessKey?: string;
   /** R2 버킷 이름 */
   bucketName?: string;
+  /**
+   * S3 호환 endpoint URL. 지정하면 `accountId` 없이도 동작하며, Cloudflare
+   * 도메인(`<accountId>.r2.cloudflarestorage.com`)을 만들지 않는다. 미지정 시
+   * `accountId` 로 Cloudflare R2 endpoint 를 구성한다 (문서화된 기본값).
+   */
+  endpoint?: string;
+  /** S3 서명 region. 기본 'auto' (Cloudflare R2). AWS S3 등은 버킷 region 을 지정한다. */
+  region?: string;
+}
+
+/**
+ * 저장소 백엔드 계약 (spec.md §4.5). 주입하면 `uploadToR2`/`deleteFromR2`/
+ * `uploadImageWithVariants` 가 R2/S3 클라이언트 대신 이 백엔드를 쓰며,
+ * `@aws-sdk/client-s3` 를 로드하지 않는다. 키는 백엔드에 넘기기 전에
+ * `sanitizeStorageKey` 로 검증된다.
+ */
+export interface CmsStorageBackend {
+  /** 객체를 저장한다 */
+  put(key: string, body: Buffer, contentType: string): Promise<void>;
+  /** 객체를 지운다 */
+  delete(key: string): Promise<void>;
+  /**
+   * 객체의 공개 URL. 생략하면 `storage.publicBaseUrl`(또는 `R2_PUBLIC_URL`)
+   * 뒤에 키를 붙인다.
+   */
+  publicUrl?(key: string): string;
 }
 
 /** R2/storage 설정 */
@@ -113,10 +140,36 @@ export interface CmsStorageConfig {
   publicBaseUrl?: string;
   /** R2 자격 증명 (계정/키/버킷). 미주입 시 legacy R2_* 환경변수 fallback. */
   r2?: CmsR2CredentialsConfig;
+  /** 저장소 백엔드. 주입하면 기본 R2/S3 구현 대신 사용한다. */
+  backend?: CmsStorageBackend;
 }
 
 /** rate-limit client-identity / IP 추출 전략 */
 export type CmsIdentityExtractor = (headers: Headers) => string;
+
+/**
+ * rate limiter 계약. `@withwiz/toolkit` 의 `IRateLimiter` 와 구조가 같다
+ * (toolkit 타입을 공개 계약에 끌어들이지 않으려고 따로 선언한다).
+ */
+export interface CmsRateLimiter {
+  check: (identifier: string) => Promise<{
+    success: boolean;
+    remaining: number;
+    resetIn: number;
+  }>;
+  config: { limit: number };
+}
+
+/** 내장 in-memory limiter 한 종류의 한도 */
+export interface CmsRateLimitWindow {
+  /** 윈도우당 허용 요청 수 */
+  limit: number;
+  /** 윈도우 길이(ms) */
+  windowMs: number;
+}
+
+/** 내장 rate-limit 종류 */
+export type CmsRateLimitType = 'api' | 'auth' | 'admin';
 
 /** rate-limit 설정 */
 export interface CmsRateLimitConfig {
@@ -124,6 +177,24 @@ export interface CmsRateLimitConfig {
   identityExtractor?: CmsIdentityExtractor;
   /** rate-limit 활성화 (기본: legacy RATE_LIMIT_ENABLED env, 그 외 true) */
   enabled?: boolean;
+  /**
+   * 내장 in-memory limiter 의 종류별 한도. 미지정 종류는 기본값
+   * (api 120/분, auth 10/분, admin 200/분)을 쓴다.
+   */
+  limits?: Partial<Record<CmsRateLimitType, CmsRateLimitWindow>>;
+  /**
+   * 종류별 limiter 를 직접 주입한다 (예: Redis 같은 공유 저장소 기반).
+   * 지정한 종류는 in-memory limiter 대신 이 limiter 를 쓴다. 서버리스·다중
+   * 인스턴스 배포에서는 in-memory 카운터가 인스턴스마다 따로 세므로 이 값을
+   * 주입해야 한도가 정확해진다.
+   */
+  rateLimiters?: Record<string, CmsRateLimiter>;
+  /**
+   * false 면 cms-kit 은 `@withwiz/toolkit` 의 rate-limit 어댑터를 설치하지
+   * 않는다. 소비자가 `setRateLimitAdapter` 를 직접 호출해 관리할 때 쓴다.
+   * 기본 true.
+   */
+  manageAdapter?: boolean;
 }
 
 /** 전체 §5 설정 */
@@ -178,38 +249,79 @@ export const JWT_SECRET_MIN_LENGTH = 32;
 // 설정 저장소 + 주입 API (prisma 패턴)
 // ──────────────────────────────────────────────────────────────────────────
 
-let _config: CmsConfig = {};
+/**
+ * 설정 저장소. 모듈 변수가 아니라 전역(`globalThis`)의 심볼 키에 둔다.
+ *
+ * Next.js 는 `instrumentation.ts` 와 Route Handler 를 서로 다른 번들 범위로
+ * 만들어 같은 패키지 모듈이 두 벌 로드될 수 있다. 모듈 변수에 저장하면
+ * instrumentation 의 `register()` 에서 주입한 설정이 라우트에 보이지 않으므로,
+ * `@withwiz/toolkit` 의 rate-limit 어댑터와 같이 전역에 보관한다.
+ */
+interface CmsConfigStore {
+  config: CmsConfig;
+  /** setCmsConfig/resetCmsConfig 호출 횟수 (설정 파생 객체 캐시 무효화용) */
+  version: number;
+  /** 이미 경고한 미설정 표면 키 */
+  warned: Set<string>;
+}
+
+const STORE_KEY = Symbol.for('@withwiz/cms-kit/config-store');
+
+function store(): CmsConfigStore {
+  const g = globalThis as Record<symbol, CmsConfigStore | undefined>;
+  let s = g[STORE_KEY];
+  if (!s) {
+    s = { config: {}, version: 0, warned: new Set() };
+    g[STORE_KEY] = s;
+  }
+  return s;
+}
+
+/** 현재 병합된 설정 (내부 해석 함수용). */
+function current(): CmsConfig {
+  return store().config;
+}
+
+/** 설정 변경 횟수 (내부용: 설정 파생 객체 캐시 무효화). */
+export function getCmsConfigVersion(): number {
+  return store().version;
+}
 
 /**
  * 전체 §5 설정을 주입한다 (prisma 의 `setPrismaClient` 와 동형).
  * 부분 주입을 병합하며, 같은 키 재주입 시 새 값이 우선한다.
  */
 export function setCmsConfig(config: CmsConfig): void {
-  _config = {
-    ..._config,
+  const st = store();
+  const prev = st.config;
+  st.config = {
+    ...prev,
     ...config,
-    brand: { ..._config.brand, ...config.brand },
-    routes: { ..._config.routes, ...config.routes },
-    jwt: { ..._config.jwt, ...config.jwt },
-    sanitizer: { ..._config.sanitizer, ...config.sanitizer },
+    brand: { ...prev.brand, ...config.brand },
+    routes: { ...prev.routes, ...config.routes },
+    jwt: { ...prev.jwt, ...config.jwt },
+    sanitizer: { ...prev.sanitizer, ...config.sanitizer },
     storage: {
-      ..._config.storage,
+      ...prev.storage,
       ...config.storage,
-      r2: { ..._config.storage?.r2, ...config.storage?.r2 },
+      r2: { ...prev.storage?.r2, ...config.storage?.r2 },
     },
-    rateLimit: { ..._config.rateLimit, ...config.rateLimit },
+    rateLimit: { ...prev.rateLimit, ...config.rateLimit },
   };
+  st.version++;
 }
 
 /** 주입된 설정을 모두 비운다 (테스트/재초기화 용도). */
 export function resetCmsConfig(): void {
-  _config = {};
-  _warnedKeys.clear();
+  const st = store();
+  st.config = {};
+  st.warned.clear();
+  st.version++;
 }
 
 /** 현재 병합된 raw 설정 (디버깅/테스트 용). */
 export function getCmsConfig(): CmsConfig {
-  return _config;
+  return current();
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -217,15 +329,15 @@ export function getCmsConfig(): CmsConfig {
 // ──────────────────────────────────────────────────────────────────────────
 
 const NS = '@withwiz/cms-kit:';
-const _warnedKeys = new Set<string>();
 
 /**
  * 같은 미설정 표면에 대해 정확히 1회만 `@withwiz/cms-kit:` 네임스페이스 warn 을
  * 발행한다 (spec.md §5/B4). 메시지는 누락된 설정명을 반드시 포함한다.
  */
 export function warnOnceMissingConfig(key: string, message: string): void {
-  if (_warnedKeys.has(key)) return;
-  _warnedKeys.add(key);
+  const warned = store().warned;
+  if (warned.has(key)) return;
+  warned.add(key);
   // 경고 채널 = console.warn (테스트가 spy 하는 표준 채널).
   // eslint-disable-next-line no-console
   console.warn(`${NS} ${message}`);
@@ -253,7 +365,7 @@ export function resolveBrandConfig(suppliedViaProps = false): {
   adminHref: string;
   navItems: CmsNavItem[];
 } {
-  const b = _config.brand ?? {};
+  const b = current().brand ?? {};
   const navConfigured = Array.isArray(b.navItems);
   const brandConfigured = typeof b.brandLabel === 'string';
 
@@ -275,7 +387,7 @@ export function resolveBrandConfig(suppliedViaProps = false): {
 
 /** route/endpoint 맵을 해석한다 (모든 항목 safe-default 존재). */
 export function resolveRouteConfig(): Required<CmsRouteConfig> {
-  const r = _config.routes ?? {};
+  const r = current().routes ?? {};
   return {
     loginPath: r.loginPath ?? DEFAULT_ROUTES.loginPath,
     postLoginRedirect: r.postLoginRedirect ?? DEFAULT_ROUTES.postLoginRedirect,
@@ -298,7 +410,7 @@ export function resolveJwtConfig(): {
   refreshTokenExpiry: string;
   algorithm: NonNullable<CmsJwtConfig['algorithm']>;
 } {
-  const j = _config.jwt ?? {};
+  const j = current().jwt ?? {};
 
   const accessTokenExpiry =
     j.accessTokenExpiry ?? process.env.JWT_EXPIRES_IN ?? DEFAULT_ACCESS_TOKEN_EXPIRY;
@@ -332,7 +444,7 @@ export function resolveJwtConfig(): {
 
 /** sanitizer 신뢰 iframe origin 목록을 해석한다 (safe-default 존재). */
 export function resolveTrustedIframeOrigins(): readonly string[] {
-  const s = _config.sanitizer ?? {};
+  const s = current().sanitizer ?? {};
   return s.trustedIframeOrigins ?? DEFAULT_TRUSTED_IFRAME_ORIGINS;
 }
 
@@ -341,7 +453,7 @@ export function resolveStorageConfig(): {
   inlineKeyPrefixes: readonly string[] | null;
   publicBaseUrl: string | null;
 } {
-  const st = _config.storage ?? {};
+  const st = current().storage ?? {};
   return {
     inlineKeyPrefixes: Array.isArray(st.inlineKeyPrefixes)
       ? st.inlineKeyPrefixes
@@ -349,6 +461,12 @@ export function resolveStorageConfig(): {
     publicBaseUrl:
       typeof st.publicBaseUrl === 'string' ? st.publicBaseUrl : null,
   };
+}
+
+/** 주입된 저장소 백엔드. 없으면 null (기본 R2/S3 구현 사용). */
+export function resolveStorageBackend(): CmsStorageBackend | null {
+  const b = current().storage?.backend;
+  return b && typeof b.put === 'function' && typeof b.delete === 'function' ? b : null;
 }
 
 /**
@@ -370,8 +488,10 @@ export function resolveR2CredentialsConfig(): {
   accessKeyId: string | null;
   secretAccessKey: string | null;
   bucketName: string | null;
+  endpoint: string | null;
+  region: string;
 } {
-  const r2 = _config.storage?.r2 ?? {};
+  const r2 = current().storage?.r2 ?? {};
   const pick = (injected: string | undefined, env: string | undefined) =>
     typeof injected === 'string' && injected.length > 0
       ? injected
@@ -384,6 +504,9 @@ export function resolveR2CredentialsConfig(): {
     accessKeyId: pick(r2.accessKeyId, process.env.R2_ACCESS_KEY_ID),
     secretAccessKey: pick(r2.secretAccessKey, process.env.R2_SECRET_ACCESS_KEY),
     bucketName: pick(r2.bucketName, process.env.R2_BUCKET_NAME),
+    // endpoint 는 새 설정이라 대응하는 legacy env 가 없다 (주입 전용).
+    endpoint: pick(r2.endpoint, undefined),
+    region: pick(r2.region, undefined) ?? 'auto',
   };
 }
 
@@ -398,7 +521,7 @@ export function resolveR2CredentialsConfig(): {
  * 일관되도록 의도된 통합점이다.
  */
 export function resolveR2PublicUrl(): string | null {
-  const st = _config.storage ?? {};
+  const st = current().storage ?? {};
   if (typeof st.publicBaseUrl === 'string' && st.publicBaseUrl.length > 0) {
     return st.publicBaseUrl;
   }
@@ -421,7 +544,7 @@ export const SHARED_ANON_IDENTITY = 'cms-kit:shared-anon';
 
 /** identityExtractor 주입 여부. */
 export function hasIdentityExtractor(): boolean {
-  return typeof _config.rateLimit?.identityExtractor === 'function';
+  return typeof current().rateLimit?.identityExtractor === 'function';
 }
 
 /**
@@ -439,7 +562,7 @@ export function hasIdentityExtractor(): boolean {
  * 등으로 자신의 proxy topology 에 맞는 추출기를 주입해야 한다.
  */
 export function resolveClientIdentity(headers: Headers): string {
-  const rl = _config.rateLimit ?? {};
+  const rl = current().rateLimit ?? {};
   if (typeof rl.identityExtractor === 'function') {
     return rl.identityExtractor(headers);
   }
@@ -456,7 +579,7 @@ export function resolveClientIdentity(headers: Headers): string {
  * 경고만 남긴 채 활성화한다.
  */
 export function resolveRateLimitEnabled(): boolean {
-  const rl = _config.rateLimit ?? {};
+  const rl = current().rateLimit ?? {};
   if (rl.enabled === false) return false;
 
   if (!hasIdentityExtractor()) {
@@ -482,6 +605,38 @@ export function resolveRateLimitEnabled(): boolean {
 
   if (typeof rl.enabled === 'boolean') return rl.enabled;
   return process.env.RATE_LIMIT_ENABLED !== 'false';
+}
+
+const DEFAULT_RATE_LIMITS: Record<CmsRateLimitType, CmsRateLimitWindow> = {
+  api: { limit: 120, windowMs: 60_000 },
+  auth: { limit: 10, windowMs: 60_000 },
+  admin: { limit: 200, windowMs: 60_000 },
+};
+
+/**
+ * rate-limit 어댑터 구성을 해석한다 (`infrastructure/middleware/wrappers`
+ * 가 첫 요청 시점에 사용).
+ *
+ * - `manageAdapter`: inject > 기본 true.
+ * - `limits`: 종류별로 inject > 기본값(api 120/분, auth 10/분, admin 200/분).
+ * - `rateLimiters`: 주입한 limiter 목록. 없으면 null — in-memory 기본값을 쓰며,
+ *   이 기본값은 프로세스별 카운터라 다중 인스턴스에서 한도가 부정확하므로
+ *   1회 경고한다 (safe-default + warn 정책).
+ */
+export function resolveRateLimitAdapterConfig(): {
+  manageAdapter: boolean;
+  limits: Record<CmsRateLimitType, CmsRateLimitWindow>;
+  rateLimiters: Record<string, CmsRateLimiter> | null;
+} {
+  const rl = current().rateLimit ?? {};
+  const limits = { ...DEFAULT_RATE_LIMITS };
+  for (const type of Object.keys(DEFAULT_RATE_LIMITS) as CmsRateLimitType[]) {
+    const w = rl.limits?.[type];
+    if (w) limits[type] = w;
+  }
+  const rateLimiters =
+    rl.rateLimiters && typeof rl.rateLimiters === 'object' ? rl.rateLimiters : null;
+  return { manageAdapter: rl.manageAdapter !== false, limits, rateLimiters };
 }
 
 /** `createForwardedIdentityExtractor` 옵션 */

@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useId, useImperativeHandle, useMemo, useRef, forwardRef } from "react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { toast } from "sonner";
-import { adminFetch, getAuthHeaders } from "../utils/admin-fetch";
+import { adminFetch } from "../utils/admin-fetch";
 import { useAdminList } from "../hooks/useAdminList";
 import { useAdminForm } from "../hooks/useAdminForm";
 import type { AdminManagerConfig } from "./AdminManagerConfig";
@@ -139,7 +139,8 @@ function AdminManagerBaseInner<
     try {
       const res = await adminFetch(url, {
         method,
-        headers: { ...getAuthHeaders(), "Content-Type": "application/json" },
+        // 인증은 httpOnly 쿠키로 처리한다 (adminFetch 가 credentials 를 붙인다).
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
       });
       const json = await res.json();

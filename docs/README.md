@@ -21,7 +21,7 @@ npm install @withwiz/cms-kit
 pnpm add @withwiz/cms-kit
 ```
 
-`@withwiz/toolkit` is a peer dependency (`>=0.8.0`; the type declarations in 0.7.1 import packages that do not exist, so the JWT and middleware types cms-kit uses are not type-checked). It is usually installed together during dependency resolution, but depending on your environment you may need to install it explicitly.
+`@withwiz/toolkit` is a peer dependency (`>=0.15.0`, the version cms-kit is tested against). Tiptap (`@tiptap/core`, `@tiptap/react`) is an optional peer needed only for `ResizableImage` and the `.` / `./components` barrels that re-export it. It is usually installed together during dependency resolution, but depending on your environment you may need to install it explicitly.
 
 ```bash
 npm install @withwiz/toolkit

@@ -4,14 +4,43 @@
 
 | 항목 | 내용 |
 |------|------|
-| 대상 | `@withwiz/cms-kit` 0.3.2 (Next.js + React 관리자 패널용 CMS 프레임워크 라이브러리) + `feat/config-subpath` 브랜치의 `./config` 서브패스 추가 (기존 export 동작 변경 없음, 버전 미변경, 미게시) |
-| 기준 | `fix/residual-defects` 코드 커밋 `c741e11` (develop `431d2de` 에서 분기), 2026-09-16 갱신. `@withwiz/toolkit` peer 하한 실측은 커밋 `aa96df1` 기준, 2026-09-17 추가. 순수 Node ESM 소비 범위 실측은 develop `aaf0852`(0.3.1) 에서 분기한 `test/pure-node-esm-scope` 기준, 2026-09-29 추가. `./config` 서브패스 실측은 develop `688f4e1`(0.3.2) 에서 분기한 `feat/config-subpath` 기준, 2026-09-30 추가 |
-| 범위 | `src/` 전체 (components/, hooks/, infrastructure/, services/, types/, utils/, validators/, config/) |
-| 환경 | Vitest 4.1.11, Node.js 22.22.0, 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2). devDependency `@withwiz/toolkit` 0.15.0, `isomorphic-dompurify` 2.36.0. peerDependency `@withwiz/toolkit` `>=0.8.0` (2026-09-17 에 `>=0.7.1` 에서 변경) |
+| 대상 | `@withwiz/cms-kit` 0.4.0 (Next.js + React 관리자 패널용 CMS 프레임워크 라이브러리) + `refactor/pms-spec-sprint2-4` 브랜치의 변경: 설정 경계로 모은 자원 초기화, rate-limit 어댑터 지연 설치, `./utils/client`·`./utils/server` 서브패스, 저장소 백엔드 주입, AdminShell 하위 단위 분해, tiptap optional peer (버전 미변경, 미게시) |
+| 기준 | `refactor/pms-spec-sprint2-4` 커밋 `81c3076` (develop `bd68728`(0.4.0) 에서 분기), 2026-10-01 갱신. 이전 판의 기준은 다음과 같다: `fix/residual-defects` 코드 커밋 `c741e11` (develop `431d2de` 에서 분기, 2026-09-16), `@withwiz/toolkit` peer 하한 실측 커밋 `aa96df1` (2026-09-17), develop `aaf0852`(0.3.1) 에서 분기한 `test/pure-node-esm-scope` (2026-09-29), develop `688f4e1`(0.3.2) 에서 분기한 `feat/config-subpath` (2026-09-30) |
+| 범위 | `src/` 전체 (components/, components/admin-shell/, hooks/, infrastructure/, services/, types/, utils/, validators/, config/) |
+| 환경 | Vitest 4.1.11, Node.js 24.21.0 (2026-09-30 판까지의 실측은 22.22.0), 프로젝트 2개: `cms-kit` (node), `cms-kit-dom` (jsdom 29.1.1 + @testing-library/react 16.3.2). devDependency `@withwiz/toolkit` 0.15.0, `isomorphic-dompurify` 2.36.0, `@tiptap/core`·`@tiptap/react` 3.31.3, `sharp` 0.35.4, `next` 16.3.5, `react` 19.2.6. peerDependency `@withwiz/toolkit` `>=0.15.0`, `react` `>=19`, `next` `>=16`, `sharp` `>=0.35`, `zod` `>=4`, `@tiptap/core`·`@tiptap/react` `>=3` (optional). 2026-10-01 에 peer 하한을 devDependency 와 같은 major(0.x 는 minor)로 올리고(toolkit `>=0.8.0`→`>=0.15.0`, react `>=18`→`>=19`, next `>=15`→`>=16`, sharp `>=0.33`→`>=0.35`), tiptap 을 `dependencies` 에서 optional peer 로 옮겼다. `dependencies` 는 없다 |
 | 목표 커버리지 | 미설정 (`vitest.config.ts` 에 coverage 설정이 없고 `@vitest/coverage-*` 패키지도 설치되어 있지 않음) |
-| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음). 2026-09-18 `fix/residual-defects-a` 기준 갱신: 정규식 경로가 하이픈이 들어간 사용자 정의 태그를 지우는 결함(TC-S-010)을 고쳤다. 40개 파일 472건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26, 변화 없음). 2026-09-28 `chore/remove-consumer-mentions` 기준 갱신: 독립 패키지에서 소비 프로젝트 언급을 모두 없앴다. 브랜드·관리자 경로 가드 테스트 파일(TC-SM-002)을 삭제해 소비 프로젝트 저장소로 옮기고, AdminShell 설정 테스트(TC-U-017)의 단언과 테스트 데이터(TC-U-009·U-012·U-016·I-002·S-003·S-009)를 중립 값으로 바꿨다. 39개 파일 469건, SC/TC 66개 (✅ 38 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-29 `test/pure-node-esm-scope` 기준 갱신: `exports` 의 JS 서브패스 31개를 순수 Node ESM 으로 import 해 22개 성공·9개 실패를 실측하고, 실패 9개를 Next.js 앱 전용으로 정한 경계를 빌드 테스트(TC-SM-006, `tests/smoke/pure-node-esm.test.ts`)로 고정했다. README 에 경계를 적었다. 40개 파일 471건, SC/TC 67개 (✅ 39 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-30 `feat/config-subpath` 기준 갱신: 설정 API 를 순수 Node ESM 에서 불러오도록 `./config` 서브패스를 추가했다. `./config` 가 TC-SM-006 의 순수 Node import 대상에 들어가고(JS 서브패스 32개 중 23개 성공), `./config` 의 동작·공개 이름·`./utils` 와의 설정 저장소 공유를 검사하는 SC/TC-SM-007 을 추가했다. README 의 순수 Node ESM 제약 문장을 `./config` 사용 안내로 고쳤다. 40개 파일 474건, SC/TC 68개 (✅ 40 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-30: 실행 문서 `docs/testing.md` 를 현재 구조로 다시 쓰고 `tests/spec.md` 의 안내 줄을 과거 기록 문구로 바꿨다(테스트 수 변화 없음, 이전 문서 절 참조). |
+| 문서 이력 | 2026-09-13 0.2.0 (`1010503`) 기준 최초 작성: 테스트 파일 35개, 267건. 2026-09-15 develop `1de7c3a`(0.2.2) 기준 갱신: 37개 파일 390건, SC/TC 64개 (✅ 33 / ⚠️ 2 / 🔲 29). 2026-09-16 `fix/residual-defects` 기준 갱신: 남은 결함 3건(TC-SM-005, TC-U-027, TC-AC-003)과 테스트 보강 2건(TC-S-002 DOMPROOF, 정규식 경로 위험 태그)을 처리하고, 보강 중 드러난 정규식 경로 결함 1건과 정규식 대체 새니타이저 공통 명세를 반영했다. 40개 파일 470건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26). 2026-09-17 `fix/residual-defects` 에서 `@withwiz/toolkit` 게시 버전 11개와 0.16.0 후보를 설치해 타입 검사·테스트·dist 스모크를 실측했다. 타입 선언이 해석되지 않는 0.7.1 을 빼고 peer 하한을 `>=0.8.0` 으로 올렸다 (테스트 수와 SC/TC 수는 변화 없음). 2026-09-18 `fix/residual-defects-a` 기준 갱신: 정규식 경로가 하이픈이 들어간 사용자 정의 태그를 지우는 결함(TC-S-010)을 고쳤다. 40개 파일 472건, SC/TC 66개 (✅ 39 / ⚠️ 1 / 🔲 26, 변화 없음). 2026-09-28 `chore/remove-consumer-mentions` 기준 갱신: 독립 패키지에서 소비 프로젝트 언급을 모두 없앴다. 브랜드·관리자 경로 가드 테스트 파일(TC-SM-002)을 삭제해 소비 프로젝트 저장소로 옮기고, AdminShell 설정 테스트(TC-U-017)의 단언과 테스트 데이터(TC-U-009·U-012·U-016·I-002·S-003·S-009)를 중립 값으로 바꿨다. 39개 파일 469건, SC/TC 66개 (✅ 38 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-29 `test/pure-node-esm-scope` 기준 갱신: `exports` 의 JS 서브패스 31개를 순수 Node ESM 으로 import 해 22개 성공·9개 실패를 실측하고, 실패 9개를 Next.js 앱 전용으로 정한 경계를 빌드 테스트(TC-SM-006, `tests/smoke/pure-node-esm.test.ts`)로 고정했다. README 에 경계를 적었다. 40개 파일 471건, SC/TC 67개 (✅ 39 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-30 `feat/config-subpath` 기준 갱신: 설정 API 를 순수 Node ESM 에서 불러오도록 `./config` 서브패스를 추가했다. `./config` 가 TC-SM-006 의 순수 Node import 대상에 들어가고(JS 서브패스 32개 중 23개 성공), `./config` 의 동작·공개 이름·`./utils` 와의 설정 저장소 공유를 검사하는 SC/TC-SM-007 을 추가했다. README 의 순수 Node ESM 제약 문장을 `./config` 사용 안내로 고쳤다. 40개 파일 474건, SC/TC 68개 (✅ 40 / ⚠️ 1 / 🔲 26 / 이전 1). 2026-09-30: 실행 문서 `docs/testing.md` 를 현재 구조로 다시 쓰고 `tests/spec.md` 의 안내 줄을 과거 기록 문구로 바꿨다(테스트 수 변화 없음, 이전 문서 절 참조). 2026-10-01 `refactor/pms-spec-sprint2-4` 기준 갱신: 새 테스트 파일 10개(85건)를 추가하고 기존 파일 3개(`integration/middleware-wrappers`, `exports-superset`, `smoke/pure-node-esm`)의 검사 대상을 바꿨다. TC-U-022·TC-I-003·TC-C-001 을 ✅ 완료로 바꾸고, SC/TC 9개(TC-U-028~031, TC-I-005, TC-SM-008~011)를 추가했다. 50개 파일 559건, SC/TC 77개 (✅ 52 / ⚠️ 0 / 🔲 24 / 이전 1). |
+
+### 실측 기록 (2026-10-01): 설정 경계·서버/클라이언트 진입점·저장소 백엔드·rate-limit 어댑터
+
+측정 위치는 `refactor/pms-spec-sprint2-4` 브랜치 워크트리(`withwiz-cms-kit/.worktrees/pms-spec-sprint2-4`, develop `bd68728`(0.4.0) 에서 분기)이고, 최종 수치는 커밋 `81c3076` 기준이다. 환경은 Node.js 24.21.0, npm 11.19.0, TypeScript 6.0.3, Vitest 4.1.11, tsup 8.5.1 이다. 버전은 0.4.0 그대로이고 게시하지 않았다. 병합과 릴리즈는 별도로 결정한다.
+
+변경 내역은 다음과 같다.
+
+| 커밋 | 변경 | 테스트 영향 | 이 문서 반영 |
+|------|------|-----------|------------|
+| `28fd055` | 환경변수를 `src/config/index.ts` 에서만 읽고 JWT·storage·rate-limit·prisma 네 자원을 설정 경계로 주입한다. `storage.r2.endpoint` 추가. rate-limit 어댑터를 import 시점이 아니라 래퍼가 만든 핸들러의 첫 요청에서 설치한다(`ensureRateLimitAdapter`, `rateLimit.limits`·`rateLimiters`·`manageAdapter`). `./infrastructure` 가 `setPrismaClient`·`getPrisma`·`ensureRateLimitAdapter` 를 내보낸다 | 신규 `tests/resource-lifecycle.test.ts`, `tests/rate-limit-adapter.test.ts`. `tests/integration/middleware-wrappers.test.ts` 의 CMS-MW-01~05 를 실제 모듈 경유로 교체 (6건 유지) | SC/TC-U-028·I-005 추가, TC-I-003 ✅ 전환, TC-L-002 전제조건 |
+| `35984b1` | 설정 저장소를 모듈 변수에서 `globalThis` 의 심볼 키(`Symbol.for('@withwiz/cms-kit/config-store')`)로 옮겨, 다른 번들 범위(모듈 인스턴스)에서 주입한 설정이 보이게 한다 | `resource-lifecycle.test.ts` 에 CMS-LC-14·15 | TC-U-028, TC-SM-007 비고 |
+| `94d26bc` | `./utils/client`(브라우저)·`./utils/server`(서버) 서브패스 추가. `./utils` 배럴은 유지한다 | 신규 `tests/import-boundary.test.ts`, `tests/smoke/client-directive.test.ts`. `tests/smoke/pure-node-esm.test.ts` 의 Next.js 앱 전용 목록에 `./utils/server` 추가 (4건 유지) | SC/TC-SM-008·SM-009 추가, TC-SM-004·SM-006 갱신 |
+| `927a232` | `storage.backend` 주입과 `@aws-sdk/client-s3` 지연 로드. `uploadImageWithVariants()` 가 `variantStatus`·`failedVariants` 를 돌려준다. 변형 키 형식을 `buildVariantKey()`(`src/utils/variant-path.ts`)로, 정렬 필드 검증을 `src/utils/sort.ts` 로 단일화했다. prisma 타입 등록(`CmsPrismaRegistry`). AdminManagerBase 저장 요청에서 `getAuthHeaders()` 를 뺐다 | 신규 `tests/storage-backend.test.ts`, `tests/single-source.test.ts`, `tests/admin-manager-cookie-auth.dom.test.tsx`, `tests/smoke/public-types.test.ts`(+ `tests/fixtures/types/*`). `tests/exports-superset.test.ts` 의 CMS-EXP-CONFIG 이름 목록에 4개 추가 (11건 유지) | SC/TC-U-029·U-030·U-031·SM-010 추가, TC-C-001 ✅ 전환, TC-SM-007·U-020·I-004 갱신 |
+| `4382db3` | tiptap 을 optional peer 로 옮기고 peer 하한을 devDependency 버전에 맞췄다 | 신규 `tests/packaging.test.ts` | SC/TC-SM-011 추가, 개요 환경 |
+| `2747241` | AdminShell 을 `src/components/admin-shell/` 의 `useAdminAuthGate`·`useSidebarLayout`·`AdminSidebarBrand`·`AdminSidebarNav`·`AdminLogoutButton` 으로 나눴다. 드래그 중 언마운트 시 문서 리스너와 커서 스타일을 정리한다 | 신규 `tests/admin-shell-behavior.dom.test.tsx` | TC-U-022 ✅ 전환, TC-U-017·AC-004·AC-006 행 번호 |
+| `8ee1c0d` | 문서 반영. 제한이 꺼져 있으면 in-memory limiter 한계를 경고하지 않는다 | `rate-limit-adapter.test.ts` 의 CMS-RLA-10 조건 변경, CMS-RLA-12 추가 | TC-I-005 |
+| `df673fc` | 어댑터 설치 여부를 모듈 변수 대신 전역 어댑터에 기록한 설정 버전으로 판단해, 여러 번들 범위가 어댑터를 번갈아 다시 만들지 않게 한다 | CMS-RLA-09 를 여러 번들 범위 공유 검사로 교체 (12건 유지) | TC-I-005 |
+| `81c3076` | `storage.r2.region`(기본 `auto`) 추가, 주입한 endpoint 에 `forcePathStyle: true` 적용, 비밀 키·region 이 바뀌면 S3 클라이언트를 다시 만든다 | `resource-lifecycle.test.ts` 에 CMS-LC-07 추가, CMS-LC-03·05 가 `region`·`forcePathStyle` 도 확인 | TC-U-028 |
+
+| 항목 | 결과 |
+|------|------|
+| 최종 (`npm test`, 커밋 `81c3076`) | **50개 파일, 559건 통과, 실패 0건, 스킵 0건** (`npx vitest list` 수집 건수도 50개 파일 559건이다) |
+| 타입 검사·빌드 | `npx tsc --noEmit` 오류 0건, `npm run build` 성공 (ESM·CJS·타입 선언) |
+| 도메인별 수치 | 파일별 수집 건수를 이 문서의 도메인 배정으로 나눈 값은 Unit 27개 파일 219건, Integration 4개 파일 29건, API 4개 파일 32건, Security 5개 파일 210건, Accessibility 2개 파일 19건, Smoke 8개 파일 44건, Chaos 6건(`storage-backend.test.ts` 를 Unit 과 공유)이다 (합계 50개 파일 559건). 도메인별 명령으로 다시 실행하지는 않았다 |
+| 이전 실측과 비교 | 40개 파일 474건 → 50개 파일 559건 (+85건). 늘어난 10개 파일은 `resource-lifecycle`(13), `rate-limit-adapter`(12), `import-boundary`(11), `smoke/client-directive`(4), `smoke/public-types`(1), `storage-backend`(11), `single-source`(15), `admin-manager-cookie-auth.dom`(1), `packaging`(6), `admin-shell-behavior.dom`(11)이다. 기존 40개 파일의 파일별 테스트 수는 바뀌지 않았다 (`integration/middleware-wrappers` 6건, `exports-superset` 11건, `smoke/pure-node-esm` 4건은 내용만 바뀌었다) |
+| 회귀 확인 | CMS-AMC-01 은 수정 전 AdminManagerBase(저장 요청 헤더에 `getAuthHeaders()` 를 펼치는 코드)에서 실행하면 실패하고, 수정 후 통과한다. CMS-ASB-01~09 는 분해 전 AdminShell(develop 의 단일 `src/components/AdminShell.tsx`)에서도 통과해, 분해 후 동작이 같음을 보인다. CMS-ASB-20(구조 분해 검사)은 분해 후에만 통과한다. CMS-ASB-10(드래그 중 언마운트 정리)은 분해하면서 추가한 동작을 검증한다 |
+| dist 의존 | CMS-UC-01~04 와 CMS-TY-01 은 `dist/` 가 없으면 `describe.skipIf` 로 건너뛴다. `smoke/pure-node-esm.test.ts` 처럼 먼저 빌드하지 않으므로, 최신 dist 에서 실행해야 의미가 있다 |
 
 ### 실측 기록 (2026-09-17): `@withwiz/toolkit` peer 하한
+
+> 2026-10-01 에 peer 하한을 devDependency 와 같은 `>=0.15.0` 으로 올렸다 (TC-SM-011 의 CMS-PKG-03). 아래는 당시 기록이다.
 
 `peerDependencies` 는 `@withwiz/toolkit` 을 `>=0.7.1` 로 선언했지만 검증은 devDependency 0.15.0 에서만 했다. cms-kit 소스는 toolkit 서브패스 5개(`core/auth/jwt`, `core/logger/logger`, `next/middleware/rate-limit`, `next/middleware/types`, `next/middleware/wrappers`)를 import 하고, 게시된 11개 버전은 모두 이 서브패스를 같은 파일 경로로 export 한다. 측정 위치는 `fix/residual-defects` 브랜치 워크트리(커밋 `aa96df1`)이고, 확인용 스크립트와 로그는 저장소 밖에 두었다.
 
@@ -227,16 +256,21 @@ Next.js 와 무관한 코드가 실패하는 경우는 다음과 같다. 동작�
 | SC-U-019 | AdminManagerBase 항목 선택·초기 진입·탭 전환 | Unit | High | 🔲 계획 |
 | SC-U-020 | AdminManagerBase 저장 | Unit | Critical | 🔲 계획 |
 | SC-U-021 | AdminManagerBase 삭제 | Unit | Critical | 🔲 계획 |
-| SC-U-022 | AdminShell 인증 확인과 사이드바 상태 | Unit | High | 🔲 계획 |
+| SC-U-022 | AdminShell 인증 확인과 사이드바 상태 | Unit | High | ✅ 완료 |
 | SC-U-023 | ResizableImage 노드 스키마와 명령 | Unit | Medium | 🔲 계획 |
 | SC-U-024 | ResizableImage 노드 뷰 리사이즈·정렬 | Unit | Medium | 🔲 계획 |
 | SC-U-025 | 이미지 드롭존 훅 드래그·오류 경로 | Unit | High | 🔲 계획 |
 | SC-U-026 | 캔버스 기반 이미지 리사이즈 경로 | Unit | Medium | 🔲 계획 |
 | SC-U-027 | 변형 URL·키 계산 경계 입력 | Unit | Low | ✅ 완료 |
+| SC-U-028 | 자원 수명주기와 환경변수 경계 (JWT·storage·rate-limit·prisma 주입, import 무예외, 번들 범위 간 설정 공유) | Unit | Critical | ✅ 완료 |
+| SC-U-029 | 같은 규칙의 단일 구현 (변형 키·정렬 파라미터) | Unit | Medium | ✅ 완료 |
+| SC-U-030 | AdminManagerBase 저장의 쿠키 인증 (`getAuthHeaders` 미사용) | Unit | High | ✅ 완료 |
+| SC-U-031 | 저장소 백엔드 주입과 `@aws-sdk/client-s3` 지연 로드 | Unit | High | ✅ 완료 |
 | SC-I-001 | Prisma 주입 후 Proxy 위임 흐름 | Integration | High | ✅ 완료 |
 | SC-I-002 | R2 키 수집 후 삭제 파이프라인 | Integration | High | ✅ 완료 |
-| SC-I-003 | 미들웨어 rate-limit 어댑터 | Integration | High | ⚠️ 교체 필요 |
+| SC-I-003 | 미들웨어 rate-limit 어댑터 | Integration | High | ✅ 완료 |
 | SC-I-004 | 원본·변형 이미지 업로드 파이프라인 (sharp 실제 실행) | Integration | Medium | 🔲 계획 |
+| SC-I-005 | rate-limit 어댑터 지연 설치와 주입 경계 | Integration | High | ✅ 완료 |
 | SC-A-001 | API 응답 봉투 (`NextApiResponse`) | API | High | ✅ 완료 |
 | SC-A-002 | 요청 검증 헬퍼 | API | High | ✅ 완료 |
 | SC-A-003 | 라우트 파라미터 추출 | API | Low | ✅ 완료 |
@@ -271,7 +305,11 @@ Next.js 와 무관한 코드가 실패하는 경우는 다음과 같다. 동작�
 | SC-SM-005 | 새로 받은 체크아웃에서 스위트 실행 | Smoke | Critical | ✅ 완료 |
 | SC-SM-006 | 순수 Node ESM 에서 import 되는 서브패스 범위 유지 | Smoke | High | ✅ 완료 |
 | SC-SM-007 | 설정 API 서브패스(`./config`)의 순수 Node 동작과 `./utils` 와의 설정 저장소 공유 | Smoke | High | ✅ 완료 |
-| SC-C-001 | 변형 이미지 업로드 부분 실패 격리 | Chaos | Low | 🔲 계획 |
+| SC-SM-008 | 서버/클라이언트 import 경계 (`./utils/client`·`./utils/server`) | Smoke | High | ✅ 완료 |
+| SC-SM-009 | 빌드 산출물의 `"use client"` 지시문과 클라이언트 진입점 의존 범위 | Smoke | High | ✅ 완료 |
+| SC-SM-010 | 공개 타입 계약 (prisma 타입 등록, 래퍼 핸들러 타입) | Smoke | Medium | ✅ 완료 |
+| SC-SM-011 | 의존성 선언 (tiptap optional peer, peer 하한) | Smoke | High | ✅ 완료 |
+| SC-C-001 | 변형 이미지 업로드 부분 실패 격리 | Chaos | Low | ✅ 완료 |
 | SC-C-002 | R2 일괄 삭제 부분 실패 격리 | Chaos | Low | 🔲 계획 |
 | SC-C-003 | DOMPurify 로드 실패 시 정규식 대체 경로 | Chaos | Low | 🔲 계획 |
 
@@ -281,7 +319,7 @@ Next.js 와 무관한 코드가 실패하는 경우는 다음과 같다. 동작�
 
 **목적:** 유틸 함수, 훅, 컴포넌트를 모듈 단위로 검증한다. 외부 의존성(S3, sharp, Next.js 모듈, `adminFetch`)은 `vi.mock` 으로 대체한다.
 
-**실행 명령:** 도메인별 스크립트가 없으므로 파일 경로를 지정해 실행한다 (갭 13).
+**실행 명령:** 도메인별 스크립트가 없으므로 파일 경로를 지정해 실행한다 (우선순위 갭 10).
 
 ```bash
 npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts tests/base-service.test.ts \
@@ -290,8 +328,12 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
   tests/r2-storage.test.ts tests/image-resize.dom.test.ts tests/useAdminForm.dom.test.ts \
   tests/useAdminList.dom.test.ts tests/useImageDropZone.dom.test.ts tests/useScrollReveal.dom.test.ts \
   tests/ToggleSwitch.dom.test.tsx tests/ImageDropUpload.dom.test.tsx tests/JsonLd.dom.test.tsx \
-  tests/admin-shell-config.dom.test.tsx tests/variant-key-edge.test.ts
+  tests/admin-shell-config.dom.test.tsx tests/variant-key-edge.test.ts \
+  tests/admin-shell-behavior.dom.test.tsx tests/resource-lifecycle.test.ts tests/single-source.test.ts \
+  tests/admin-manager-cookie-auth.dom.test.tsx tests/storage-backend.test.ts
 ```
+
+`tests/storage-backend.test.ts` 는 11건을 모두 실행한다. 그중 CMS-SB-01~05(5건)는 Unit(TC-U-031), CMS-SB-10~15(6건)는 Chaos(TC-C-001)로 센다.
 
 ---
 
@@ -359,6 +401,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 6 | `parseSortParam('title_invalid', ...)`, 상수 확인 | `order: 'desc'`, `DEFAULT_PAGE === 1`, `DEFAULT_LIMIT === 20` |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 13개 (현재: pagination 7, base-service 6)
+- **비고:** 2026-10-01 부터 `parseSortParam()` 은 `src/utils/sort.ts`(`exports` 에 없는 내부 모듈)의 `splitSortParam()`·`pickAllowed()` 로 구현되어 방향을 마지막 `_` 뒤에서 읽는다. 밑줄이 있는 필드(`sort_order_asc`)의 해석과 `parseSortKey()` 와의 일치는 TC-U-029 가 검증한다. 4~6번 단계의 결과는 바뀌지 않았다.
 
 ---
 
@@ -404,7 +447,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 7 | `metadata.width` 500 / 3000 으로 변형 생성 | 500: `lg`·`md` 미포함, `thumb` 포함. 3000: 모든 key 가 `news/photo-{size}.webp`, `contentType` 이 `'image/webp'` |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 12개 (현재: image-variant-utils 7, image-variants 5)
-- **비고:** CMS-IMV-03 주석에는 "sm(480) 스킵"과 "포함"이 함께 적혀 있다. 소스 29행(`maxWidth >= originalWidth && size !== 'thumb'`) 기준으로 폭 500 에서는 `sm` 이 생성되지만, 테스트는 `sm` 을 단언하지 않는다. CMS-IV-07 은 2026-09-15 판까지 `toContain('-thumb.webp')` 만 확인해 쿼리 문자열이 사라지는 결함 동작도 통과시켰다. 2026-09-16 커밋 `d59774c` 에서 결함을 고치면서 쿼리 유지 결과를 정확히 단언하도록 바꿨다 (경계 입력과 결함 이력은 TC-U-027).
+- **비고:** CMS-IMV-03 주석에는 "sm(480) 스킵"과 "포함"이 함께 적혀 있다. 소스 30행(`maxWidth >= originalWidth && size !== 'thumb'`) 기준으로 폭 500 에서는 `sm` 이 생성되지만, 테스트는 `sm` 을 단언하지 않는다. CMS-IV-07 은 2026-09-15 판까지 `toContain('-thumb.webp')` 만 확인해 쿼리 문자열이 사라지는 결함 동작도 통과시켰다. 2026-09-16 커밋 `d59774c` 에서 결함을 고치면서 쿼리 유지 결과를 정확히 단언하도록 바꿨다 (경계 입력과 결함 이력은 TC-U-027).
 
 ---
 
@@ -448,7 +491,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 
 - **자동화:** 가능 ✅ | **테스트 수:** 3개 (현재)
 - **관련:** 3~4번 단계는 서명 비밀 최소 길이 정책으로, Security 도메인과 관련된다.
-- **비고:** 커밋 `fae6543` 이후 `CmsJwtConfig.algorithm` 은 `HS256`·`HS384`·`HS512` 유니온 타입이다. 제한은 타입 수준뿐이며 `resolveJwtConfig()` 는 값을 검사하지 않고 그대로 반환한다(`src/config/index.ts` 309행). Vitest 는 타입 검사를 하지 않으므로 이 타입 회귀는 `npm run build`(tsup `dts: true`)에서만 드러난다.
+- **비고:** 커밋 `fae6543` 이후 `CmsJwtConfig.algorithm` 은 `HS256`·`HS384`·`HS512` 유니온 타입이다. 제한은 타입 수준뿐이며 `resolveJwtConfig()` 는 값을 검사하지 않고 그대로 반환한다(`src/config/index.ts` 442행). Vitest 는 타입 검사를 하지 않으므로 이 타입 회귀는 `npm run build`(tsup `dts: true`)에서만 드러난다.
 
 ---
 
@@ -504,7 +547,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | **파일** | `tests/r2-storage.test.ts` |
 | **대상** | `src/utils/r2-storage.ts`: `isR2Enabled()`, `uploadToR2()`, `deleteFromR2()`, `uploadImageWithVariants()` |
 | **우선순위** | High |
-| **전제조건** | `@aws-sdk/client-s3`(S3Client 생성 인자와 `send` 인자 기록), `utils/image-variants`(thumb 1개 반환), toolkit logger 를 mock 한다. 각 테스트 전에 `vi.resetModules()`, `R2_*` 환경변수 설정, `resetCmsConfig()` 를 수행한다 |
+| **전제조건** | `@aws-sdk/client-s3`(S3Client 생성 인자와 `send` 인자 기록), `utils/image-variants`(thumb 1개 반환), toolkit logger 를 mock 한다. 각 테스트 전에 `vi.resetModules()`, `R2_*` 환경변수 설정, `resetCmsConfig()` 를 수행한다. 2026-10-01 부터 소스는 `@aws-sdk/client-s3` 를 첫 업로드·삭제에서 동적 import 하며, `vi.mock` 은 이 동적 import 에도 적용된다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
@@ -516,7 +559,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 6 | `R2_PUBLIC_URL` 없음 | `url: 'https://test-bucket.r2.dev/news/x.jpg'` |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 13개 (현재)
-- **비고:** CMS-RS-07 은 `variantKeys.length >= 0` 만 단언하므로 항상 참이다 (TC-I-004 에서 보완).
+- **비고:** CMS-RS-07 은 `variantKeys.length >= 0` 만 단언하므로 항상 참이다 (TC-I-004 에서 보완). 변형 업로드 결과 상태(`variantStatus`·`failedVariants`)는 TC-C-001, 저장소 백엔드 주입은 TC-U-031, endpoint·region 주입은 TC-U-028 이 검증한다.
 
 ---
 
@@ -657,7 +700,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/admin-shell-config.dom.test.tsx` |
-| **대상** | `src/components/AdminShell.tsx`: 브랜드·내비게이션 해석 (69~80행) |
+| **대상** | `src/components/AdminShell.tsx`: 브랜드·내비게이션 해석 (68~79행) / `src/components/admin-shell/AdminSidebarBrand.tsx`(13~20행), `AdminSidebarNav.tsx`(34~51행) 렌더링 |
 | **우선순위** | High |
 | **전제조건** | `next/navigation`, `next/link`, `next/dynamic`, `utils/admin-fetch` 를 mock 하고 `/me` 응답을 성공으로 지정한다. `console.warn` 을 spy 한다 |
 
@@ -678,9 +721,9 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/AdminManagerBase.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminManagerBase.tsx`: `useAdminList` 연결(42~48행), `filteredItems`·`publishedItems`(92~100행), 목록 패널(302~366행) |
+| **대상** | `src/components/AdminManagerBase.tsx`: `useAdminList` 연결(42~48행), `filteredItems`·`publishedItems`(92~100행), 목록 패널(303~367행) |
 | **우선순위** | High |
-| **전제조건** | `@withwiz/cms-kit/utils/admin-fetch`(`adminFetch`, `getAuthHeaders`), `sonner`(`toast.error`, `toast.success`), `@tanstack/react-virtual`(모든 인덱스를 반환하는 스텁)을 mock 한다. jsdom 은 `offsetHeight` 가 0이므로 실제 가상화기는 행을 렌더링하지 않는다 (virtual-core `calculateRange` 는 `outerSize > 0` 일 때만 범위를 계산한다) |
+| **전제조건** | `@withwiz/cms-kit/utils/admin-fetch`(`adminFetch`), `sonner`(`toast.error`, `toast.success`), `@tanstack/react-virtual`(모든 인덱스를 반환하는 스텁)을 mock 한다. jsdom 은 `offsetHeight` 가 0이므로 실제 가상화기는 행을 렌더링하지 않는다 (virtual-core `calculateRange` 는 `outerSize > 0` 일 때만 범위를 계산한다) |
 | **테스트 데이터** | `initialItems` 3개(`{ id: '1', title: 'Alpha', published: true }` 등), 렌더 슬롯을 단순 버튼으로 구성한 `config` 픽스처, `apiPath: '/api/items'`, `defaultSortKey: 'createdAt'` |
 
 | # | 단계 | 예상 결과 |
@@ -702,7 +745,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/AdminManagerBase.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminManagerBase.tsx`: 초기 effect(81~90행), `selectItem`(102~118행), `useImperativeHandle`(121행), 탭 선택 `selectTab`(202~205행), 탭·미리보기 전환 마크업(260~297행) |
+| **대상** | `src/components/AdminManagerBase.tsx`: 초기 effect(81~90행), `selectItem`(102~118행), `useImperativeHandle`(121행), 탭 선택 `selectTab`(203~206행), 탭·미리보기 전환 마크업(261~298행) |
 | **우선순위** | High |
 | **전제조건** | TC-U-018 과 같은 mock 구성 |
 
@@ -726,9 +769,9 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/AdminManagerBase.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminManagerBase.tsx`: `handleSave`(128~165행) |
+| **대상** | `src/components/AdminManagerBase.tsx`: `handleSave`(128~166행) |
 | **우선순위** | Critical |
-| **전제조건** | TC-U-018 과 같은 mock 구성. `getAuthHeaders` mock 은 `{}` 를 반환한다 |
+| **전제조건** | TC-U-018 과 같은 mock 구성. 2026-10-01 부터 `handleSave` 는 `getAuthHeaders()` 를 쓰지 않고 헤더에 `Content-Type` 만 지정하므로(인증은 `adminFetch` 가 붙이는 쿠키), `getAuthHeaders` 는 mock 하지 않아도 된다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
@@ -740,6 +783,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 6 | 응답 `{ success: false }` / `adminFetch` reject | `toast.error('저장 실패')` / `toast.error('저장 중 오류 발생')`, 편집 탭 유지 |
 
 - **자동화:** 가능 ✅
+- **비고:** 2026-10-01 에 TC-U-030(CMS-AMC-01)이 2번 단계(신규 저장의 `POST` 요청 URL·헤더·본문)와 4번 단계 중 `toast.success('저장 완료')` 만 검증하게 되었다. CMS-AMC-01 은 `getAuthHeaders` 를 사용하지 않는다는 것을 확인하는 회귀 테스트이며 `buildSavePayload` 두 번째 인자, 수정 저장(3번), 저장 중 상태(5번), 실패 경로(6번), 저장 후 재조회·탭 전환·콜백(4번 나머지)은 다루지 않으므로 이 TC 는 계획으로 둔다.
 
 ---
 
@@ -748,7 +792,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/AdminManagerBase.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminManagerBase.tsx`: `handleDelete`(167~188행), 편집 폼 `onDelete`(386행) |
+| **대상** | `src/components/AdminManagerBase.tsx`: `handleDelete`(168~189행), 편집 폼 `onDelete`(387행) |
 | **우선순위** | Critical |
 | **전제조건** | TC-U-018 과 같은 mock 구성. jsdom 의 `window.confirm()` 은 구현되어 있지 않아 `undefined` 를 반환하므로 `vi.spyOn(window, 'confirm')` 으로 반환값을 지정한다 |
 
@@ -766,28 +810,33 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 
 ---
 
-### TC-U-022: AdminShell 인증 확인과 사이드바 상태 🔲 계획
+### TC-U-022: AdminShell 인증 확인과 사이드바 상태
 
 | 항목 | 내용 |
 |------|------|
-| **파일** | `tests/AdminShell.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminShell.tsx`: 인증 확인 effect(121~159행), 로그인 페이지 분기(179~185행), `handleLogout`(187~190행), `toggleSidebar`(192~198행), 너비 조절(161~177행, 200~208행) |
+| **파일** | `tests/admin-shell-behavior.dom.test.tsx` |
+| **대상** | `src/components/AdminShell.tsx`: 로그인 페이지 판정·분기(81행, 98~100행), 인증 확인 중 표시(102~104행), 레이아웃·모바일 메뉴·접기 버튼 마크업(106~173행) / `src/components/admin-shell/useAdminAuthGate.ts`: 인증 확인 effect(35~74행) / `useSidebarLayout.ts`: 저장값 읽기(15~27행), 너비 조절 `handleMouseMove`·`handleMouseUp`(32~48행), 언마운트 정리(50~60행), `toggleCollapsed`(62~68행), `startResize`(70~78행) / `AdminLogoutButton.tsx`: `handleLogout`(15~18행) |
 | **우선순위** | High |
-| **전제조건** | `next/navigation`(`usePathname` 반환값 제어, `useRouter().replace` spy), `next/link`, `next/dynamic`, `utils/admin-fetch` 를 mock 한다. 로그아웃은 전역 `fetch` 를 spy 한다. 각 테스트 전에 `localStorage.clear()`, `resetCmsConfig()` 를 호출한다 |
-| **테스트 데이터** | 기본 경로 `loginPath: '/admin/login'`, `meEndpoint: '/api/admin/auth/me'`, `logoutEndpoint: '/api/admin/auth/logout'` (`src/config/index.ts` 151~161행) |
+| **전제조건** | `next/navigation`(`usePathname` 반환값을 `vi.hoisted` 상태로 제어, `useRouter().replace` spy), `next/link`(나머지 props 를 넘기는 `<a>`), `next/dynamic`, `utils/admin-fetch` 를 mock 한다. 로그아웃은 `vi.stubGlobal('fetch', …)` 로 대체한다. 각 테스트 전에 `resetCmsConfig()`, `localStorage.clear()` 를 호출하고 `/me` 성공 응답을 지정한다 |
+| **테스트 데이터** | `brandLabel="Site"`, `navItems`: `글` `/admin/posts` (`P`), `설정` `/admin/settings` (`S`). 기본 경로 `loginPath: '/admin/login'`, `meEndpoint: '/api/admin/auth/me'` (`src/config/index.ts` 222~232행) |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | `usePathname()` 이 `'/admin/login'` | children 만 렌더링, `adminFetch` 미호출 |
-| 2 | `/me` 응답 대기 중 | `'인증 확인 중...'` 표시 |
-| 3 | `/me` 응답 `ok: false` / `adminFetch` reject | `router.replace('/admin/login')` |
-| 4 | `/me` 응답 `{ success: true, data: { user: { email: 'a@b.c', ... } } }` | `.admin-sidebar-user` 텍스트 `'a@b.c'` |
-| 5 | 로그아웃 버튼 클릭 | `fetch('/api/admin/auth/logout', { method: 'POST', credentials: 'same-origin' })` 후 `router.replace('/admin/login')` |
-| 6 | 사이드바 접기 버튼 클릭 | 루트에 `admin-sidebar-collapsed`, `localStorage['admin_sidebar_collapsed'] === 'true'`, nav 링크 텍스트가 `glyph` 로 바뀐다 |
-| 7 | `.admin-sidebar-resize` mousedown → document mousemove `clientX: 500` → mouseup | 사이드바 `width` 400 (최대값 제한), `localStorage['admin_sidebar_width'] === '400'` |
+| 1 | ASB-01: `/me` 응답 전 렌더링 → 응답 후 | `.admin-auth-loading` 텍스트 `'인증 확인 중...'` → 사용자 이메일 `'admin@example.com'` 과 children 표시, `adminFetch('/api/admin/auth/me')` |
+| 2 | ASB-02: `/me` 응답 `ok: false`, `loginPath="/signin"` | `router.replace('/signin')` |
+| 3 | ASB-03: `adminFetch` reject | `router.replace('/admin/login')` |
+| 4 | ASB-04: `usePathname()` 이 `'/admin/login'` | children 만 렌더링, `.admin-layout` 없음, `adminFetch` 미호출 |
+| 5 | ASB-05: `logoutEndpoint="/api/bye"`, `loginPath="/signin"` 에서 로그아웃 버튼 클릭 | `fetch('/api/bye', { method: 'POST', credentials: 'same-origin' })` 후 `router.replace('/signin')` |
+| 6 | ASB-06: `'메뉴 접기'` 버튼 클릭 | 루트에 `admin-sidebar-collapsed`, `localStorage['admin_sidebar_collapsed'] === 'true'`, 로고와 사용자 영역이 사라지고 nav 링크 텍스트가 `['P', 'S']`, 로그아웃 버튼 텍스트가 `'✕'` |
+| 7 | ASB-07: `admin_sidebar_width` 에 `'320'` 저장 후 렌더링 / `admin_sidebar_collapsed` 에 `'true'` 추가 저장 후 렌더링 | 사이드바 `width` 와 본문 `marginLeft` 가 `320px` / 접힌 상태로 시작하고 사이드바 `width` 지정 없음 |
+| 8 | ASB-08: `.admin-sidebar-resize` mousedown → mousemove `clientX` 999 → 50 → 260 → mouseup → mousemove 380 | 드래그 중 `admin-resizing` 과 `cursor: col-resize`, 너비가 `400px`(최대) → `200px`(최소) → `260px`, 놓으면 `localStorage['admin_sidebar_width'] === '260'` 이고 표시·커서가 해제되며 이후 mousemove 는 너비를 바꾸지 않는다 |
+| 9 | ASB-09: `'메뉴 열기'` 클릭 → 오버레이 클릭 / 다시 열고 nav 링크 클릭 / 다시 열고 헤더 토글 클릭 | 열림(`admin-sidebar-mobile-open`, 토글 텍스트 `'✕'`) → 닫힘 / 닫힘 / 닫히고 접힘 상태는 바뀌지 않는다 |
+| 10 | ASB-10: 드래그 중 언마운트 | `document.body` 의 `cursor`·`userSelect` 가 비워지고 `mousemove`·`mouseup` 리스너가 해제된다 |
+| 11 | ASB-20: `src/components/AdminShell.tsx` 소스 검사 | `adminFetch`·`localStorage`·`addEventListener`·`fetch(`·`useEffect`·`useState` 가 없고, 하위 단위 5개(`useAdminAuthGate`, `useSidebarLayout`, `AdminSidebarBrand`, `AdminSidebarNav`, `AdminLogoutButton`)를 참조한다 |
 
-- **자동화:** 가능 ✅
-- **비고:** TC-AC-006 의 CMS-ASC-CUR-06 은 `localStorage['admin_sidebar_collapsed']` 를 미리 `'true'` 로 두고 nav 링크 텍스트가 `glyph` 인지 확인한다. 초기값 읽기(85~90행)는 그 테스트가 실행하지만, 6번 단계의 접기 버튼 클릭과 저장(192~198행)은 실행하지 않으므로 이 TC 는 계획으로 둔다.
+- **자동화:** 가능 ✅ | **테스트 수:** 11개 (현재)
+- **회귀 확인 (2026-10-01):** CMS-ASB-01~09 는 분해 전 AdminShell(develop 의 단일 `src/components/AdminShell.tsx`)에서도 통과한다. 분해 전후의 동작이 같다는 근거이다. CMS-ASB-20 은 분해 후에만 통과한다. CMS-ASB-10 은 분해하면서 추가한 정리 동작을 검증한다.
+- **변경 이력:** 2026-09-30 판까지는 파일 이름 `tests/AdminShell.dom.test.tsx`(신규)로 계획한 🔲 TC 였다. 2026-10-01 커밋 `2747241` 에서 AdminShell 을 `src/components/admin-shell/` 하위 단위로 나누면서 `tests/admin-shell-behavior.dom.test.tsx` 로 만들었다. 계획의 7번 단계(`clientX: 500` → 400 제한)는 8번 단계의 최대·최소 제한과 저장으로 대체했다. 접힌 상태의 초기값 읽기는 TC-AC-006 의 CMS-ASC-CUR-06 도 실행한다.
 
 ---
 
@@ -888,7 +937,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/variant-key-edge.test.ts` |
-| **대상** | `src/utils/image-variant-utils.ts`: `URL_AUTHORITY`(13행), `getVariantUrl()`(24~33행) / `src/utils/variant-path.ts`: `stripPathExtension()`(20~23행, `package.json` exports 에 없는 내부 모듈) / `src/utils/r2-helpers.ts`: `getVariantKeys()`(145~148행) / `src/utils/r2-storage.ts`: `uploadImageWithVariants()` 기준 키 계산(165행) |
+| **대상** | `src/utils/image-variant-utils.ts`: `URL_AUTHORITY`(13행), `getVariantUrl()`(24~33행) / `src/utils/variant-path.ts`: `stripPathExtension()`(20~23행, `package.json` exports 에 없는 내부 모듈) / `src/utils/r2-helpers.ts`: `getVariantKeys()`(150~153행) / `src/utils/r2-storage.ts`: `uploadImageWithVariants()` 기준 키 계산(249행) |
 | **우선순위** | Low |
 | **전제조건** | `@aws-sdk/client-s3`, toolkit logger, `utils/image-variants`(`generateImageVariants`)를 `vi.mock` 으로 대체한다. 업로드 케이스는 `R2_*` 환경변수를 설정하고 테스트 전후에 `resetCmsConfig()` 를 호출한다 |
 
@@ -903,7 +952,104 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 
 - **자동화:** 가능 ✅ | **테스트 수:** 24개 (현재: 정적 `it`/`it.each` 호출 7개)
 - **비고:** 쿼리 문자열과 해시는 파일 이름만 바꾼 뒤 그대로 붙이도록 정했다. 캐시 무효화용 `?v=` 같은 값이 변형 URL 에도 그대로 적용되고, URL 의 나머지 부분을 조용히 버리지 않기 위해서이다. 서명 URL 처럼 쿼리가 원본 객체에만 유효한 경우에는 유지하든 버리든 변형 URL 이 유효하지 않으므로, 이 결정으로 달라지는 경우가 없다.
-- **결함 이력:** 2026-09-13·2026-09-15 판에서는 결함 후보를 기록한 🔲 계획 TC 였다. 0.2.2 이하의 `getVariantUrl()`·`getVariantKeys()`·`uploadImageWithVariants()` 는 `/\.[^.]+$/` 를 문자열 전체에 적용했다. 그 결과 `getVariantUrl('https://cdn.r2.dev/images/photo')` 는 `'https://cdn.r2-thumb.webp'`(호스트의 마지막 점 이후를 확장자로 인식), `getVariantUrl('https://cdn.r2.dev/images/photo.jpg?v=1')` 는 쿼리가 사라진 `'https://cdn.r2.dev/images/photo-thumb.webp'` 였고, `getVariantKeys('news.v2/abc')` 는 `'news-lg.webp'` 등을 돌려주었다. 같은 규칙을 쓰는 `uploadImageWithVariants('news.v2/abc', …)` 는 변형을 폴더 밖 `news-*.webp` 로 올렸다. 2026-09-16 커밋 `d59774c` 에서 세 곳이 `stripPathExtension()` 을 쓰도록 고치고 이 TC 의 24건을 추가했다. 수정 전 실행에서 14건이 실패했다. 확장자가 있는 일반 키의 결과는 바뀌지 않았다.
+- **결함 이력:** 2026-09-13·2026-09-15 판에서는 결함 후보를 기록한 🔲 계획 TC 였다. 0.2.2 이하의 `getVariantUrl()`·`getVariantKeys()`·`uploadImageWithVariants()` 는 `/\.[^.]+$/` 를 문자열 전체에 적용했다. 그 결과 `getVariantUrl('https://cdn.r2.dev/images/photo')` 는 `'https://cdn.r2-thumb.webp'`(호스트의 마지막 점 이후를 확장자로 인식), `getVariantUrl('https://cdn.r2.dev/images/photo.jpg?v=1')` 는 쿼리가 사라진 `'https://cdn.r2.dev/images/photo-thumb.webp'` 였고, `getVariantKeys('news.v2/abc')` 는 `'news-lg.webp'` 등을 돌려주었다. 같은 규칙을 쓰는 `uploadImageWithVariants('news.v2/abc', …)` 는 변형을 폴더 밖 `news-*.webp` 로 올렸다. 2026-09-16 커밋 `d59774c` 에서 세 곳이 `stripPathExtension()` 을 쓰도록 고치고 이 TC 의 24건을 추가했다. 수정 전 실행에서 14건이 실패했다. 확장자가 있는 일반 키의 결과는 바뀌지 않았다. 2026-10-01 커밋 `927a232` 에서 세 곳의 `<base>-<size>.webp` 형식도 `buildVariantKey()`(`src/utils/variant-path.ts` 30~32행) 하나로 모았고, 실제 sharp 로 만든 키와의 일치는 TC-U-029 가 검증한다.
+
+---
+
+### TC-U-028: 자원 수명주기와 환경변수 경계
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/resource-lifecycle.test.ts` |
+| **대상** | `src/config/index.ts`: 설정 저장소 `store()`(전역 심볼 키, 266~278행), `getCmsConfigVersion()`, `warnOnceMissingConfig()`, `resolveR2CredentialsConfig()`(`endpoint`·`region`), `resolveRateLimitEnabled()` / `src/utils/r2-storage.ts`: `requireR2Credentials()`·`getClient()`(`forcePathStyle`, 클라이언트 캐시 스냅샷), `buildPublicUrl()` / `src/utils/r2-helpers.ts`: `resolveAllowedBases()` / `src/utils/jwt.ts`: `getJWTManager()` / `src/infrastructure/index.ts`: `setPrismaClient`·`getPrisma`·`ensureRateLimitAdapter` 재export / `package.json` `exports` 의 JS 서브패스 전체 |
+| **우선순위** | Critical |
+| **전제조건** | `@aws-sdk/client-s3` 를 생성 인자를 기록하는 mock 으로 대체한다. 각 테스트 전후에 `vi.resetModules()`, JWT·R2 환경변수 8개와 `RATE_LIMIT_ENABLED` 저장·삭제·복원, 전역 어댑터 키(`__withwiz_rateLimitAdapter__`) 삭제, `resetCmsConfig()` 를 수행한다. CMS-LC-02 는 `@withwiz/toolkit/core/auth/jwt` 를 생성 인자를 기록하는 클래스로 `vi.doMock` 한다 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | LC-01: `src/**` 의 `.ts`·`.tsx` 에서 주석을 뺀 코드의 `process.env` 읽기 검색 (`process.env.NODE_ENV` 제외) | 읽는 파일이 `['config/index.ts']` 하나이다 |
+| 2 | LC-02: 환경변수 없이 `setCmsConfig({ jwt: { secret: 40자, accessTokenExpiry: '15m', refreshTokenExpiry: '30d' } })` 후 `getJWTManager()` | `JWTManager` 생성 인자에 주입 값과 `algorithm: 'HS256'` |
+| 3 | LC-03: `storage.r2.endpoint: 'https://s3.example.com'` 과 `publicBaseUrl` 주입 후 업로드 | S3Client `endpoint` 가 주입 값, `region: 'auto'`, `forcePathStyle: true`, URL 이 `https://media.example.com/posts/a.jpg` 이고 `r2.dev`·`r2.cloudflarestorage.com` 이 없다 |
+| 4 | LC-07: `region: 'ap-northeast-2'` 주입 후 업로드 2회 → `secretAccessKey` 만 바꿔 다시 업로드 | S3Client 생성 1회이고 `region` 이 주입 값 → 비밀 키가 바뀌면 생성 2회 (클라이언트를 다시 만든다) |
+| 5 | LC-04: `endpoint` 만 주입(`publicBaseUrl` 없음, `inlineKeyPrefixes: ['posts/']`) 후 업로드와 본문 키 추출 | URL 이 path-style `https://s3.example.com/b/posts/a.jpg`, 이 URL 의 img 는 `['posts/a.jpg']` 로 추출되고 `https://b.r2.dev/...` 는 `[]` |
+| 6 | LC-05: legacy `R2_*` 환경변수만 설정 | endpoint `https://acct.r2.cloudflarestorage.com`, `region: 'auto'`, `forcePathStyle` 없음, URL `https://bucket.r2.dev/news/a.jpg` (이전 동작 유지) |
+| 7 | LC-06: 추출기 주입 상태에서 `RATE_LIMIT_ENABLED='false'`/삭제, `rateLimit.enabled` true/false 주입 | `false` → `true`, 주입값이 환경변수보다 우선한다 |
+| 8 | LC-10: `@withwiz/cms-kit/infrastructure` 에서 `setPrismaClient(client)` | `getPrisma()` 와 `prisma` Proxy 가 주입한 클라이언트를 쓴다 |
+| 9 | LC-11: storage 미설정 상태의 `uploadToR2()`·`deleteFromR2()` | `isR2Enabled()` 가 `false`, 두 호출 모두 `@withwiz/cms-kit:` 오류로 reject (업로드는 `R2 credentials are missing`), S3Client 생성 0회 |
+| 10 | LC-12: brand·JWT·storage·rate-limit(추출기와 limiter 3종)을 모두 주입하고 prisma 주입, 토큰 발급, 업로드, `ensureRateLimitAdapter()`, `resolveBrandConfig()` 실행 | 모두 동작하고 전역 어댑터의 `api` limiter 가 주입한 것이며 `console.warn` 0회 |
+| 11 | LC-14: 첫 모듈 인스턴스로 `publicBaseUrl` 을 설정한 뒤 `vi.resetModules()` 로 다시 불러온 인스턴스에서 조회 | 두 인스턴스는 다르지만 `resolveStorageConfig().publicBaseUrl` 이 설정 값이고 `getCmsConfigVersion()` 이 같다 |
+| 12 | LC-15: 미설정 상태에서 `resolveBrandConfig()` → 모듈 재로드 → 다시 호출 | `console.warn` 1회 (경고 기록도 전역에 있다) |
+| 13 | LC-13: `exports` 의 CSS 를 뺀 서브패스를 설정·환경변수 없이 하나씩 import | 모두 resolve 한다 (10개 초과) |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 13개 (현재)
+- **관련:** LC-11 과 LC-13 은 TC-U-008 3번 단계(9개 배럴 import 무예외)를 `exports` 전체로 넓힌 검사이다. LC-14·15 는 설정 저장소를 `globalThis` 로 옮긴 커밋 `35984b1` 의 회귀 테스트이다.
+- **비고:** 테스트 이름의 `AC-4.2.x`·`AC-4.3.x` 는 로컬 하네스 `spec.md` 의 항목 번호이다(기존 ID 매핑표 C). LC-13 은 vitest alias(`@withwiz/cms-kit/*` → `src`)로 실행하므로 dist 산출물이 아니라 소스 모듈의 import 부작용을 검사한다.
+
+---
+
+### TC-U-029: 같은 규칙의 단일 구현 (변형 키·정렬 파라미터)
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/single-source.test.ts` |
+| **대상** | `src/utils/variant-path.ts`: `buildVariantKey()`(30~32행) 를 쓰는 `generateImageVariants()`(`image-variants.ts` 37행), `getVariantKeys()`(`r2-helpers.ts` 150~153행), `getVariantUrl()`(`image-variant-utils.ts` 24~33행) / `src/utils/sort.ts`: `pickAllowed()`(12~20행), `splitSortParam()`(27~34행) 을 쓰는 `parseSortKey()`(`api-helpers.ts`), `parseSortParam()`(`services/base-service.ts`) |
+| **우선순위** | Medium |
+| **전제조건** | toolkit logger 를 mock 한다. sharp 는 mock 하지 않고 devDependency sharp 0.35.4 로 폭 2400px JPEG 를 만든다 (네이티브 바이너리 필요) |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | SS-01: 기준 키 `news/abc`, `news.v2/abc`, `a/b/c/d` 로 실제 `generateImageVariants()` 실행 | 변형 크기가 `IMAGE_VARIANT_SIZES` 4종과 같고, 키 목록이 `getVariantKeys('<기준 키>.jpg')` 와 같다 |
+| 2 | SS-02: 1번 변형마다 `getVariantUrl('https://cdn.example.com/news/abc.jpg', size)` | `https://cdn.example.com/<변형 키>` 와 같다 |
+| 3 | SS-10: `sortBy` 값 8종(`'title'`, `'createdAt'`, `'sort_order'`, `'hacked'`, `''`, `'title '`, `'TITLE'`, `'__proto__'`) | `parseSortParam(v, allowed, 'createdAt').field` 가 `parseSortKey()` 결과와 같다 |
+| 4 | SS-11: `sortBy` 없음 | 둘 다 `'createdAt'` |
+| 5 | SS-12: `parseSortParam('sort_order_asc')` / `('sort_order')` | `{ field: 'sort_order', order: 'asc' }` / `order: 'desc'` (방향은 마지막 `_` 뒤에서 읽는다) |
+| 6 | SS-13: `'title_invalid'`, `'title_asc'`, `'hacked_asc'` | `title`·`desc`, `title`·`asc`, `createdAt`·`asc` (이전 구현의 결과 유지) |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 15개 (현재: 정적 `it`/`it.each` 호출 6개. SS-01 3건, SS-10 8건)
+- **비고:** SS-01·SS-02 는 스위트에서 sharp 를 mock 없이 실행하는 유일한 테스트이다 (`image-variants.test.ts` 는 sharp 를 mock 하고, `import-boundary.test.ts` 는 poison 으로 둔다). TC-I-004(원본·변형 업로드 파이프라인)의 sharp 실행 전제는 이 파일로 확인되었지만, 업로드 흐름과 폭별 변형 선택은 여전히 TC-I-004 의 계획으로 남아 있다.
+
+---
+
+### TC-U-030: AdminManagerBase 저장의 쿠키 인증
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/admin-manager-cookie-auth.dom.test.tsx` |
+| **대상** | `src/components/AdminManagerBase.tsx`: `handleSave` 의 요청 헤더(140~145행) |
+| **우선순위** | High |
+| **전제조건** | `@withwiz/cms-kit/utils/admin-fetch` 를 mock 하고 `getAuthHeaders` 는 호출되면 throw 하는 함수로 둔다. `sonner` 의 `toast` 를 mock 한다. `@tanstack/react-virtual` 은 실제 모듈을 쓴다 |
+| **테스트 데이터** | `initialItems=[]`, `emptyForm: { title: 'new' }`, `apiPath: '/api/items'`, 추가·저장 버튼만 렌더링하는 `config` 픽스처 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | AMC-01: 추가 버튼 클릭 후 저장 버튼 클릭 (저장 응답과 재조회 응답 성공) | `getAuthHeaders` 미호출, `toast.error` 미호출, `toast.success('저장 완료')`. 첫 `adminFetch` 가 `'/api/items'`, `method: 'POST'`, `headers: { 'Content-Type': 'application/json' }`, 본문 `{ title: 'new' }` |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 1개 (현재)
+- **회귀 확인 (2026-10-01):** 저장 요청 헤더에 `getAuthHeaders()` 를 펼치던 수정 전 코드에서는 실패하고, 수정 후 통과한다.
+- **관련:** 저장 흐름 전체(수정 저장, 저장 중 상태, 실패 경로, 재조회·탭 전환)는 TC-U-020 의 계획으로 남아 있다. `getAuthHeaders()` 는 호환을 위해 `./utils`·`./utils/client` 에서 계속 공개하며 `{}` 를 돌려준다 (TC-A-004 5번 단계).
+
+---
+
+### TC-U-031: 저장소 백엔드 주입과 `@aws-sdk/client-s3` 지연 로드
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/storage-backend.test.ts` (`describe('storage backend injection (CMS-SB)')`) |
+| **대상** | `src/utils/r2-storage.ts`: `loadS3()`(19~30행), `isR2Enabled()`(147~156행), `backendPublicUrl()`, `uploadToR2()`(183~210행), `deleteFromR2()`(304~321행) / `src/config/index.ts`: `CmsStorageBackend`, `resolveStorageBackend()` |
+| **우선순위** | High |
+| **전제조건** | `@aws-sdk/client-s3` 를 로드되면 throw 하는 poison 모듈로 `vi.mock` 한다. toolkit logger 와 `utils/image-variants` 를 mock 한다. 각 테스트 전에 `vi.resetModules()`, `R2_*` 환경변수 5개 삭제, `resetCmsConfig()` 를 수행한다 |
+| **테스트 데이터** | `put`·`delete`(`vi.fn`)와 `publicUrl(key) => 'mem://<key>'` 를 가진 메모리 백엔드 (`publicUrl` 없는 변형 포함) |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | SB-01: `setCmsConfig({ storage: { backend } })` 후 업로드·삭제 | `isR2Enabled()` 가 `true`, 결과 `{ url: 'mem://posts/a.jpg', key: 'posts/a.jpg', size: 1 }`, 백엔드에 `contentType` 이 저장되고 삭제 후 없다. poison 인 aws-sdk 가 로드되지 않는다 |
+| 2 | SB-02: 백엔드 주입 상태에서 `uploadToR2('../etc/passwd')`, `deleteFromR2('/abs')` | 둘 다 `@withwiz/cms-kit` 오류로 reject, `put`·`delete` 미호출 (키 검증은 백엔드에도 적용된다) |
+| 3 | SB-03: `publicUrl` 없는 백엔드 + `publicBaseUrl: 'https://media.example.com'` | URL 이 `https://media.example.com/posts/a.jpg` |
+| 4 | SB-04: `publicUrl`·`publicBaseUrl` 모두 없음 | `@withwiz/cms-kit: … public URL` 오류로 reject, `put` 미호출 (저장 전에 실패) |
+| 5 | SB-05: 백엔드 없이 `storage.r2` 자격 증명만 주입 | `@withwiz/cms-kit:` 오류로 reject 하고, 메시지에 `@aws-sdk/client-s3` 와 `could not be loaded` 가 있다 |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 5개 (현재. 같은 파일의 CMS-SB-10~15 6건은 TC-C-001 로 센다)
+- **관련:** SB-02 는 TC-S-003 의 키 경로 탈출 차단이 주입 백엔드에도 적용됨을 확인하므로 Security 도메인과 관련된다.
 
 ---
 
@@ -911,7 +1057,7 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 
 **목적:** 설정 경계, 인프라, 유틸 모듈이 함께 동작하는 흐름을 검증한다. 외부 서비스(S3)는 mock 으로 대체한다.
 
-**실행 명령:** `npx vitest run tests/integration`
+**실행 명령:** `npx vitest run tests/integration tests/rate-limit-adapter.test.ts` (TC-I-005 의 파일은 `tests/` 바로 아래에 있다)
 
 ---
 
@@ -958,49 +1104,29 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 
 ---
 
-### TC-I-003: 미들웨어 rate-limit 어댑터 ⚠️ 교체 필요
+### TC-I-003: 미들웨어 rate-limit 어댑터
 
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/integration/middleware-wrappers.test.ts` |
-| **대상 (의도)** | `src/infrastructure/middleware/wrappers.ts`: `createInMemoryLimiter`(14~40행, 비공개), `setRateLimitAdapter` 등록(60~68행), `withPublicApi` 등 재export(72~75행) |
+| **대상** | `src/infrastructure/middleware/wrappers.ts`: `createInMemoryLimiter`(23~49행, 비공개, `prune` 27~32행), `ensureRateLimitAdapter()`(91~140행)가 설치하는 in-memory limiter, `withPublicApi` 등 래퍼(152~169행) / `src/config/index.ts`: `rateLimit.limits` 해석(`resolveRateLimitAdapterConfig()`) |
 | **우선순위** | High |
-| **현재 문제** | CMS-MW-01~05 는 테스트 파일 6~23행에 `createInMemoryLimiter` 를 다시 구현한 복제본을 검증한다. 소스에는 `prune`(`PRUNE_THRESHOLD = 10_000`, 12~23행)이 추가되었지만 복제본에는 없으므로 복제본과 소스가 이미 다르다. 소스를 바꾸거나 삭제해도 5건은 계속 통과한다. CMS-MW-06 은 toolkit 래퍼를 mock 한 상태에서 export 가 함수인지만 확인한다 |
-
-현재 케이스 (기록용):
+| **전제조건** | 테스트 안의 헬퍼 `builtinLimiter(limit, windowMs)` 가 매번 `vi.resetModules()`, 전역 어댑터 키(`__withwiz_rateLimitAdapter__`) 삭제, `resetCmsConfig()` 후 `setCmsConfig({ rateLimit: { limits: { api: { limit, windowMs } } } })` 를 지정하고, 공개 서브패스 `@withwiz/cms-kit/infrastructure/middleware/wrappers` 의 `ensureRateLimitAdapter()` 를 실행한 뒤 전역 어댑터의 `rateLimiters.api` 를 꺼낸다 (in-memory 경고는 `console.warn` spy 로 막는다). toolkit 은 mock 하지 않는다. CMS-MW-06 만 toolkit 래퍼와 `setRateLimitAdapter` 를 `vi.doMock` 한다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | 복제본 limit 3, `check('user-1')` 1회 | `success: true`, `remaining: 2` |
-| 2 | 복제본 limit 2, 3회 호출 | 3번째 `success: false`, `remaining: 0` |
-| 3 | 복제본 100ms 창, 초과 후 150ms 실제 대기 | `success: true`, `remaining: 0` |
-| 4 | 복제본 limit 1, 식별자 2개 | 식별자별 독립 카운팅 |
-| 5 | 복제본 limit 120 | `config.limit === 120` |
-| 6 | toolkit 래퍼 mock 후 wrappers import | `withPublicApi`, `withAdminApi`, `withAuthApi` 가 함수 |
+| 1 | MW-01: limit 3, `check('user-1')` 1회 | `success: true`, `remaining: 2` |
+| 2 | MW-02: limit 2, 3회 호출 | 3번째 `success: false`, `remaining: 0` |
+| 3 | MW-03: 100ms 창, 초과 후 150ms 실제 대기 | `success: true`, `remaining: 0` |
+| 4 | MW-04: limit 1, 식별자 2개 | 식별자별 독립 카운팅 (각각 두 번째 호출만 `success: false`) |
+| 5 | MW-05: limit 120 | `config.limit === 120` |
+| 6 | MW-06: toolkit 래퍼 mock 후 wrappers import | `withPublicApi`, `withAdminApi`, `withAuthApi` 가 함수 |
 
-- **자동화:** 가능 ✅ | **테스트 수:** 6개 (현재, 통과하지만 소스 회귀를 잡지 못한다)
-
-**교체 계획 (공개 API 경유):**
-
-| 항목 | 내용 |
-|------|------|
-| **파일** | `tests/integration/middleware-wrappers.test.ts` (교체) |
-| **전제조건** | `vi.resetModules()` 후 `vi.doMock('@withwiz/toolkit/next/middleware/rate-limit', () => ({ setRateLimitAdapter: captured }))` 로 등록 인자만 가로챈다. 그다음 `package.json` exports 에 있는 공개 서브패스 `@withwiz/cms-kit/infrastructure/middleware/wrappers` 를 import 한다. `vi.useFakeTimers()` 를 사용한다. `tests/setup.ts` 가 `RATE_LIMIT_ENABLED` 를 `'false'` 로 지정하므로(2026-09-15 판까지는 gitignore 대상 `tests-harness/env-setup.ts` 가 지정했다) `delete process.env.RATE_LIMIT_ENABLED` 를 수행한다. `setCmsConfig`, `resetCmsConfig`, `createForwardedIdentityExtractor` 는 공개 서브패스 `@withwiz/cms-kit/utils` 에서 import 하되, wrappers 와 같은 `src/config` 모듈 인스턴스를 쓰도록 `vi.resetModules()` 이후에 동적 import 한다 |
-
-| # | 단계 | 예상 결과 |
-|---|------|---------|
-| 1 | wrappers import | `setRateLimitAdapter` 1회 호출, `rateLimiters` 키 `api`·`auth`·`admin`, `config.limit` 이 각각 120·10·200 |
-| 2 | `rateLimiters.api.check('ip:a')` 120회 | 모두 `success: true`, 120번째 `remaining: 0` |
-| 3 | 121번째 호출 | `success: false`, `remaining: 0`, `resetIn` 이 60000 이하 |
-| 4 | `vi.advanceTimersByTime(60_001)` 후 호출 | `success: true`, `remaining: 119`, `resetIn: 60000` |
-| 5 | `auth.check('ip:a')` 11회, `api.check('ip:b')` 1회 | auth 는 11번째만 `success: false`, `ip:b` 는 `remaining: 119` (limiter·식별자별 독립) |
-| 6 | `extractClientIp(new Headers({ 'x-forwarded-for': 'spoofed, 203.0.113.7' }))` | 미주입 시 `'cms-kit:shared-anon'`, `createForwardedIdentityExtractor({ trustedHops: 1 })` 주입 후 `'203.0.113.7'` |
-| 7 | `await isEnabled('api')` | 미주입 시 `false`, 추출기 주입 후 `true` |
-
-- **자동화:** 가능 ✅
+- **자동화:** 가능 ✅ | **테스트 수:** 6개 (현재)
+- **관련:** 어댑터를 언제 설치하는지(첫 요청), 기본 한도(api 120·auth 10·admin 200), 주입 limiter·추출기, 외부 어댑터 보존, 설정 변경 시 재설치, 여러 번들 범위에서의 공유는 TC-I-005(CMS-RLA)가 검증한다. 추출기 해석과 활성화 여부는 TC-S-004 와 TC-U-028 의 CMS-LC-06 이 검증한다.
 - **prune 검증 한계:** 소스의 `store` 는 외부에서 크기를 관찰할 수 없으므로 `prune` 은 기능 결과(만료 항목 재생성)로만 간접 확인할 수 있다 (TC-L-002). 메모리 상한을 직접 검증하려면 소스에 관찰 지점을 추가하는 결정이 먼저 필요하다.
-- **CMS-MW-06 대체:** toolkit 래퍼를 mock 하지 않고 import 해 `withPublicApi`·`withAdminApi`·`withAuthApi`·`withCustomApi` 가 함수인지 확인한다. 핸들러 호출 결과까지 검증하려면 toolkit 미들웨어 체인 동작을 먼저 확인해야 한다.
-- 교체 후 복제본 `describe` 블록은 삭제 대상이다. 이 문서 작업에서는 테스트 코드를 수정하지 않았다.
+- **비고:** CMS-MW-06 은 여전히 toolkit 래퍼를 mock 한 상태에서 export 가 함수인지만 확인한다. 실제 toolkit 래퍼로 만든 핸들러의 첫 요청 처리는 TC-I-005 의 CMS-RLA-02 가 확인한다(200 응답과 어댑터 설치). MW-03 은 가짜 타이머 대신 150ms 를 실제로 기다린다.
+- **교체 이력:** 2026-09-30 판까지는 ⚠️ 교체 필요였다. CMS-MW-01~05 가 테스트 파일 안에 다시 구현한 `createInMemoryLimiter` 복제본을 검증해, 소스(`prune` 추가 포함)를 바꾸거나 지워도 5건이 통과했다. 당시 교체 계획은 `setRateLimitAdapter` 를 `vi.doMock` 으로 가로채 wrappers import 시점의 등록 인자를 검사하는 방식이었다. 2026-10-01 커밋 `28fd055` 에서 소스가 어댑터를 import 시점이 아니라 첫 요청에서 설치하도록 바뀌어 그 전제가 사라졌다. 같은 커밋에서 복제본을 지우고, 같은 ID 와 단언을 유지한 채 설정 경계(`rateLimit.limits`)와 `ensureRateLimitAdapter()` 로 실제 모듈이 설치한 limiter 를 꺼내 검증하도록 바꿨다. 계획했던 120회·121회·가짜 타이머 단계는 소스의 창 크기를 주입할 수 있게 되어 작은 한도(MW-01~04)로 대신했고, 기본 한도는 CMS-RLA-03 이 확인한다.
 
 ---
 
@@ -1009,20 +1135,52 @@ npx vitest run tests/date.test.ts tests/cn.test.ts tests/pagination.test.ts test
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/integration/image-upload-pipeline.test.ts` (신규) |
-| **대상** | `src/utils/r2-storage.ts`: `uploadImageWithVariants()`(149~206행) + `src/utils/image-variants.ts`: `generateImageVariants()`(15~48행), sharp 실제 실행 |
+| **대상** | `src/utils/r2-storage.ts`: `uploadImageWithVariants()`(229~302행) + `src/utils/image-variants.ts`: `generateImageVariants()`(16~49행), sharp 실제 실행 |
 | **우선순위** | Medium |
 | **전제조건** | `@aws-sdk/client-s3` 를 mock 해 `PutObjectCommand` 인자를 수집한다. devDependency 로 설치된 sharp 0.35.4 네이티브 바이너리가 필요하다. toolkit logger `logError` 를 spy 한다. `R2_*` 환경변수와 `publicBaseUrl: 'https://cdn.test'` 를 지정한다 |
 | **테스트 데이터** | sharp 로 생성한 폭 3000px·500px PNG 버퍼, GIF 버퍼 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | 폭 3000px PNG, key `'news/p.png'` | `PutObjectCommand` 5개 (원본 + lg·md·sm·thumb), `variantKeys` 가 `news/p-{size}.webp` 4개, `variants.lg === 'https://cdn.test/news/p-lg.webp'` |
-| 2 | 폭 500px PNG | 변형은 `sm`·`thumb` 2개 (lg 1920, md 960 은 원본 폭 이상이라 제외, 29행) |
+| 1 | 폭 3000px PNG, key `'news/p.png'` | `PutObjectCommand` 5개 (원본 + lg·md·sm·thumb), `variantKeys` 가 `news/p-{size}.webp` 4개, `variants.lg === 'https://cdn.test/news/p-lg.webp'`, `variantStatus: 'complete'` |
+| 2 | 폭 500px PNG | 변형은 `sm`·`thumb` 2개 (lg 1920, md 960 은 원본 폭 이상이라 제외, 30행) |
 | 3 | 2번 변형 width | `sm` 480, `thumb` 240 (`Math.min(maxWidth, originalWidth)`) |
 | 4 | 각 변형 `PutObjectCommand` 의 `ContentType` | `'image/webp'` |
-| 5 | `contentType: 'image/gif'` | 원본 1회만 업로드, `variantKeys: []`, `logError('[image-variant] No variants generated for news/a.gif')` |
+| 5 | `contentType: 'image/gif'` | 원본 1회만 업로드, `variantKeys: []`, `variantStatus: 'skipped'`, `failedVariants: []`, `logError` 미호출 |
 
 - **자동화:** 가능 ✅ (sharp 네이티브 바이너리 필요)
+- **비고:** 2026-10-01 에 변형 업로드 결과 상태(`variantStatus`·`failedVariants`)가 추가되었다. 상태 판정은 TC-C-001(CMS-SB-10~15)이 `generateImageVariants` mock 과 메모리 백엔드로 검증하고, sharp 로 만든 변형 키 형식은 TC-U-029 가 검증한다. 2026-09-30 판의 5번 단계는 `logError('[image-variant] No variants generated for …')` 를 기대했지만, 현재 코드는 만들 변형이 없으면 `skipped` 로 알리고 로그를 남기지 않는다(변형을 하나도 올리지 못한 `failed` 에서만 `No variants uploaded` 로그를 남긴다, 284행). 이 TC 에는 sharp 실제 실행과 S3 명령 인자 검증이 남아 있어 계획으로 둔다.
+
+---
+
+### TC-I-005: rate-limit 어댑터 지연 설치와 주입 경계
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/rate-limit-adapter.test.ts` |
+| **대상** | `src/infrastructure/middleware/wrappers.ts`: `ensureRateLimitAdapter()`(91~140행), 설치 표지 `CMS_ADAPTER_BRAND`·`cmsKitAdapterVersion()`(66~75행), `withAdapter()`(145~150행) / `src/config/index.ts`: `resolveRateLimitAdapterConfig()`, `DEFAULT_RATE_LIMITS`, `getCmsConfigVersion()`, `warnOnceMissingConfig()` / `@withwiz/toolkit/next/middleware/rate-limit` 의 전역 어댑터 키 `__withwiz_rateLimitAdapter__` |
+| **우선순위** | High |
+| **전제조건** | 각 테스트 전에 `vi.resetModules()`, 전역 어댑터 키 삭제, `resetCmsConfig()` 를 수행하고 `console.warn` 을 spy 한다. toolkit 은 mock 하지 않는다 (CMS-RLA-02 는 실제 `next/server` 의 `NextRequest` 로 요청한다) |
+| **테스트 데이터** | `check`(`vi.fn`)와 `config.limit` 를 가진 가짜 limiter |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | RLA-01: `./infrastructure/middleware/wrappers`, `./infrastructure` import | 전역 어댑터가 없다 (import 만으로는 설치하지 않는다) |
+| 2 | RLA-02: `withPublicApi(handler)` 로 만든 route 에 첫 요청 | 요청 전에는 어댑터가 없고, 응답 200 후 어댑터의 limiter 키가 `admin`·`api`·`auth` |
+| 3 | RLA-03: `ensureRateLimitAdapter()` | 기본 한도 api 120, auth 10, admin 200 |
+| 4 | RLA-04: `limits: { auth: { limit: 3 } }`, `rateLimiters: { api: shared, upload: 한도 5 }` 주입 | `api` 는 주입한 객체 그대로, `upload` 5, `auth` 3, `admin` 200 (주입 limiter 를 in-memory 로 덮지 않는다) |
+| 5 | RLA-05: `identityExtractor: () => 'client-42'` 주입 | 어댑터의 `extractClientIp(new Headers())` 가 `'client-42'` |
+| 6 | RLA-06: toolkit `setRateLimitAdapter(mine)` 로 먼저 설치한 뒤 `ensureRateLimitAdapter()` 2회 | 전역 어댑터가 `mine` 그대로이고, `already installed` 경고가 1회이며 `@withwiz/cms-kit` 를 포함한다 |
+| 7 | RLA-07: `manageAdapter: false` | 설치하지 않는다 |
+| 8 | RLA-08: 설치 → 다시 실행 → `limits.api.limit: 7` 로 설정 변경 후 실행 | 같은 설정에서는 같은 어댑터, 설정이 바뀌면 새 어댑터이고 `api` 한도 7 |
+| 9 | RLA-09: 첫 모듈 인스턴스로 설치 → `vi.resetModules()` 로 다시 불러온 인스턴스와 번갈아 실행 → 설정 변경 후 양쪽 실행 | 같은 설정이면 처음 설치한 어댑터를 모든 인스턴스가 공유하고 `already installed` 경고가 없다. 설정이 바뀌면 한쪽에서 한 번만 다시 설치하고 다른 쪽은 그 어댑터를 그대로 쓴다 |
+| 10 | RLA-10: 추출기와 `enabled: true` 주입 후 2회 실행 | `rateLimiters` 를 포함한 경고가 1회이고 `per process` 를 포함한다 |
+| 11 | RLA-12: 추출기와 `enabled: false` 주입 | 경고 0회, 기본 in-memory `api` 한도 120 |
+| 12 | RLA-11: `api`·`auth`·`admin` limiter 를 모두 주입 | `rateLimiters` 경고가 없다 |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 12개 (현재)
+- **비고:** 테스트 이름의 `AC-4.3.5`·`AC-4.5.5` 는 로컬 하네스 `spec.md` 항목 번호이다. toolkit 은 현재 어댑터를 읽는 공개 API 가 없어 소스와 테스트 모두 전역 키를 직접 읽는다 (소스 52~56행 주석). toolkit 이 이 키 이름을 바꾸면 외부 어댑터 보존(RLA-06)과 여러 번들 범위 공유(RLA-09)가 조용히 깨질 수 있으므로, toolkit 을 올릴 때 이 파일을 함께 실행한다.
+- **변경 이력:** 2026-10-01 커밋 `28fd055` 에서 추가되었다. 커밋 `8ee1c0d` 에서 RLA-10 을 "제한이 켜져 있을 때" 로 좁히고 RLA-12 를 추가했다. 커밋 `df673fc` 에서 설치 여부를 모듈 변수 대신 전역 어댑터에 기록한 설정 버전으로 판단하게 바꾸면서 RLA-09 를 "모듈 재로드 후 다시 설치" 검사에서 "여러 번들 범위가 같은 어댑터를 공유" 검사로 바꿨다.
 
 ---
 
@@ -1203,6 +1361,7 @@ createSanitizer(config)(html)
 - TC-U-007 (CMS-JWT-03): JWT 서명 비밀 누락·32자 미만 거부
 - TC-U-009 (CMS-R2-13~17): 본문 이미지 키 수집 시 외부 호스트 거부
 - TC-U-016 (CMS-JL-02): JSON-LD 스크립트 탈출 방지
+- TC-U-031 (CMS-SB-02): 주입한 저장소 백엔드에도 스토리지 키 경로 탈출 차단 적용
 - TC-SM-002 (CMS-NCL-02~03): 소비자 브랜드·관리자 경로 리터럴 유출 방지 (소비 프로젝트 저장소로 이전(2026-09-28))
 
 ---
@@ -1262,9 +1421,9 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/r2-key-sanitization.test.ts` |
-| **대상** | `src/utils/r2-storage.ts`: `sanitizeStorageKey()`(25~58행) 를 거치는 `uploadToR2()`, `deleteFromR2()` |
+| **대상** | `src/utils/r2-storage.ts`: `sanitizeStorageKey()`(47~80행) 를 거치는 `uploadToR2()`, `deleteFromR2()` |
 | **우선순위** | Critical |
-| **전제조건** | `@aws-sdk/client-s3` mock (생성된 Command 인자 수집), `R2_*` 환경변수 설정 |
+| **전제조건** | `@aws-sdk/client-s3` mock (생성된 Command 인자 수집), `R2_*` 환경변수 설정. 주입 백엔드(`storage.backend`)에 같은 검증이 적용되는지는 TC-U-031 의 CMS-SB-02 가 확인한다 |
 | **테스트 데이터** | `'../../etc/passwd'`, `'/absolute'`, `'a/../../b'`, `'/news/x.jpg'`, `'news/../../secret'` |
 
 | # | 단계 | 예상 결과 |
@@ -1285,7 +1444,7 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/rate-limit-identity.test.ts` |
-| **대상** | `src/config/index.ts`: `resolveClientIdentity()`, `resolveRateLimitEnabled()`(458~485행), `createForwardedIdentityExtractor()`(515~539행) |
+| **대상** | `src/config/index.ts`: `resolveClientIdentity()`(564~570행), `resolveRateLimitEnabled()`(581~608행), `createForwardedIdentityExtractor()`(670~694행) |
 | **우선순위** | Critical |
 | **전제조건** | 각 테스트 전에 `resetCmsConfig()`. 공유 버킷 그룹은 `RATE_LIMIT_ENABLED` 를 삭제하고 `console.warn` 을 spy 한다 |
 
@@ -1308,7 +1467,7 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/r2-key-sanitization-extra.test.ts` (신규) |
-| **대상** | `src/utils/r2-storage.ts`: `sanitizeStorageKey()` 의 빈 값(26행), 백슬래시(37행), 제어문자(42행), `.` 세그먼트(50행) 규칙. 현재 TC-S-003 의 악성 키 5종은 이 규칙들을 실행하지 않는다 |
+| **대상** | `src/utils/r2-storage.ts`: `sanitizeStorageKey()` 의 빈 값(48행), 백슬래시(59행), 제어문자(65행), `.` 세그먼트(72행) 규칙. 현재 TC-S-003 의 악성 키 5종은 이 규칙들을 실행하지 않는다 |
 | **우선순위** | High |
 | **전제조건** | TC-S-003 과 같은 S3 mock 과 환경변수 |
 | **테스트 데이터** | `'news\\x.jpg'`, `'news/x.jpg'`, `''`, `'news/./x.jpg'`, `'news/x.jpg\n'`, `'news/..x.jpg'` |
@@ -1502,7 +1661,7 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/AdminManagerBase.perf.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminManagerBase.tsx`: `useVirtualizer`(241~246행: `estimateSize: 58`, `overscan: 5`), 목록 렌더링(325~356행) |
+| **대상** | `src/components/AdminManagerBase.tsx`: `useVirtualizer`(242~247행: `estimateSize: 58`, `overscan: 5`), 목록 렌더링(326~357행) |
 | **우선순위** | Medium |
 | **전제조건** | `@tanstack/react-virtual` 을 mock 하지 않는다. virtual-core 3.14.0 은 스크롤 컨테이너 크기와 행 크기를 모두 `offsetHeight` 로 측정하므로, `HTMLElement.prototype.offsetHeight` 게터를 스텁해 `.pm-perf-list` 는 580, 나머지 요소는 58을 반환하게 한다. jsdom 29 에는 `ResizeObserver` 가 없어 초기 측정값만 쓰인다. 나머지 mock 은 TC-U-018 과 같다 |
 | **테스트 데이터** | 항목 1,000개 |
@@ -1597,10 +1756,10 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/admin-manager-tabs.dom.test.tsx` |
-| **대상** | `src/components/AdminManagerBase.tsx`: `TAB_ORDER`(29행), 탭 선택·키보드 처리 `selectTab`·`handleTabKeyDown`(192~239행), 페이지 제목 id(255행), 탭 목록 마크업(260~277행), 편집·미리보기 전환 버튼(280~297행), 패널 `role="tabpanel"`(302~307행, 369~374행) |
+| **대상** | `src/components/AdminManagerBase.tsx`: `TAB_ORDER`(29행), 탭 선택·키보드 처리 `selectTab`·`handleTabKeyDown`(193~240행), 페이지 제목 id(256행), 탭 목록 마크업(261~278행), 편집·미리보기 전환 버튼(281~298행), 패널 `role="tabpanel"`(303~308행, 370~375행) |
 | **우선순위** | High |
 | **기준** | WCAG 2.1 SC 2.1.1 (Keyboard), 4.1.2 (Name, Role, Value), WAI-ARIA Authoring Practices Tabs 패턴 (수동 활성화) |
-| **전제조건** | `@withwiz/cms-kit/utils/admin-fetch`(`adminFetch`·`getAuthHeaders`)와 `sonner` 를 `vi.mock` 으로 대체한다. `@tanstack/react-virtual` 은 실제 모듈을 쓴다. 키 입력은 `fireEvent.keyDown` 으로 보내고, 반환값 `false` 로 기본 동작 취소를 확인한다 |
+| **전제조건** | `@withwiz/cms-kit/utils/admin-fetch`(`adminFetch`·`getAuthHeaders`)와 `sonner` 를 `vi.mock` 으로 대체한다 (2026-10-01 부터 AdminManagerBase 는 `getAuthHeaders` 를 import 하지 않으므로 이 mock 은 쓰이지 않는다). `@tanstack/react-virtual` 은 실제 모듈을 쓴다. 키 입력은 `fireEvent.keyDown` 으로 보내고, 반환값 `false` 로 기본 동작 취소를 확인한다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
@@ -1631,7 +1790,7 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/accessibility/AdminShell.a11y.dom.test.tsx` (신규) |
-| **대상** | `src/components/AdminShell.tsx`: 렌더링(210~287행) |
+| **대상** | `src/components/AdminShell.tsx`: 렌더링(98~173행) / `src/components/admin-shell/AdminSidebarBrand.tsx`(13~20행), `AdminSidebarNav.tsx`(34~51행), `AdminLogoutButton.tsx`(20~24행) |
 | **우선순위** | Medium |
 | **기준** | WCAG 2.1 SC 1.3.1 (Info and Relationships), 2.4.4 (Link Purpose), 4.1.2, 4.1.3 |
 | **전제조건** | TC-U-017 과 같은 mock 구성, `/me` 성공 응답 |
@@ -1646,7 +1805,7 @@ createSanitizer(config)(html)
 | 6 | 브랜드 링크 `target="_blank"` | 새 창 열림 안내 여부를 결정해야 한다 (현재 `title="사이트 보기"` 만 있다) |
 
 - **자동화:** 가능 ✅
-- **비고:** nav 링크의 현재 페이지 상태(`aria-current="page"`)는 0.2.1 에서 추가되었고 TC-AC-006 이 검증한다. 4번 단계(접힌 상태 링크 이름이 `glyph` 1글자)는 0.2.2 에서도 그대로이다(264행).
+- **비고:** nav 링크의 현재 페이지 상태(`aria-current="page"`)는 0.2.1 에서 추가되었고 TC-AC-006 이 검증한다. 4번 단계(접힌 상태 링크 이름이 `glyph` 1글자)는 2026-10-01 분해 후에도 그대로이다(`AdminSidebarNav.tsx` 47행). 3번 단계의 접기 버튼은 `AdminShell.tsx` 130~142행, 5번 단계의 표시는 102~104행에 있다.
 
 ---
 
@@ -1676,7 +1835,7 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/admin-shell-current-page.dom.test.tsx` |
-| **대상** | `src/components/AdminShell.tsx`: `currentNavHref` 계산(109~119행), nav 링크의 `className`·`aria-current`(252~268행) |
+| **대상** | `src/components/admin-shell/AdminSidebarNav.tsx`: `findCurrentNavHref()`(8~19행), nav 링크의 `className`·`aria-current`(36~50행). 2026-09-30 판까지는 `src/components/AdminShell.tsx` 안에 있었다 |
 | **우선순위** | Medium |
 | **기준** | WCAG 2.1 SC 1.3.1 (Info and Relationships): 현재 위치 표시(`active` 클래스)를 `aria-current` 로 보조기술이 판별할 수 있게 한다. 참고: SC 2.4.8 (Location, Level AAA) |
 | **전제조건** | `next/navigation`(`usePathname` 반환값을 `vi.hoisted` 상태로 제어), `next/link`(나머지 props 를 넘기는 `<a>` 로 대체), `next/dynamic`, `utils/admin-fetch`(`/me` 성공 응답)를 mock 한다. 각 테스트 전후에 `resetCmsConfig()`, `localStorage.clear()` 를 호출한다 |
@@ -1733,9 +1892,9 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/load/in-memory-limiter.test.ts` (신규) |
-| **대상** | `src/infrastructure/middleware/wrappers.ts`: `createInMemoryLimiter`(14~40행), `prune`(18~23행) |
+| **대상** | `src/infrastructure/middleware/wrappers.ts`: `createInMemoryLimiter`(23~49행), `prune`(27~32행) |
 | **우선순위** | Low |
-| **전제조건** | TC-I-003 교체 계획과 같은 어댑터 가로채기 방식, `vi.useFakeTimers()` |
+| **전제조건** | TC-I-003 과 같이 `ensureRateLimitAdapter()` 로 설치된 전역 어댑터에서 limiter 를 꺼낸다(기본 한도 api 120). `vi.useFakeTimers()` |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
@@ -1749,11 +1908,11 @@ createSanitizer(config)(html)
 
 ## 9. Smoke Tests (스모크 테스트)
 
-**목적:** 공개 export, 소비자 결합 금지, peer 의존 범위 같은 패키지 계약과 빌드 산출물, 테스트 실행 가능성을 확인한다.
+**목적:** 공개 export, 소비자 결합 금지, peer 의존 범위 같은 패키지 계약과 빌드 산출물, 서버/클라이언트 import 경계, 공개 타입, 테스트 실행 가능성을 확인한다.
 
-**실행 명령:** `npx vitest run tests/exports-superset.test.ts tests/zod-compat.test.ts tests/fresh-checkout.test.ts tests/smoke/pure-node-esm.test.ts`
+**실행 명령:** `npx vitest run tests/exports-superset.test.ts tests/zod-compat.test.ts tests/fresh-checkout.test.ts tests/smoke tests/import-boundary.test.ts tests/packaging.test.ts` (`tests/smoke` 는 `pure-node-esm`·`client-directive`·`public-types` 세 파일이다)
 
-2026-09-15 실측에서는 추적 파일만 있는 체크아웃에서 세 파일 모두 `tests-harness/env-setup.ts` 를 찾지 못해 0건 실행이었고, `env-setup.ts` 만 복사한 상태에서는 `exports-superset.test.ts` 가 기준선 파일을 찾지 못해 2개 파일 7건 통과와 1개 파일 실패였다. 2026-09-16 수정(TC-SM-005) 이후에는 추적 파일만으로 4개 파일 20건이 통과했다. 2026-09-28 에 `tests/no-consumer-literals.test.ts`(TC-SM-002)를 삭제한 뒤에는 3개 파일 17건이 통과했다. 2026-09-29 에 `tests/smoke/pure-node-esm.test.ts`(TC-SM-006)를 추가한 뒤에는 4개 파일 19건이 통과했다. 2026-09-30 에 TC-SM-007 3건(같은 두 파일에 추가)을 더한 뒤에는 4개 파일 22건이 통과한다. TC-SM-006·TC-SM-007 은 dist 를 검사하므로 `dist/` 가 없으면 테스트가 먼저 `npm run build` 를 실행한다.
+2026-09-15 실측에서는 추적 파일만 있는 체크아웃에서 세 파일 모두 `tests-harness/env-setup.ts` 를 찾지 못해 0건 실행이었고, `env-setup.ts` 만 복사한 상태에서는 `exports-superset.test.ts` 가 기준선 파일을 찾지 못해 2개 파일 7건 통과와 1개 파일 실패였다. 2026-09-16 수정(TC-SM-005) 이후에는 추적 파일만으로 4개 파일 20건이 통과했다. 2026-09-28 에 `tests/no-consumer-literals.test.ts`(TC-SM-002)를 삭제한 뒤에는 3개 파일 17건이 통과했다. 2026-09-29 에 `tests/smoke/pure-node-esm.test.ts`(TC-SM-006)를 추가한 뒤에는 4개 파일 19건이 통과했다. 2026-09-30 에 TC-SM-007 3건(같은 두 파일에 추가)을 더한 뒤에는 4개 파일 22건이 통과했다. 2026-10-01 에 TC-SM-008~011 의 4개 파일 22건(`import-boundary` 11, `smoke/client-directive` 4, `smoke/public-types` 1, `packaging` 6)을 더해 8개 파일 44건이 통과한다. TC-SM-006·TC-SM-007 은 dist 를 검사하므로 `dist/` 가 없으면 테스트가 먼저 `npm run build` 를 실행한다. TC-SM-009·TC-SM-010 도 dist 를 검사하지만 빌드하지 않고, `dist/` 가 없으면 `describe.skipIf` 로 건너뛴다. src 를 바꾼 뒤에는 `npm run build` 를 다시 실행하고 Smoke 를 돌린다.
 
 ---
 
@@ -1796,7 +1955,7 @@ createSanitizer(config)(html)
 
 - **자동화:** 이 패키지에서는 없음 | **테스트 수:** 0개 (2026-09-18 판까지 3개)
 - **이전 사유:** 검사할 브랜드 문자열과 소비 프로젝트 관리자 경로를 테스트 파일에 적어야 하므로, 독립 패키지가 소비 프로젝트를 언급하지 않는다는 규칙과 충돌한다. 같은 검사는 설치된 패키지를 대상으로 소비 프로젝트 저장소에서 수행한다.
-- **비고:** `src/config/index.ts` 는 기본 경로를 문자열 조각으로 조립해 3번 검사 대상 리터럴이 생기지 않게 한다 (151~161행). 이 패키지 안에서는 이 규칙을 지키는 테스트가 더 이상 없다.
+- **비고:** `src/config/index.ts` 는 기본 경로를 문자열 조각으로 조립해 3번 검사 대상 리터럴이 생기지 않게 한다 (222~232행). 이 패키지 안에서는 이 규칙을 지키는 테스트가 더 이상 없다.
 
 ---
 
@@ -1826,22 +1985,22 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/smoke/dist-exports.test.ts` (신규) |
-| **대상** | `package.json` `exports` 33개 항목(JS 서브패스 31개 + CSS 2개), `tsup.config.ts` `onSuccess`(89~107행) |
+| **대상** | `package.json` `exports` 36개 항목(JS 서브패스 34개 + CSS 2개), `tsup.config.ts` `onSuccess` |
 | **우선순위** | High |
 | **전제조건** | `npm run build` 선행. `vitest.config.ts` 의 alias 가 `@withwiz/cms-kit/*` 를 항상 `src` 로 연결하므로 dist 검증은 `dist/` 상대 경로로 파일을 읽거나 alias 없는 별도 설정으로 실행해야 한다. toolkit ESM 청크가 `next/server` 를 확장자 없이 import 하므로(vitest.config.ts 주석) 순수 Node ESM 로드는 실패할 수 있어, 타입 선언 기준 검증을 우선한다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | JS 서브패스 32개의 `types`·`import`·`require` 조건 경로 | 모든 파일 존재 |
-| 2 | `tsup.config.ts` `CLIENT_ENTRIES` 9개의 `.js`·`.mjs` | 첫 줄이 `"use client";` |
+| 1 | JS 서브패스 34개의 `types`·`import`·`require` 조건 경로 | 모든 파일 존재 |
+| 2 | `tsup.config.ts` `CLIENT_ENTRIES` 9개의 `.js`·`.mjs` | 첫 줄이 `"use client";` (2026-10-01 에 TC-SM-009 의 CMS-UC-01 이 검사한다) |
 | 3 | `dist/` 와 `dist/components/` | `image-drop-zone.css`, `toggle-switch.css` 존재 |
 | 4 | 9개 배럴의 dist `.d.ts` 를 TypeScript 컴파일러 API 로 읽기 | export 이름 집합이 `src` 배럴과 같다 |
 | 5 | `dist/utils/index.d.ts` | `setCmsConfig`, `resetCmsConfig`, `createForwardedIdentityExtractor`, `DOMPurifyLike` 포함 (설정 API 는 호환을 위해 `./utils` 로도 공개된다. `./config` 의 공개 이름은 TC-SM-007 이 `src` 기준으로 검사한다) |
 
 - **자동화:** 가능 ✅
-- **비고:** 현재 테스트가 import 하는 `@withwiz/cms-kit/*` 경로 39개 중 16개는 `exports` 에 없다 (2026-09-30 에 `config` 가 `exports` 에 들어가 17개에서 줄었다). 그중 9개는 `/index` 표기로 배럴과 같고, 나머지 7개(`components/ImageDropUpload`, `hooks/useAdminForm`, `hooks/useAdminList`, `services/base-service`, `utils/api-response`, `utils/cn`, `utils/image-resize`)는 소비자가 사용할 수 없는 깊은 경로이다.
+- **비고:** 현재 테스트가 import 하는 `@withwiz/cms-kit/*` 경로 중 17개는 `exports` 에 없다 (2026-09-30 에 16개였고, 2026-10-01 에 `tests/import-boundary.test.ts` 가 `config/public` 을 import 해 1개 늘었다). 그중 9개는 `/index` 표기로 배럴과 같고, `config/public` 은 게시되는 `./config` 의 원본 모듈이며, 나머지 7개(`components/ImageDropUpload`, `hooks/useAdminForm`, `hooks/useAdminList`, `services/base-service`, `utils/api-response`, `utils/cn`, `utils/image-resize`)는 소비자가 사용할 수 없는 깊은 경로이다.
 - **실행 검증 참고 (2026-09-17):** toolkit peer 하한 실측(개요 "실측 기록 (2026-09-17)")에서 dist 를 순수 Node 로 불러오면 `next/server` 해석 실패(`ERR_MODULE_NOT_FOUND`)로 CJS 는 미들웨어 래퍼와 배럴을, ESM 은 `utils/index` 를 포함한 대부분의 진입점을 불러오지 못했다. toolkit 이 ESM 전용이어서 CJS dist 의 래퍼도 같은 경로로 실패한다. 이 TC 에 실행 검증을 넣으려면 `next/` 로 시작하는 확장자 없는 지정자만 `.js` 로 다시 해석하는 resolve 훅이 필요하다.
-- **순수 Node ESM 범위 (2026-09-29, 2026-09-30 갱신):** 훅 없이 import 되는 ESM 서브패스 범위(32개 중 23개)는 TC-SM-006 이 dist 로 검사한다. `./config` 와 `./utils` 의 설정 저장소 공유는 TC-SM-007 이 dist 로 검사한다. 이 TC 의 나머지 단계(파일 존재, `"use client"`, CSS 복사, d.ts export 비교)는 여전히 계획이다.
+- **순수 Node ESM 범위 (2026-09-29, 2026-09-30·2026-10-01 갱신):** 훅 없이 import 되는 ESM 서브패스 범위(34개 중 24개)는 TC-SM-006 이 dist 로 검사한다. `./config` 와 `./utils` 의 설정 저장소 공유는 TC-SM-007, `"use client"` 지시문과 클라이언트 진입점의 도달 범위는 TC-SM-009, d.ts 로 본 공개 타입 일부는 TC-SM-010 이 dist 로 검사한다. 이 TC 의 나머지 단계(조건 경로 파일 존재, CSS 복사, d.ts export 이름 비교)는 여전히 계획이다.
 
 ---
 
@@ -1872,21 +2031,21 @@ createSanitizer(config)(html)
 | 항목 | 내용 |
 |------|------|
 | **파일** | `tests/smoke/pure-node-esm.test.ts` |
-| **대상** | `package.json` `exports` 의 JS 서브패스 32개(CSS·와일드카드 제외)와 dist ESM 산출물(`dist/**/*.mjs`) |
+| **대상** | `package.json` `exports` 의 JS 서브패스 34개(CSS·와일드카드 제외)와 dist ESM 산출물(`dist/**/*.mjs`) |
 | **우선순위** | High |
 | **전제조건** | 최신 dist. `dist/index.mjs` 가 없으면 `beforeAll` 이 `npm run build` 를 실행한다(약 5초). src 를 바꾼 뒤에는 `npm run build` 를 다시 실행하고 테스트를 돌린다. vitest 는 자체 해석기와 `@withwiz/cms-kit/*` → `src` alias 를 쓰므로, 검사는 `process.execPath` 로 띄운 별도 `node --input-type=module` 프로세스에서 패키지 자기 이름으로 import 한다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | CMS-ESM-01: `exports` 에서 JS 서브패스를 모으고 Next.js 앱 전용(접두사 규칙 `./infrastructure/middleware` + 명시 목록 `NEXT_APP_ONLY` 7개)을 뺀다 | `./config` 를 포함해 23개 이상 |
+| 1 | CMS-ESM-01: `exports` 에서 JS 서브패스를 모으고 Next.js 앱 전용(접두사 규칙 `./infrastructure/middleware` + 명시 목록 `NEXT_APP_ONLY` 8개)을 뺀다 | `./config` 를 포함해 23개 이상 (2026-10-01 기준 24개이며 `./utils/client` 가 들어 있다) |
 | 2 | CMS-ESM-01: 남은 서브패스를 하나의 node 프로세스에서 차례로 `import()` | 실패 0개 (`{}`) |
 | 3 | CMS-ESM-02: 명시 목록 `NEXT_APP_ONLY` 의 키 | 모두 `exports` 에 있다 |
-| 4 | CMS-ESM-02: Next.js 앱 전용 9개(`.`, `./components`, `./components/AdminShell`, `./components/ToggleSwitch`, `./infrastructure`, `./infrastructure/middleware`, `./infrastructure/middleware/wrappers`, `./utils`, `./utils/api-helpers`)를 같은 방식으로 `import()` | 모두 실패한다 (실패하지 않게 된 서브패스가 0개) |
+| 4 | CMS-ESM-02: Next.js 앱 전용 10개(`.`, `./components`, `./components/AdminShell`, `./components/ToggleSwitch`, `./infrastructure`, `./infrastructure/middleware`, `./infrastructure/middleware/wrappers`, `./utils`, `./utils/api-helpers`, `./utils/server`)를 같은 방식으로 `import()` | 모두 실패한다 (실패하지 않게 된 서브패스가 0개) |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 2개 (현재. 같은 파일의 CMS-ESM-03·04 는 TC-SM-007 로 센다)
-- **대상 선정 규칙:** 새 서브패스는 기본으로 순수 Node ESM 검사 대상이 된다. 2026-09-30 에 추가한 `./config` 도 목록을 고치지 않고 이 규칙으로 들어왔다. 미들웨어 래퍼는 접두사 규칙으로 뺀다. 나머지 7개는 배럴과 개별 모듈이 같은 디렉터리에 섞여 있어(`./utils` 아래 순수 유틸과 `api-helpers`, `./components` 아래 `JsonLd` 와 `AdminShell`) 접두사로 빼면 검사해야 할 서브패스까지 빠지므로, 이유를 주석에 적은 명시 목록으로 뺀다.
+- **대상 선정 규칙:** 새 서브패스는 기본으로 순수 Node ESM 검사 대상이 된다. 2026-09-30 에 추가한 `./config` 와 2026-10-01 에 추가한 `./utils/client` 도 목록을 고치지 않고 이 규칙으로 들어왔다. 같은 날 추가한 `./utils/server` 는 `api-response`·`api-helpers` 를 다시 내보내 `next/server` 를 끌어오므로 명시 목록에 추가했다. 미들웨어 래퍼는 접두사 규칙으로 뺀다. 나머지 8개는 배럴과 개별 모듈이 같은 디렉터리에 섞여 있어(`./utils` 아래 순수 유틸과 `api-helpers`, `./components` 아래 `JsonLd` 와 `AdminShell`) 접두사로 빼면 검사해야 할 서브패스까지 빠지므로, 이유를 주석에 적은 명시 목록으로 뺀다.
 - **회귀 확인 (2026-09-29):** `src/utils/date.ts` 에 `import { NextResponse } from 'next/server';` 와 `void NextResponse;` 를 임시로 넣고 빌드하면 CMS-ESM-01 이 `"@withwiz/cms-kit/utils/date": "ERR_MODULE_NOT_FOUND"` 로 실패했다. import 만 넣으면 쓰지 않는 import 를 esbuild 가 지워 dist 에 남지 않으므로 통과한다. 되돌리고 다시 빌드한 뒤 통과를 확인했다.
-- **비고:** Next.js 앱 전용 9개의 실패 원인과 Next.js 와 무관한 코드가 함께 실패하는 경우(`./utils` 배럴의 순수 유틸과 설정 API(2026-09-30 에 `./config` 로 해소), `parseSortKey`, `ToggleSwitch` 의 CSS, `./infrastructure` 배럴의 `prisma`)는 개요 "실측 기록 (2026-09-29)" 에 적었다. 확장자 없는 `next/*` import 는 Next.js 번들러가 런타임별 구현으로 연결하도록 그대로 두는 것이 결정 사항이며, 이 TC 는 동작을 바꾸지 않고 경계만 고정한다. CJS(`require`) 경로는 검사하지 않는다. README(`README.md`·`README.ko.md` "진입점" 절)에 같은 경계를 적었다.
+- **비고:** 2026-09-29 기준 Next.js 앱 전용 9개의 실패 원인과 Next.js 와 무관한 코드가 함께 실패하는 경우(`./utils` 배럴의 순수 유틸과 설정 API(2026-09-30 에 `./config` 로 해소), `parseSortKey`, `ToggleSwitch` 의 CSS, `./infrastructure` 배럴의 `prisma`)는 개요 "실측 기록 (2026-09-29)" 에 적었다. 2026-10-01 에 추가한 `./utils/server` 의 실패 원인은 `./utils` 배럴과 같다(`api-response`·`api-helpers` 의 `next/server`). 브라우저에서 쓰는 순수 유틸은 `./utils/client` 로 불러올 수 있게 되었다. 확장자 없는 `next/*` import 는 Next.js 번들러가 런타임별 구현으로 연결하도록 그대로 두는 것이 결정 사항이며, 이 TC 는 동작을 바꾸지 않고 경계만 고정한다. CJS(`require`) 경로는 검사하지 않는다. README(`README.md`·`README.ko.md` "진입점" 절)에 같은 경계를 적었다.
 
 ---
 
@@ -1906,11 +2065,102 @@ createSanitizer(config)(html)
 | 3 | CMS-ESM-04: dist 에서 `function setCmsConfig(` 를 정의하는 `.mjs`·`.js` 파일 | 확장자마다 1개 (설정 모듈이 두 번 번들되지 않는다) |
 | 4 | CMS-ESM-04: `dist/config/index.{mjs,js}` 와 `dist/utils/index.{mjs,js}` | 둘 다 3번의 청크 파일 이름을 포함한다 |
 | 5 | CMS-ESM-04: CJS 로 `./config`·`./utils` 를 `require` 하고 `./config` 로 `loginPath`, `./utils` 로 `uploadEndpoint` 를 설정한 뒤 `./utils` 로 `resetCmsConfig()` | 반대쪽에서 각각 `'/from-config'`·`'/from-utils'` 가 보이고, 초기화 후 `./config` 에서 `{}`. 두 `setCmsConfig` 가 같은 함수이다 |
-| 6 | CMS-EXP-CONFIG: `src/config/public.ts` 의 export 이름 (TypeScript 컴파일러 API, 타입 포함) | 런타임 7개 + 타입 11개 = 18개와 정확히 같고, 18개 모두 `./utils` 배럴에도 있다 |
+| 6 | CMS-EXP-CONFIG: `src/config/public.ts` 의 export 이름 (TypeScript 컴파일러 API, 타입 포함) | 런타임 7개 + 타입 15개 = 22개와 정확히 같고, 22개 모두 `./utils` 배럴에도 있다 (2026-10-01 에 타입 `CmsStorageBackend`·`CmsRateLimiter`·`CmsRateLimitWindow`·`CmsRateLimitType` 4개를 추가했다) |
 
 - **자동화:** 가능 ✅ | **테스트 수:** 3개 (현재. CMS-ESM-03·04 2건, CMS-EXP-CONFIG 1건)
 - **회귀 확인 (2026-09-30):** `src/config/public.ts` 에 `next/server` import 를 넣으면 CMS-ESM-01·03 이, `setCmsConfig`·`getCmsConfig` 를 별도 저장소 구현으로 바꾸면 CMS-ESM-03·04 가 실패했다 (개요 "실측 기록 (2026-09-30)").
-- **비고:** `./config` 는 `./utils` 배럴과 같은 18개 이름만 공개하고 내부 해석 함수(`resolve*` 등)는 공개하지 않는다. vitest 의 `@withwiz/cms-kit/config` alias 는 `src/config/index.ts`(내부 함수 포함)로 연결되어 TC-U-008 이 계속 내부 함수를 검사하며, 게시되는 `./config` 와는 범위가 다르다. `./utils` 배럴의 설정 API export 는 호환을 위해 유지한다.
+- **비고:** `./config` 는 `./utils` 배럴과 같은 22개 이름만 공개하고 내부 해석 함수(`resolve*` 등)는 공개하지 않는다. vitest 의 `@withwiz/cms-kit/config` alias 는 `src/config/index.ts`(내부 함수 포함)로 연결되어 TC-U-008 이 계속 내부 함수를 검사하며, 게시되는 `./config` 와는 범위가 다르다. `./utils` 배럴의 설정 API export 는 호환을 위해 유지하고, 2026-10-01 에 추가한 `./utils/server` 도 같은 설정 API 를 공개한다. 같은 날 설정 저장소를 모듈 변수에서 `globalThis` 의 심볼 키로 옮겼으므로, 설정 모듈이 여러 번 로드되더라도 저장소는 하나이다 (TC-U-028 의 CMS-LC-14). CMS-ESM-04 의 "정의 파일 1개" 단언은 그대로 유지한다.
+
+---
+
+### TC-SM-008: 서버/클라이언트 import 경계
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/import-boundary.test.ts` |
+| **대상** | `src/utils/client.ts`(`./utils/client`), `src/utils/server.ts`(`./utils/server`), `./hooks`·`./components` 와 개별 진입점, `./config`(`src/config/public.ts`), `./validators`, `./types`, `./infrastructure`, `./infrastructure/middleware`, `./services`, `./utils` 배럴 |
+| **우선순위** | High |
+| **전제조건** | node 환경. 한쪽 전용 모듈을 로드되면 throw 하는 poison 모듈로 `vi.doMock` 한 뒤 반대쪽 표면을 import 한다. 서버 전용 poison 은 `@aws-sdk/client-s3`, `sharp`, `next/server`, `@withwiz/toolkit/core/auth/jwt`, `@withwiz/toolkit/next/middleware/wrappers`, `@withwiz/cms-kit/infrastructure/prisma` 6개이고, 브라우저 전용 poison 은 `@withwiz/cms-kit/utils/admin-fetch`, `@withwiz/cms-kit/utils/image-resize`, `react`, `react-dom`, `next/navigation`, `next/link`, `next/dynamic` 7개이다. 각 테스트 전후에 `vi.resetModules()` 와 `vi.doUnmock` 을 수행한다 |
+| **판정 방법** | import 가 성공하면 poison 모듈이 전이적으로 로드되지 않았다는 뜻이다. 대조군은 오류 문자열(또는 `cause`)에 `POISON` 이 있어야 한다 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | IB-01: 서버 전용 poison 상태에서 `./utils/client` import | 성공하고 `adminFetch`·`resizeImageIfNeeded`·`cn` 이 함수이다 |
+| 2 | IB-02~04: 같은 상태에서 `./hooks`·`./hooks/useImageDropZone`·`./hooks/useScrollReveal`, `./components` 와 `AdminShell`·`AdminManagerBase`·`AdminManagerConfig`·`JsonLd`·`ToggleSwitch`, `./config`(`config/public`)·`./validators` import | 모두 성공한다 |
+| 3 | IB-05 (대조군): 같은 상태에서 `./utils` 배럴 import | `POISON` 으로 실패한다 |
+| 4 | IB-10: 브라우저 전용 poison 상태의 전역 확인 | `window`·`document` 가 `undefined` 이다 |
+| 5 | IB-11~13: 같은 상태에서 `./utils/server`, `./infrastructure`·`./infrastructure/middleware`·`./services`, `./types`·`./validators`·`./config` import | 모두 성공하고 `./utils/server` 의 `uploadToR2`·`getJWTManager`·`setCmsConfig` 가 함수이다 |
+| 6 | IB-14 (대조군): 같은 상태에서 `./utils` 배럴 import | `POISON` 으로 실패한다 |
+| 7 | IB-20: `./utils`·`./utils/client`·`./utils/server` 의 런타임 이름 비교 | `./utils` 의 모든 이름이 두 표면 중 하나에 있고, 두 표면의 값은 `./utils` 의 값과 같은 참조이다 |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 11개 (현재)
+- **비고:** vitest alias 로 `src` 모듈을 검사하므로 번들러의 tree-shaking 결과와는 다르다. 빌드 산출물 기준의 클라이언트 경계는 TC-SM-009 가 검사한다. 넓은 `./utils` 배럴과 루트 `.` 는 호환을 위해 서버·클라이언트 이름을 함께 내보내며, 새 코드가 `./utils/client`·`./utils/server` 를 쓰도록 `docs/utils.md` "진입점" 절에 적었다.
+
+---
+
+### TC-SM-009: 빌드 산출물의 `"use client"` 지시문과 클라이언트 진입점 의존 범위
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/smoke/client-directive.test.ts` |
+| **대상** | `tsup.config.ts` 의 `CLIENT_ENTRIES` 와 `onSuccess` 지시문 추가, dist 산출물(`dist/**/*.mjs`, `dist/**/*.js`) |
+| **우선순위** | High |
+| **전제조건** | 최신 dist. `dist/index.mjs` 가 없으면 `describe.skipIf` 로 4건을 건너뛴다 (빌드하지 않는다). 도달 범위는 ESM 산출물의 정적·동적 import 지정자를 상대 청크를 따라가며 모아 판정한다 (CSS 제외) |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | UC-01: 클라이언트 진입점 9개(`components/index`, `hooks/index`, `components/AdminManagerBase`·`AdminShell`·`JsonLd`·`ResizableImage`·`ToggleSwitch`, `hooks/useImageDropZone`·`useScrollReveal`)의 `.mjs`·`.js` 앞부분 | `"use client"` 로 시작한다 |
+| 2 | UC-02: 서버 전용 진입점과 루트 배럴 14개(`index`, `utils/server`, `utils/index`, `utils/jwt`, `utils/r2-storage`, `utils/r2-helpers`, `utils/image-variants`, `utils/api-helpers`, `infrastructure/index`·`prisma`·`middleware/index`·`middleware/wrappers`, `services/index`, `config/index`) | `"use client"` 로 시작하지 않는다 |
+| 3 | UC-03: 클라이언트 진입점 9개와 `utils/client` 에서 도달하는 외부 지정자 | `@aws-sdk/*`, `sharp`, `next/server`, `@prisma/*`, `@withwiz/toolkit/core/auth*`, `@withwiz/toolkit/next/*` 가 없다 |
+| 4 | UC-04 (대조군): `utils/server` 에서 도달하는 외부 지정자 | `@aws-sdk/*` 와 `next/server` 가 있다 |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 4개 (현재)
+- **비고:** TC-SM-004 의 2번 단계를 대신한다. `utils/client` 는 `"use client"` 진입점이 아니지만(순수 유틸도 함께 공개한다) 서버 전용 모듈에 도달하지 않아야 하므로 UC-03 의 검사 대상에 포함했다.
+
+---
+
+### TC-SM-010: 공개 타입 계약
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/smoke/public-types.test.ts`, 픽스처 `tests/fixtures/types/{prisma-registry,prisma-untyped,wrappers}.ts`·`tsconfig.json` |
+| **대상** | dist 타입 선언 `dist/infrastructure/prisma.d.ts`(`CmsPrismaRegistry`, `getPrisma<T>()`), `dist/infrastructure/index.d.ts`, `dist/infrastructure/middleware/wrappers.d.ts`(`withPublicApi`·`withCustomApi` 와 `TApiHandler`·`NextRouteHandler`) |
+| **우선순위** | Medium |
+| **전제조건** | 최신 dist. `dist/infrastructure/prisma.d.ts` 가 없으면 `describe.skipIf` 로 건너뛴다. 설치된 `typescript` 의 `tsc -p tests/fixtures/types/tsconfig.json` 을 별도 프로세스로 실행한다 (제한 시간 60초) |
+| **판정 방법** | `tsc` 출력이 빈 문자열이어야 한다. 픽스처는 타입 오류여야 하는 코드에 `@ts-expect-error` 를 달아 두므로, 공개 타입이 `any` 로 돌아가면 TS2578(사용되지 않은 지시문)로 실패한다 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | TY-01 `prisma-registry.ts`: `declare module` 로 `CmsPrismaRegistry.client` 를 등록한 뒤 `prisma.post.count()`, 배럴의 `prisma`, `getPrisma()` 사용 / 등록하지 않은 모델 `prisma.nope` | 통과 / 타입 오류 |
+| 2 | TY-01 `prisma-untyped.ts`: `getPrisma<Db>().user.find('1').id` / `getPrisma<Db>().post` | 통과 / 타입 오류 |
+| 3 | TY-01 `wrappers.ts`: `withPublicApi(async (context: IApiContext) => …)`, `withCustomApi(…, (chain) => chain)`, 반환 핸들러 호출 결과를 `Promise<Response>` 로 받기 / `withPublicApi('not a handler')` | 통과 / 타입 오류 |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 1개 (현재)
+- **비고:** Vitest 는 타입 검사를 하지 않으므로, 이 TC 가 없으면 공개 타입 회귀는 `npm run build` 나 소비 프로젝트의 타입 검사에서만 드러난다 (TC-U-007 비고와 같은 한계).
+
+---
+
+### TC-SM-011: 의존성 선언
+
+| 항목 | 내용 |
+|------|------|
+| **파일** | `tests/packaging.test.ts` |
+| **대상** | `package.json` 의 `dependencies`·`peerDependencies`·`peerDependenciesMeta`·`devDependencies`·`exports` |
+| **우선순위** | High |
+| **전제조건** | node 환경. tiptap 부재는 `@tiptap/core`·`@tiptap/react` 를 로드되면 throw 하는 poison 모듈로 `vi.doMock` 해 재현한다 |
+
+| # | 단계 | 예상 결과 |
+|---|------|---------|
+| 1 | PKG-01: `@tiptap/core`·`@tiptap/react` 선언 위치 | `dependencies` 에 없고 `peerDependencies` 에 있으며, `peerDependenciesMeta` 가 `optional: true` 이고 `devDependencies` 에도 있다 |
+| 2 | PKG-02: `dependencies` | 키가 없다 (모든 런타임 의존성을 peer 로 선언한다) |
+| 3 | PKG-03: 모든 peer 의 하한과 같은 이름의 devDependency 하한 | devDependency 가 있고 major 가 같다 (0.x 는 minor 까지 같다) |
+| 4 | PKG-04: `react`·`next`·`zod` peer 하한의 major 와 `@types/react` devDependency 의 major | 19·16·4 와 19 |
+| 5 | PKG-10: tiptap poison 상태에서 `.`·`./components`·`./components/ResizableImage` 를 뺀 JS 서브패스를 하나씩 import | 모두 성공한다 (20개 초과) |
+| 6 | PKG-11 (대조군): 같은 상태에서 위 세 서브패스 import | 오류 문자열에 `@tiptap/core` 또는 `@tiptap/react` 가 있다 |
+
+- **자동화:** 가능 ✅ | **테스트 수:** 6개 (현재)
+- **관련:** TC-SM-003(Zod peer 범위)과 같은 계열의 선언 검사이다. PKG-03 에 맞추면서 2026-09-17 실측으로 정한 toolkit peer 하한 `>=0.8.0` 은 devDependency 와 같은 `>=0.15.0` 으로 올라갔다 (개요 "실측 기록 (2026-09-17)" 은 당시 기록으로 둔다).
+- **비고:** PKG-03 은 하한의 major(0.x 는 minor)만 비교하므로, 테스트한 버전보다 낮은 patch·minor 를 허용하는 선언(예: `react` `>=19` 와 devDependency `^19.2.6`)은 통과한다.
 
 ---
 
@@ -1918,27 +2168,31 @@ createSanitizer(config)(html)
 
 **목적:** 외부 의존성(S3, sharp, DOMPurify)이 일부 실패할 때 소스에 구현된 격리 코드가 나머지 처리를 보존하는지 확인한다.
 
-**실행 명령:** 계획 단계이므로 명령이 없다.
+**실행 명령:** `npx vitest run tests/storage-backend.test.ts -t "partial failure"` (완료 TC 는 TC-C-001 이다. 이 필터로 6건이 실행되고 같은 파일의 CMS-SB-01~05 5건은 건너뛴다. 나머지는 계획 단계이다)
 
 ---
 
-### TC-C-001: 변형 이미지 업로드 부분 실패 격리 🔲 계획
+### TC-C-001: 변형 이미지 업로드 부분 실패 격리
 
 | 항목 | 내용 |
 |------|------|
-| **파일** | `tests/chaos/variant-upload-failure.test.ts` (신규) |
-| **대상** | `src/utils/r2-storage.ts`: `uploadImageWithVariants()`(149~206행) |
+| **파일** | `tests/storage-backend.test.ts` (`describe('uploadImageWithVariants partial failure (CMS-SB)')`) |
+| **대상** | `src/utils/r2-storage.ts`: `uploadImageWithVariants()`(229~302행), 결과 상태 `VariantUploadStatus`(227행)와 판정(276~291행) |
 | **우선순위** | Low |
-| **전제조건** | S3 mock 의 `send` 가 `Key` 에 `'-md.webp'` 가 들어간 요청만 reject 한다. `utils/image-variants` mock 이 lg·md·sm·thumb 4개를 반환한다. toolkit logger `logError` spy |
+| **전제조건** | TC-U-031 과 같은 구성(`@aws-sdk/client-s3` poison, toolkit logger mock). `utils/image-variants` 의 `generateImageVariants` 를 테스트마다 반환값을 지정하는 mock 으로 대체하고, `storage.backend` 로 메모리 백엔드를 주입한다. 백엔드 `put` 은 정규식 `failKeys` 에 맞는 키에서만 reject 한다 |
 
 | # | 단계 | 예상 결과 |
 |---|------|---------|
-| 1 | `uploadImageWithVariants('news/a.jpg', ...)` | resolve, `variantKeys` 에 lg·sm·thumb 3개, `variants.md` 없음 |
-| 2 | `logError` 호출 확인 | `'[image-variant] Failed to upload variant news/a-md.webp'` 1회, 메타 `size: 'md'` |
-| 3 | `generateImageVariants` 가 reject | 원본 `url`·`key` 반환, `variants: {}`, `variantKeys: []`, `logError('[image-variant] Failed to generate variants for news/a.jpg', ...)` |
-| 4 | 원본 업로드 `send` 가 reject | 전체가 reject (162행 원본 업로드는 `try` 밖에 있다) |
+| 1 | SB-10: 변형 4개(lg·md·sm·thumb) 모두 업로드 성공 | `variantStatus: 'complete'`, `failedVariants: []`, `variantKeys` 4개, `variants.thumb === 'mem://posts/a-thumb.webp'` |
+| 2 | SB-11: `-md.webp`·`-sm.webp` 업로드만 실패 | resolve, `variantStatus: 'partial'`, `failedVariants` 가 `['md', 'sm']`, `variants.md` 없음, `variants.lg` 와 원본 `url` 은 있다 |
+| 3 | SB-12: 변형 1개(thumb)의 업로드가 실패 | `variantStatus: 'failed'`, `failedVariants: ['thumb']`, `variantKeys: []` |
+| 4 | SB-13: `generateImageVariants` 가 reject | `variantStatus: 'failed'`, 원본은 백엔드에 저장되어 있다 |
+| 5 | SB-14: 만들 변형이 없다(`image/gif`, 빈 배열) | `variantStatus: 'skipped'`, `failedVariants: []` |
+| 6 | SB-15: 원본 업로드가 실패 | 결과 대신 `put failed` 오류로 reject, `generateImageVariants` 미호출 |
 
-- **자동화:** 가능 ✅
+- **자동화:** 가능 ✅ | **테스트 수:** 6개 (현재)
+- **비고:** 실패 로그(`logError`)의 메시지와 메타는 단언하지 않는다. 계획 당시(2026-09-30 판)의 2번 단계(`'[image-variant] Failed to upload variant news/a-md.webp'` 1회, 메타 `size: 'md'`)는 소스 267~271행에 그대로 있지만 이 TC 의 테스트는 확인하지 않는다.
+- **변경 이력:** 2026-09-30 판까지는 파일 이름 `tests/chaos/variant-upload-failure.test.ts`(신규)로 계획한 🔲 TC 였다. 당시 소스는 실패한 변형을 로그로만 남기고 호출자에게 알리지 않았다. 2026-10-01 커밋 `927a232` 에서 `variantStatus`·`failedVariants` 를 추가하고, 같은 커밋의 `tests/storage-backend.test.ts` 에 이 6건을 추가했다. S3 mock 대신 주입 백엔드로 실패를 만든다.
 
 ---
 
@@ -1988,75 +2242,86 @@ createSanitizer(config)(html)
 
 | 유형 | 현재 파일 수 | 현재 테스트 수 | SC 수 | TC 수 (✅ / ⚠️ / 🔲) | 계획 신규 파일 수 |
 |------|------------|-------------|------|------------------|---------------|
-| **Unit** | 22개 | 174개 | 27 | 27 (18 / 0 / 9) | +5개 |
-| **Integration** | 3개 | 17개 | 4 | 4 (2 / 1 / 1) | +1개 (교체 1개 별도) |
+| **Unit** | 27개 | 219개 | 31 | 31 (23 / 0 / 8) | +4개 |
+| **Integration** | 4개 | 29개 | 5 | 5 (4 / 0 / 1) | +1개 |
 | **API** | 4개 | 32개 | 6 | 6 (4 / 0 / 2) | +2개 |
 | **E2E** | 0개 | 0개 | 0 | 0 | 미적용 |
 | **Security** | 5개 | 210개 | 11 | 11 (9 / 0 / 2) | +2개 |
 | **Performance** | 0개 | 0개 | 2 | 2 (0 / 0 / 2) | +2개 |
 | **Accessibility** | 2개 | 19개 | 6 | 6 (2 / 0 / 4) | +4개 |
 | **Load/Stress** | 0개 | 0개 | 2 | 2 (0 / 0 / 2) | +2개 |
-| **Smoke** | 4개 | 22개 | 7 | 7 (5 / 0 / 1, 이전 1) | +1개 |
-| **Chaos** | 0개 | 0개 | 3 | 3 (0 / 0 / 3) | +3개 |
-| **합계** | **40개** | **474개** | **68** | **68 (40 / 1 / 26, 이전 1)** | **+22개** |
+| **Smoke** | 8개 | 44개 | 11 | 11 (9 / 0 / 1, 이전 1) | +1개 |
+| **Chaos** | 0개 (Unit 파일 1개 공유) | 6개 | 3 | 3 (1 / 0 / 2) | +2개 |
+| **합계** | **50개** | **559개** | **77** | **77 (52 / 0 / 24, 이전 1)** | **+20개** |
 
+- 2026-10-01 판 변화는 다음과 같다. 🔲 계획에서 ✅ 완료로 바뀐 TC 는 TC-U-022·TC-C-001 2건이고, ⚠️ 교체 필요에서 ✅ 완료로 바뀐 TC 는 TC-I-003 1건이다(⚠️ 는 0건이 되었다). 새 SC/TC 는 TC-U-028~031, TC-I-005, TC-SM-008~011 9건이며 모두 ✅ 완료이다. 테스트 파일은 Unit 5개(`admin-shell-behavior.dom`, `resource-lifecycle`, `single-source`, `admin-manager-cookie-auth.dom`, `storage-backend`), Integration 1개(`rate-limit-adapter`), Smoke 4개(`import-boundary`, `smoke/client-directive`, `smoke/public-types`, `packaging`)가 늘었다. `storage-backend.test.ts` 11건 중 CMS-SB-10~15 6건은 Chaos(TC-C-001)로 세고 파일은 Unit 에 한 번만 센다.
 - 2026-09-30 판 변화는 다음과 같다. SC/TC-SM-007(✅ 완료)을 추가해 Smoke 에 3건이 늘었다 (기존 파일 `pure-node-esm.test.ts` 2건, `exports-superset.test.ts` 1건. 파일 수 변화 없음).
 - 2026-09-29 판 변화는 다음과 같다. SC/TC-SM-006(✅ 완료)을 추가해 Smoke 에 1개 파일 2건이 늘었다.
 - 2026-09-28 판 변화는 다음과 같다. TC-SM-002 가 ✅ 완료에서 이전으로 바뀌어 Smoke 에서 1개 파일 3건이 줄었다. Security 210건은 2026-09-18 커밋 `a2ef0fd` 의 2건(CMS-HSP-SPEC-09~10)을 반영한 실측값이다.
 - 2026-09-15 판 대비 변화는 다음과 같다. 🔲 계획에서 ✅ 완료로 바뀐 TC 는 TC-U-027·TC-AC-003·TC-SM-005 3건이고, ⚠️ 교체 필요에서 ✅ 완료로 바뀐 TC 는 TC-SM-001 1건이다. 새 SC/TC 는 TC-S-010·TC-S-011 2건이다. 테스트 파일은 Unit·Accessibility·Smoke 에 1개씩 늘었고, Security 는 기존 `html-sanitizer-paths.test.ts` 에 41건이 늘었다.
 - 2026-09-13 판(0.2.0) 대비 2026-09-15 판에서는 Security 에 1개 파일 116건(SC/TC-S-007~009), Accessibility 에 1개 파일 7건(SC/TC-AC-006)이 늘었다.
 - Security 210개 중 159개는 `html-sanitizer-paths.test.ts` 가 DOMPurify·정규식 두 경로에 같은 케이스를 반복해 만든 수이다 (정규식 경로만 실행하는 SPEC-08~10 3건 포함).
-- Smoke 22개는 모두 추적 파일만으로 실행된다 (`exports-superset.test.ts` 11건 포함). `pure-node-esm.test.ts` 4건은 `dist/` 가 없으면 먼저 빌드한다.
-- Unit 계획 신규 파일 5개는 `AdminManagerBase.dom.test.tsx`(TC-U-018~021 공용), `AdminShell.dom.test.tsx`, `ResizableImage.dom.test.tsx`(TC-U-023~024 공용), `useImageDropZone-paths.dom.test.ts`, `image-resize-canvas.dom.test.ts` 이다.
+- Smoke 44개는 모두 추적 파일만으로 실행된다 (`exports-superset.test.ts` 11건 포함). `pure-node-esm.test.ts` 4건은 `dist/` 가 없으면 먼저 빌드한다. `smoke/client-directive.test.ts` 4건과 `smoke/public-types.test.ts` 1건은 `dist/` 가 없으면 건너뛴다(스킵으로 집계된다).
+- Unit 계획 신규 파일 4개는 `AdminManagerBase.dom.test.tsx`(TC-U-018~021 공용), `ResizableImage.dom.test.tsx`(TC-U-023~024 공용), `useImageDropZone-paths.dom.test.ts`, `image-resize-canvas.dom.test.ts` 이다. 계획했던 `AdminShell.dom.test.tsx` 는 2026-10-01 에 `admin-shell-behavior.dom.test.tsx`(TC-U-022)로 만들었다. Chaos 계획 신규 파일은 TC-C-002·C-003 의 2개이다.
 - 계획 테스트 수는 구현 전이므로 집계하지 않았다.
 
 ### 테스트 파일 대조표
 
-모든 테스트 파일(40개)이 한 개 이상의 TC "파일" 칸에 등장한다. 누락 파일은 0개이다. 테스트 수는 2026-09-28 JSON 리포터 실행 결과에 2026-09-29 추가 파일(`tests/smoke/pure-node-esm.test.ts`)의 실행 결과와 2026-09-30 추가 3건(같은 파일 2건, `tests/exports-superset.test.ts` 1건)을 더한 값이다. 2026-09-28 에 삭제한 `tests/no-consumer-literals.test.ts`(3건, TC-SM-002)는 표에서 뺐다.
+모든 테스트 파일(50개)이 한 개 이상의 TC "파일" 칸에 등장한다. 누락 파일은 0개이다. 테스트 수는 2026-10-01 커밋 `81c3076` 에서 `npx vitest list` 로 수집한 파일별 건수이며, 같은 커밋의 `npm test` 결과(559건 통과)와 합계가 같다. 2026-09-28 에 삭제한 `tests/no-consumer-literals.test.ts`(3건, TC-SM-002)는 표에서 뺐다.
 
 | # | 파일 | 환경 | 테스트 수 | TC |
 |---|------|------|---------|-----|
 | 1 | `tests/admin-fetch.dom.test.ts` | jsdom | 7 | TC-A-004 |
-| 2 | `tests/admin-manager-tabs.dom.test.tsx` | jsdom | 12 | TC-AC-003 |
-| 3 | `tests/admin-shell-config.dom.test.tsx` | jsdom | 3 | TC-U-017 |
-| 4 | `tests/admin-shell-current-page.dom.test.tsx` | jsdom | 7 | TC-AC-006 |
-| 5 | `tests/api-helpers.test.ts` | node | 9 | TC-A-002 |
-| 6 | `tests/api-response.test.ts` | node | 13 | TC-A-001 |
-| 7 | `tests/base-service.test.ts` | node | 6 | TC-U-003 |
-| 8 | `tests/cn.test.ts` | node | 6 | TC-U-002 |
-| 9 | `tests/config-boundary.test.ts` | node | 8 | TC-U-008 |
-| 10 | `tests/date.test.ts` | node | 10 | TC-U-001 |
-| 11 | `tests/exports-superset.test.ts` | node | 11 | TC-SM-001 (10), TC-SM-007 (1) |
-| 12 | `tests/fresh-checkout.test.ts` | node | 3 | TC-SM-005 |
-| 13 | `tests/html-sanitizer-bypass.test.ts` | node | 11 | TC-S-002 |
-| 14 | `tests/html-sanitizer-paths.test.ts` | node | 159 | TC-S-007 (4), TC-S-008 (82), TC-S-009 (30), TC-S-010 (22), TC-S-011 (21) |
-| 15 | `tests/html-sanitizer.test.ts` | node | 22 | TC-S-001 |
-| 16 | `tests/image-resize.dom.test.ts` | jsdom | 5 | TC-U-011 |
-| 17 | `tests/image-variant-utils.test.ts` | node | 7 | TC-U-005 |
-| 18 | `tests/image-variants.test.ts` | node | 5 | TC-U-005 |
-| 19 | `tests/ImageDropUpload.dom.test.tsx` | jsdom | 7 | TC-U-015 |
-| 20 | `tests/integration/middleware-wrappers.test.ts` | node | 6 | TC-I-003 |
-| 21 | `tests/integration/prisma-service-flow.test.ts` | node | 5 | TC-I-001 |
-| 22 | `tests/integration/r2-pipeline.test.ts` | node | 6 | TC-I-002 |
-| 23 | `tests/JsonLd.dom.test.tsx` | jsdom | 4 | TC-U-016 |
-| 24 | `tests/jwt.test.ts` | node | 3 | TC-U-007 |
-| 25 | `tests/pagination.test.ts` | node | 7 | TC-U-003 |
-| 26 | `tests/prisma-di.test.ts` | node | 4 | TC-U-006 |
-| 27 | `tests/r2-helpers.test.ts` | node | 18 | TC-U-009 |
-| 28 | `tests/r2-key-sanitization.test.ts` | node | 6 | TC-S-003 |
-| 29 | `tests/r2-storage.test.ts` | node | 13 | TC-U-010 |
-| 30 | `tests/rate-limit-identity.test.ts` | node | 12 | TC-S-004 |
-| 31 | `tests/route-params.test.ts` | node | 3 | TC-A-003 |
-| 32 | `tests/shared-validators.test.ts` | node | 12 | TC-U-004 |
-| 33 | `tests/smoke/pure-node-esm.test.ts` | node | 4 | TC-SM-006 (2), TC-SM-007 (2) |
-| 34 | `tests/ToggleSwitch.dom.test.tsx` | jsdom | 6 | TC-U-015 |
-| 35 | `tests/useAdminForm.dom.test.ts` | jsdom | 7 | TC-U-012 |
-| 36 | `tests/useAdminList.dom.test.ts` | jsdom | 7 | TC-U-012 |
-| 37 | `tests/useImageDropZone.dom.test.ts` | jsdom | 7 | TC-U-013 |
-| 38 | `tests/useScrollReveal.dom.test.ts` | jsdom | 5 | TC-U-014 |
-| 39 | `tests/variant-key-edge.test.ts` | node | 24 | TC-U-027 |
-| 40 | `tests/zod-compat.test.ts` | node | 4 | TC-SM-003 |
-| | **합계** | node 28개, jsdom 12개 | **471** | |
+| 2 | `tests/admin-manager-cookie-auth.dom.test.tsx` | jsdom | 1 | TC-U-030 |
+| 3 | `tests/admin-manager-tabs.dom.test.tsx` | jsdom | 12 | TC-AC-003 |
+| 4 | `tests/admin-shell-behavior.dom.test.tsx` | jsdom | 11 | TC-U-022 |
+| 5 | `tests/admin-shell-config.dom.test.tsx` | jsdom | 3 | TC-U-017 |
+| 6 | `tests/admin-shell-current-page.dom.test.tsx` | jsdom | 7 | TC-AC-006 |
+| 7 | `tests/api-helpers.test.ts` | node | 9 | TC-A-002 |
+| 8 | `tests/api-response.test.ts` | node | 13 | TC-A-001 |
+| 9 | `tests/base-service.test.ts` | node | 6 | TC-U-003 |
+| 10 | `tests/cn.test.ts` | node | 6 | TC-U-002 |
+| 11 | `tests/config-boundary.test.ts` | node | 8 | TC-U-008 |
+| 12 | `tests/date.test.ts` | node | 10 | TC-U-001 |
+| 13 | `tests/exports-superset.test.ts` | node | 11 | TC-SM-001 (10), TC-SM-007 (1) |
+| 14 | `tests/fresh-checkout.test.ts` | node | 3 | TC-SM-005 |
+| 15 | `tests/html-sanitizer-bypass.test.ts` | node | 11 | TC-S-002 |
+| 16 | `tests/html-sanitizer-paths.test.ts` | node | 159 | TC-S-007 (4), TC-S-008 (82), TC-S-009 (30), TC-S-010 (22), TC-S-011 (21) |
+| 17 | `tests/html-sanitizer.test.ts` | node | 22 | TC-S-001 |
+| 18 | `tests/image-resize.dom.test.ts` | jsdom | 5 | TC-U-011 |
+| 19 | `tests/image-variant-utils.test.ts` | node | 7 | TC-U-005 |
+| 20 | `tests/image-variants.test.ts` | node | 5 | TC-U-005 |
+| 21 | `tests/ImageDropUpload.dom.test.tsx` | jsdom | 7 | TC-U-015 |
+| 22 | `tests/import-boundary.test.ts` | node | 11 | TC-SM-008 |
+| 23 | `tests/integration/middleware-wrappers.test.ts` | node | 6 | TC-I-003 |
+| 24 | `tests/integration/prisma-service-flow.test.ts` | node | 5 | TC-I-001 |
+| 25 | `tests/integration/r2-pipeline.test.ts` | node | 6 | TC-I-002 |
+| 26 | `tests/JsonLd.dom.test.tsx` | jsdom | 4 | TC-U-016 |
+| 27 | `tests/jwt.test.ts` | node | 3 | TC-U-007 |
+| 28 | `tests/packaging.test.ts` | node | 6 | TC-SM-011 |
+| 29 | `tests/pagination.test.ts` | node | 7 | TC-U-003 |
+| 30 | `tests/prisma-di.test.ts` | node | 4 | TC-U-006 |
+| 31 | `tests/r2-helpers.test.ts` | node | 18 | TC-U-009 |
+| 32 | `tests/r2-key-sanitization.test.ts` | node | 6 | TC-S-003 |
+| 33 | `tests/r2-storage.test.ts` | node | 13 | TC-U-010 |
+| 34 | `tests/rate-limit-adapter.test.ts` | node | 12 | TC-I-005 |
+| 35 | `tests/rate-limit-identity.test.ts` | node | 12 | TC-S-004 |
+| 36 | `tests/resource-lifecycle.test.ts` | node | 13 | TC-U-028 |
+| 37 | `tests/route-params.test.ts` | node | 3 | TC-A-003 |
+| 38 | `tests/shared-validators.test.ts` | node | 12 | TC-U-004 |
+| 39 | `tests/single-source.test.ts` | node | 15 | TC-U-029 |
+| 40 | `tests/smoke/client-directive.test.ts` | node | 4 | TC-SM-009 |
+| 41 | `tests/smoke/public-types.test.ts` | node | 1 | TC-SM-010 |
+| 42 | `tests/smoke/pure-node-esm.test.ts` | node | 4 | TC-SM-006 (2), TC-SM-007 (2) |
+| 43 | `tests/storage-backend.test.ts` | node | 11 | TC-U-031 (5), TC-C-001 (6) |
+| 44 | `tests/ToggleSwitch.dom.test.tsx` | jsdom | 6 | TC-U-015 |
+| 45 | `tests/useAdminForm.dom.test.ts` | jsdom | 7 | TC-U-012 |
+| 46 | `tests/useAdminList.dom.test.ts` | jsdom | 7 | TC-U-012 |
+| 47 | `tests/useImageDropZone.dom.test.ts` | jsdom | 7 | TC-U-013 |
+| 48 | `tests/useScrollReveal.dom.test.ts` | jsdom | 5 | TC-U-014 |
+| 49 | `tests/variant-key-edge.test.ts` | node | 24 | TC-U-027 |
+| 50 | `tests/zod-compat.test.ts` | node | 4 | TC-SM-003 |
+| | **합계** | node 36개, jsdom 14개 | **559** | |
 
 ---
 
@@ -2068,7 +2333,7 @@ createSanitizer(config)(html)
 
 - **A. `CMS-D-01` 계열 (tests/spec.md 정의):** `tests/spec.md` Task 1~18 이 정의한 18개 접두어이다.
 - **B. `CMS-D-01` 과 같은 형식이지만 정의 문서가 없는 ID:** pms-refactor 로컬 기준선(2026-05-15, 27개 파일·191건)에 이미 있었지만 `tests/spec.md` 와 하네스 문서 어디에도 정의되지 않은 9개 접두어이다.
-- **C. `CMS-EXP` 계열 (pms-refactor 하네스 절 참조):** pms-refactor Sprint 1 에서 추가된 8개 파일과 기존 파일에 추가된 번호이다. 테스트 주석은 로컬 하네스 `spec.md` 의 절 번호(§3 I1, §4.1, §4.6, §4.7, §5)와 체크 항목(CHK-, AC-)을 참조하지만, 하네스 `spec.md`·`sprint_contract.md` 자체에는 `CMS-` ID 가 한 건도 없다. 기존 파일에 나중에 추가된 번호(커밋 `c4aeb8e`, `797595f` 포함)와 0.2.1·0.2.2 에서 추가된 2개 파일(커밋 `7d914b0`, `679fb96`, `f0193e1`), 2026-09-16 `fix/residual-defects` 에서 추가된 3개 파일과 번호(커밋 `4fe6ce2`, `a541627`, `30917b4`, `d59774c`, `c741e11`)도 이 묶음에 기록한다.
+- **C. `CMS-EXP` 계열 (pms-refactor 하네스 절 참조):** pms-refactor Sprint 1 에서 추가된 8개 파일과 기존 파일에 추가된 번호이다. 테스트 주석은 로컬 하네스 `spec.md` 의 절 번호(§3 I1, §4.1, §4.6, §4.7, §5)와 체크 항목(CHK-, AC-)을 참조하지만, 하네스 `spec.md`·`sprint_contract.md` 자체에는 `CMS-` ID 가 한 건도 없다. 기존 파일에 나중에 추가된 번호(커밋 `c4aeb8e`, `797595f` 포함)와 0.2.1·0.2.2 에서 추가된 2개 파일(커밋 `7d914b0`, `679fb96`, `f0193e1`), 2026-09-16 `fix/residual-defects` 에서 추가된 3개 파일과 번호(커밋 `4fe6ce2`, `a541627`, `30917b4`, `d59774c`, `c741e11`), 2026-10-01 `refactor/pms-spec-sprint2-4` 에서 추가된 10개 파일(테스트 주석이 로컬 하네스 `spec.md` 의 §4.2~§4.7 항목 번호 AC-·DoD- 를 참조한다)도 이 묶음에 기록한다.
 
 ### A. tests/spec.md 정의 ID
 
@@ -2103,7 +2368,7 @@ createSanitizer(config)(html)
 | `CMS-TS-01` ~ `CMS-TS-06` | 6 | `tests/ToggleSwitch.dom.test.tsx` | TC-U-015 |
 | `CMS-IDU-01` ~ `CMS-IDU-07` | 7 | `tests/ImageDropUpload.dom.test.tsx` | TC-U-015 |
 | `CMS-JL-01` ~ `CMS-JL-04` | 4 | `tests/JsonLd.dom.test.tsx` (JL-02 는 §4.6 기준으로 개정) | TC-U-016 |
-| `CMS-MW-01` ~ `CMS-MW-06` | 6 | `tests/integration/middleware-wrappers.test.ts` | TC-I-003 ⚠️ |
+| `CMS-MW-01` ~ `CMS-MW-06` | 6 | `tests/integration/middleware-wrappers.test.ts` (MW-01~05 는 2026-10-01 커밋 `28fd055` 에서 실제 모듈 경유로 교체) | TC-I-003 |
 | `CMS-PSF-01` ~ `CMS-PSF-05` | 5 | `tests/integration/prisma-service-flow.test.ts` | TC-I-001 |
 | `CMS-R2P-01` ~ `CMS-R2P-05` | 5 | `tests/integration/r2-pipeline.test.ts` | TC-I-002 |
 
@@ -2143,20 +2408,34 @@ createSanitizer(config)(html)
 | `CMS-AMT-01` ~ `CMS-AMT-12` | 12 | 없음 (접근성 수정, AdminManagerBase 탭 키보드 조작) | 커밋 `c741e11` (2026-09-16) | `tests/admin-manager-tabs.dom.test.tsx` | TC-AC-003 |
 | `CMS-ESM-01`, `CMS-ESM-02` | 2 | 없음 (순수 Node ESM 소비 범위 고정) | `test/pure-node-esm-scope` (2026-09-29) | `tests/smoke/pure-node-esm.test.ts` | TC-SM-006 |
 | `CMS-ESM-03`, `CMS-ESM-04` | 2 | 없음 (`./config` 순수 Node 동작과 설정 저장소 공유) | `feat/config-subpath` (2026-09-30) | `tests/smoke/pure-node-esm.test.ts` | TC-SM-007 |
-| `CMS-EXP-CONFIG` | 1 | 없음 (`./config` 공개 이름 고정) | `feat/config-subpath` (2026-09-30) | `tests/exports-superset.test.ts` | TC-SM-007 |
+| `CMS-EXP-CONFIG` | 1 | 없음 (`./config` 공개 이름 고정) | `feat/config-subpath` (2026-09-30, 이름 목록은 2026-10-01 커밋 `927a232` 에서 4개 추가) | `tests/exports-superset.test.ts` | TC-SM-007 |
+| `CMS-LC-01` ~ `CMS-LC-06`, `CMS-LC-10` ~ `CMS-LC-13` | 10 | §4.2 AC-4.2.1~5, §4.3 AC-4.3.1·3·4·7 | 커밋 `28fd055` (2026-10-01) | `tests/resource-lifecycle.test.ts` | TC-U-028 |
+| `CMS-LC-14`, `CMS-LC-15` | 2 | 없음 (설정 저장소 전역 이동) | 커밋 `35984b1` (2026-10-01) | `tests/resource-lifecycle.test.ts` | TC-U-028 |
+| `CMS-LC-07` | 1 | 없음 (S3 region·path-style) | 커밋 `81c3076` (2026-10-01) | `tests/resource-lifecycle.test.ts` | TC-U-028 |
+| `CMS-RLA-01` ~ `CMS-RLA-11` | 11 | §4.3 AC-4.3.5, §4.5 AC-4.5.5 | 커밋 `28fd055` (2026-10-01, RLA-10 은 `8ee1c0d`, RLA-09 는 `df673fc` 에서 개정) | `tests/rate-limit-adapter.test.ts` | TC-I-005 |
+| `CMS-RLA-12` | 1 | §4.3 AC-4.3.5 | 커밋 `8ee1c0d` (2026-10-01) | `tests/rate-limit-adapter.test.ts` | TC-I-005 |
+| `CMS-IB-01` ~ `CMS-IB-05`, `CMS-IB-10` ~ `CMS-IB-14`, `CMS-IB-20` | 11 | §4.4 AC-4.4.1·2 | 커밋 `94d26bc` (2026-10-01) | `tests/import-boundary.test.ts` | TC-SM-008 |
+| `CMS-UC-01` ~ `CMS-UC-04` | 4 | §4.4 AC-4.4.4 | 커밋 `94d26bc` (2026-10-01) | `tests/smoke/client-directive.test.ts` | TC-SM-009 |
+| `CMS-TY-01` | 1 | §4.7 AC-4.7.8 | 커밋 `927a232` (2026-10-01) | `tests/smoke/public-types.test.ts` | TC-SM-010 |
+| `CMS-SB-01` ~ `CMS-SB-05` | 5 | §4.5 AC-4.5.4 | 커밋 `927a232` (2026-10-01) | `tests/storage-backend.test.ts` | TC-U-031 |
+| `CMS-SB-10` ~ `CMS-SB-15` | 6 | §4.7 AC-4.7.5 | 커밋 `927a232` (2026-10-01) | `tests/storage-backend.test.ts` | TC-C-001 |
+| `CMS-SS-01`, `CMS-SS-02`, `CMS-SS-10` ~ `CMS-SS-13` | 15 (정적 6개) | §4.7 AC-4.7.3·4 | 커밋 `927a232` (2026-10-01) | `tests/single-source.test.ts` | TC-U-029 |
+| `CMS-AMC-01` | 1 | §4.7 AC-4.7.6 | 커밋 `927a232` (2026-10-01) | `tests/admin-manager-cookie-auth.dom.test.tsx` | TC-U-030 |
+| `CMS-PKG-01` ~ `CMS-PKG-04`, `CMS-PKG-10`, `CMS-PKG-11` | 6 | §4.5 AC-4.5.2·3, §4.7 AC-4.7.7 | 커밋 `4382db3` (2026-10-01) | `tests/packaging.test.ts` | TC-SM-011 |
+| `CMS-ASB-01` ~ `CMS-ASB-10`, `CMS-ASB-20` | 11 | §4.7 DoD-26 | 커밋 `2747241` (2026-10-01) | `tests/admin-shell-behavior.dom.test.tsx` | TC-U-022 |
 
 - "Sprint 1" 은 로컬 하네스 `archive/sprint-1/sprint_contract.md` 에 8개 파일 이름이 모두 등장하고 `archive/sprint-0/sprint_contract.md` 에는 없다는 사실에 근거한다.
 - "기준선 이후, 최초 커밋 이전" 은 로컬 `baseline-test-inventory.txt` 의 파일별 `it_test_count` 와 최초 커밋 `7b0c0dc`(2026-05-24)의 테스트 ID 목록을 비교한 결과이다. "커밋 `c4aeb8e`"·"커밋 `797595f`"·"커밋 `679fb96`"·"커밋 `f0193e1`" 은 각 커밋 전후의 테스트 ID 목록을 비교한 결과이다. 2026-09-16 커밋은 이 문서 작업과 같은 브랜치에서 추가한 번호이다.
 - `CMS-HSP-*` 의 개수 칸은 실행 건수이다. `CMS-HSP-INJ-*` 와 `CMS-HSP-SPEC-08` ~ `10` 을 뺀 나머지는 한 ID 가 DOMPurify·정규식 두 경로에서 각각 1건씩 실행된다. `CMS-HSP-HBP-*` 는 `CMS-HBP-*` 와, `CMS-HSP-CMT-01` ~ `04` 는 `CMS-HSP-CMT <라벨>` 과 이름이 비슷하지만 서로 다른 케이스이다.
-- 집계 확인: A 140개 + B 51개 = 기준선 191개이다. C 의 정적 `it()`/`it.each()` 호출 120개(0.2.0 까지 68개, `CMS-ASC-CUR` 7개, `CMS-HSP` 23개, `CMS-FRESH` 3개, `CMS-VKE` 7개, `CMS-AMT` 12개. CMS-EXP 는 1개로 계산)를 더하면 정적 집계 311개와 같다 (2026-09-16 기준). 2026-09-29 에 `CMS-ESM` 2개를 더해 C 는 122개, 정적 집계는 313개이다. 2026-09-30 에 `CMS-ESM-03`·`04` 2개와 `CMS-EXP-CONFIG` 1개를 더해 C 는 125개, 정적 집계는 316개이다 (두 값 모두 2026-09-28 에 삭제한 `CMS-NCL` 3개는 빼지 않은 값).
+- 집계 확인: A 140개 + B 51개 = 기준선 191개이다. C 의 정적 `it()`/`it.each()` 호출 120개(0.2.0 까지 68개, `CMS-ASC-CUR` 7개, `CMS-HSP` 23개, `CMS-FRESH` 3개, `CMS-VKE` 7개, `CMS-AMT` 12개. CMS-EXP 는 1개로 계산)를 더하면 정적 집계 311개와 같다 (2026-09-16 기준). 2026-09-29 에 `CMS-ESM` 2개를 더해 C 는 122개, 정적 집계는 313개이다. 2026-09-30 에 `CMS-ESM-03`·`04` 2개와 `CMS-EXP-CONFIG` 1개를 더해 C 는 125개, 정적 집계는 316개이다 (두 값 모두 2026-09-28 에 삭제한 `CMS-NCL` 3개는 빼지 않은 값). 2026-10-01 에 10개 파일의 정적 호출 76개(`CMS-LC` 13, `CMS-RLA` 12, `CMS-IB` 11, `CMS-UC` 4, `CMS-TY` 1, `CMS-SB` 11, `CMS-SS` 6, `CMS-AMC` 1, `CMS-PKG` 6, `CMS-ASB` 11)를 더해 C 는 201개, 정적 집계는 392개이다. `CMS-NCL` 3개를 빼면 현재 파일의 정적 호출은 389개이고, 이 값은 `tests/**/*.test.{ts,tsx}` 에서 `it(`·`it.each(` 로 시작하는 줄 수와 같다.
 
 ### 이전 문서
 
 | 문서 | 추적 여부 | 현재 상태 |
 |------|---------|---------|
-| `tests/spec.md` (안내 줄 추가 전 505줄) | 추적 | Sprint 1~3 구현 작업 계획서이다. 현재 40개 파일 중 18개만 다루고 22개(묶음 B 9개 파일, 묶음 C 의 Sprint 1 파일 8개, 0.2.1·0.2.2 추가 파일 2개, 2026-09-16 추가 파일 3개)는 언급하지 않는다. 경로를 모노레포 기준 `cms-kit/tests/` 로 적고 있고 체크박스는 모두 미완료 표시이다. 파일 맨 위에 이 문서를 가리키는 안내 한 줄을 추가했다. 2026-09-30 에 안내 줄을 "과거 기록"임을 밝히는 문구로 바꿨다(옛 테스트 ID 출처로만 유지) |
+| `tests/spec.md` (안내 줄 추가 전 505줄) | 추적 | Sprint 1~3 구현 작업 계획서이다. 현재 50개 파일 중 18개만 다루고 32개는 언급하지 않는다 (2026-10-01 에 추가한 10개 파일도 언급하지 않는다). 경로를 모노레포 기준 `cms-kit/tests/` 로 적고 있고 체크박스는 모두 미완료 표시이다. 파일 맨 위에 이 문서를 가리키는 안내 한 줄을 추가했다. 2026-09-30 에 안내 줄을 "과거 기록"임을 밝히는 문구로 바꿨다(옛 테스트 ID 출처로만 유지) |
 | `docs/testing.md` | 추적 | 실행 방법·작성 규칙 문서이다. 2026-09-30 에 현재 구조로 다시 썼다. 옛 모노레포 경로(`cms-kit/tests/`)와 모노레포 루트 실행·루트 통합 스위트 전제를 없애고, 프로젝트 표를 실제 `vitest.config.ts` 의 포함 경로(`tests/**/*.test.{ts,tsx}`)로 고쳤다. 27개 파일만 적던 디렉터리 목록은 폴더 구성만 남기고 파일 목록은 이 문서의 파일 대조표를 보게 했다. 공통 셋업 절에 `NODE_ENV`·`next/cache` mock 과 `RATE_LIMIT_ENABLED` 의 "지정값 존중" 동작을 적었고, 소비 프로젝트 문구를 테스트 데이터에 쓰지 않는다는 규칙을 추가했다. `docs/README.md`·`docs/README.ko.md` 는 이 파일을 테스트 문서로 연결한다 |
-| `docs/utils.md` | 추적 | 0.2.2 에서 새니타이저 절에 `createSanitizer` 의 `purify` 옵션과 데이터 주석·`target` 보존 설명이 추가되었다 (TC-S-007, TC-S-009). 2026-09-16 에 두 경로의 제거 대상 설명(TC-S-010, TC-S-011)과 `getVariantUrl` 확장자·쿼리 문자열 규칙(TC-U-027)을 추가했다 |
+| `docs/utils.md` | 추적 | 0.2.2 에서 새니타이저 절에 `createSanitizer` 의 `purify` 옵션과 데이터 주석·`target` 보존 설명이 추가되었다 (TC-S-007, TC-S-009). 2026-09-16 에 두 경로의 제거 대상 설명(TC-S-010, TC-S-011)과 `getVariantUrl` 확장자·쿼리 문자열 규칙(TC-U-027)을 추가했다. 2026-10-01 에 "진입점" 절(`./utils/client`·`./utils/server`, TC-SM-008), 저장소 백엔드 주입(TC-U-031)과 변형 업로드 결과(TC-C-001) 설명, `storage.r2.endpoint`·`region` 설정(TC-U-028)이 추가되었다 |
 | `docs/components.md` | 추적 | 2026-09-16 에 AdminManagerBase "탭 접근성" 절을 추가했다 (TC-AC-003) |
 | `docs/plans/2026-03-10-pms-package.md` | 추적 | 패키지 분리 계획서이며 옛 패키지명 `@withwiz/pms` 를 사용한다 |
 | `.claude/harness/pms-refactor/spec.md` (935줄) | gitignore 대상 (원본 체크아웃 로컬 파일) | 테스트 주석이 참조하는 절 번호(§3, §4.1, §4.6, §4.7, §5)의 원문이다. 옛 패키지명 `@withwiz/pms` 와 옛 Vitest 프로젝트 이름 `pms`·`pms-dom` 을 쓴다. 옛 경로 `withwiz-pms/` 는 같은 폴더의 `sprint_contract.md` 에 적혀 있다. 이 문서 작업에서는 두 파일 모두 수정하지 않았다 |
@@ -2172,16 +2451,16 @@ createSanitizer(config)(html)
 
 | 도메인 | 사전 조사 판정 | 이 문서의 SC | 근거 |
 |--------|------------|-----------|------|
-| Unit | 적용 | 27 | 유틸·훅·컴포넌트 22개 파일 174건이 존재하고, AdminManagerBase·ResizableImage 등 동작 테스트가 없는 모듈이 남아 있다 |
+| Unit | 적용 | 31 | 유틸·훅·컴포넌트·설정 경계 27개 파일 219건이 존재하고(2026-10-01 에 AdminShell 동작, 자원 수명주기, 단일 구현, 저장소 백엔드, 쿠키 인증 저장 5개 파일 추가), AdminManagerBase·ResizableImage 등 동작 테스트가 없는 모듈이 남아 있다 |
 | API | 부분 | 6 | 응답·검증 헬퍼와 `adminFetch` 는 패키지에 있지만 HTTP 라우트 자체는 호스트 앱이 소유한다 |
-| Integration | 적용(약함) | 4 | `tests/integration/` 3개 파일 중 1개는 복제 구현을 검증하고, 1개는 서비스 모듈을 import 하지 않는다 |
+| Integration | 적용 | 5 | `tests/integration/` 3개 파일과 `tests/rate-limit-adapter.test.ts` 가 있다. 2026-10-01 에 `middleware-wrappers.test.ts` 가 복제 구현 대신 실제 모듈이 설치한 limiter 를 검증하게 되었고, rate-limit 어댑터의 설치 시점·주입·공유를 실제 toolkit 과 함께 검증하는 파일이 추가되었다. `prisma-service-flow.test.ts` 는 여전히 서비스 모듈을 import 하지 않는다 |
 | E2E | 미적용 | 0 | 패키지에 실행 가능한 앱·라우트가 없고 컴포넌트는 호스트 Next.js 앱 안에서만 동작한다 |
 | Security | 적용(강함) | 11 | 새니타이저·키 검증·식별자 위조 방지 5개 파일 210건이 있고(그중 159건은 새니타이저 두 경로를 같은 명세로 검증), 다른 도메인 파일에도 보안 케이스가 있다 |
 | Accessibility | 적용, 0건 | 6 | UI 컴포넌트 6개(AdminShell, AdminManagerBase, ToggleSwitch, ImageDropUpload, ResizableImage, JsonLd)를 export 하고 jsdom·testing-library 가 설치되어 있다. 사전 조사 시점에는 접근성 케이스가 0건이었고, 0.2.1 에서 AdminShell 현재 페이지 표시 7건(TC-AC-006), 2026-09-16 에 AdminManagerBase 탭 키보드 접근 12건(TC-AC-003)이 생겼다 |
 | Performance | 부분 | 2 | 가상 스크롤과 대용량 본문 처리 경로가 있지만 합의된 기준값이 없다 |
 | Load/Stress | 낮음 | 2 | 라이브러리 안의 동시성 코드는 토큰 갱신 단일화와 인메모리 limiter 두 곳뿐이다 |
-| Smoke | 부분(dist 일부) | 7 | 계약 가드 2개 파일(소비자 리터럴 가드는 2026-09-28 에 소비 프로젝트 저장소로 이전)과 새로 받은 체크아웃 실행 가드 1개 파일이 있다. vitest alias 가 항상 `src` 로 연결되므로 dist 산출물은 별도 node 프로세스로 순수 Node ESM import 범위(TC-SM-006, 2026-09-29)와 `./config`·`./utils` 설정 저장소 공유(TC-SM-007, 2026-09-30)만 검사하고, 파일 존재·`"use client"`·d.ts 비교는 검증하지 않는다 |
-| Chaos | 낮음 | 3 | 외부 의존 실패 격리 코드(`Promise.allSettled`, 변형 업로드 `try/catch`, DOMPurify 대체 경로)가 있어 비용이 낮은 케이스만 계획한다 |
+| Smoke | 부분(dist 일부) | 11 | 계약 가드 2개 파일(소비자 리터럴 가드는 2026-09-28 에 소비 프로젝트 저장소로 이전), 새로 받은 체크아웃 실행 가드 1개 파일, 서버/클라이언트 import 경계(TC-SM-008)와 의존성 선언(TC-SM-011) 2개 파일이 있다. vitest alias 가 항상 `src` 로 연결되므로 dist 산출물은 별도로 검사한다: 순수 Node ESM import 범위(TC-SM-006, 2026-09-29), `./config`·`./utils` 설정 저장소 공유(TC-SM-007, 2026-09-30), `"use client"` 지시문과 클라이언트 진입점 도달 범위(TC-SM-009), 공개 타입(TC-SM-010, 2026-10-01). 조건 경로 파일 존재·CSS 복사·d.ts export 이름 비교는 검증하지 않는다 |
+| Chaos | 낮음 | 3 | 외부 의존 실패 격리 코드(`Promise.allSettled`, 변형 업로드 `try/catch`, DOMPurify 대체 경로)가 있어 비용이 낮은 케이스만 계획한다. 2026-10-01 에 변형 업로드 부분 실패(TC-C-001)가 결과 상태(`variantStatus`)로 드러나게 되어 6건을 추가했다 |
 
 ---
 
@@ -2189,18 +2468,24 @@ createSanitizer(config)(html)
 
 | 순위 | 항목 | 관련 ID | 선행 조건 |
 |-----|------|--------|---------|
-| 1 | `AdminManagerBase.tsx`(408줄) 목록·선택·저장·삭제 동작 테스트 0건 (사전 조사 순위 3). 탭 접근성 12건(TC-AC-003)만 있다 | TC-U-018 ~ TC-U-021, TC-P-001 | `window.confirm` spy. `admin-fetch`·`sonner` mock 은 TC-AC-003 구성을 재사용할 수 있다 |
-| 2 | `middleware-wrappers.test.ts` 복제 구현 검증 (사전 조사 순위 7) | TC-I-003 ⚠️ | 어댑터 가로채기 방식 합의. 복제본 삭제는 테스트 코드 수정 작업으로 분리 |
-| 3 | 접근성 케이스가 AdminShell 현재 페이지 표시 7건(TC-AC-006)과 AdminManagerBase 탭 12건(TC-AC-003)뿐이다 (ToggleSwitch·ImageDropUpload·AdminShell 랜드마크·ResizableImage 0건) | TC-AC-001, TC-AC-002, TC-AC-004, TC-AC-005 | `@testing-library/user-event`·axe 계열 도입 여부 결정 (devDependency 추가), 현재 코드 미충족 항목의 수정 여부 결정 |
-| 4 | `ResizableImage.tsx`(230줄) 참조 0건 | TC-U-023, TC-U-024, TC-AC-005 | 최소 doc·text 노드 정의, `@tiptap/react` 에디터 렌더링 |
-| 5 | AdminShell 인증·사이드바 동작 미검증 (설정 주입 3건과 현재 페이지 표시 7건만 존재) | TC-U-022, TC-AC-004 | `next/navigation` mock (TC-AC-006 의 mock 구성을 재사용할 수 있다) |
-| 6 | 이미지 드롭존 드래그·오류 경로와 업로드 계약 | TC-U-025, TC-A-005 | `maxFiles` 경고가 곧바로 지워지는 동작의 의도 확인 |
-| 7 | 보안 규칙 보완 (키 규칙 4종, 새니타이저 신뢰 origin 주입 표면) | TC-S-005, TC-S-006 | 없음 |
-| 8 | dist 산출물 스모크 부재 (순수 Node ESM import 범위는 2026-09-29 TC-SM-006 으로 검사) | TC-SM-004 | `npm run build` 선행, alias 없는 실행 경로 (TC-SM-006 의 별도 node 프로세스 방식을 재사용할 수 있다) |
-| 9 | 이미지 처리 경로 (캔버스 리사이즈, sharp 실제 실행) | TC-U-026, TC-I-004 | Canvas·Image 스텁, sharp 네이티브 바이너리 |
-| 10 | 검증 실패 응답 본문 미검증 | TC-A-006 | 없음 |
-| 11 | 동시성·장애·성능 | TC-L-001, TC-L-002, TC-C-001 ~ TC-C-003, TC-P-002 | 성능 기준값 합의, DOMPurify `require` 실패 재현 방법 확인 |
-| 12 | 도메인별 실행 스크립트 없음 (`test`, `test:watch` 만 존재) | 전 도메인 | `package.json` scripts 추가 (이 작업에서는 수정하지 않음) |
+| 1 | `AdminManagerBase.tsx`(409줄) 목록·선택·저장·삭제 동작 테스트가 거의 없다 (사전 조사 순위 3). 탭 접근성 12건(TC-AC-003)과 신규 저장의 쿠키 인증 1건(TC-U-030)만 있다 | TC-U-018 ~ TC-U-021, TC-P-001 | `window.confirm` spy. `admin-fetch`·`sonner` mock 은 TC-AC-003·TC-U-030 구성을 재사용할 수 있다 |
+| 2 | 접근성 케이스가 AdminShell 현재 페이지 표시 7건(TC-AC-006)과 AdminManagerBase 탭 12건(TC-AC-003)뿐이다 (ToggleSwitch·ImageDropUpload·AdminShell 랜드마크·ResizableImage 0건) | TC-AC-001, TC-AC-002, TC-AC-004, TC-AC-005 | `@testing-library/user-event`·axe 계열 도입 여부 결정 (devDependency 추가), 현재 코드 미충족 항목의 수정 여부 결정 |
+| 3 | `ResizableImage.tsx`(230줄) 참조 0건 (tiptap 부재 시 import 실패만 TC-SM-011 의 CMS-PKG-11 이 확인한다) | TC-U-023, TC-U-024, TC-AC-005 | 최소 doc·text 노드 정의, `@tiptap/react` 에디터 렌더링 |
+| 4 | 이미지 드롭존 드래그·오류 경로와 업로드 계약 | TC-U-025, TC-A-005 | `maxFiles` 경고가 곧바로 지워지는 동작의 의도 확인 |
+| 5 | 보안 규칙 보완 (키 규칙 4종, 새니타이저 신뢰 origin 주입 표면) | TC-S-005, TC-S-006 | 없음 |
+| 6 | dist 산출물 스모크 일부 부재 (순수 Node ESM import 범위는 TC-SM-006, `"use client"` 는 TC-SM-009, 공개 타입 일부는 TC-SM-010 이 검사한다). dist 를 검사하는 테스트 중 TC-SM-009·010 은 dist 가 없으면 빌드하지 않고 건너뛴다 | TC-SM-004 | `npm run build` 선행, alias 없는 실행 경로 (TC-SM-006 의 별도 node 프로세스 방식을 재사용할 수 있다) |
+| 7 | 이미지 처리 경로 (캔버스 리사이즈, sharp 실제 실행 업로드) | TC-U-026, TC-I-004 | Canvas·Image 스텁. sharp 네이티브 바이너리는 TC-U-029 가 이미 사용한다 |
+| 8 | 검증 실패 응답 본문 미검증 | TC-A-006 | 없음 |
+| 9 | 동시성·장애·성능 | TC-L-001, TC-L-002, TC-C-002, TC-C-003, TC-P-002 | 성능 기준값 합의, DOMPurify `require` 실패 재현 방법 확인 |
+| 10 | 도메인별 실행 스크립트 없음 (`test`, `test:watch` 만 존재) | 전 도메인 | `package.json` scripts 추가 (이 작업에서는 수정하지 않음) |
+
+2026-10-01 에 해소한 갭은 다음과 같다. 순위는 2026-09-30 판 기준이다.
+
+- 2순위 `middleware-wrappers.test.ts` 복제 구현 검증: TC-I-003 ⚠️ 해소 (실제 모듈이 설치한 limiter 검증), 어댑터 설치 시점과 주입 경계는 TC-I-005 ✅
+- 5순위 일부 AdminShell 인증·사이드바 동작: TC-U-022 ✅ (TC-AC-004 는 남아 있다)
+- 8순위 일부 `"use client"` 산출물: TC-SM-009 ✅
+- 11순위 일부 변형 업로드 부분 실패 격리: TC-C-001 ✅
+- 1순위 일부 AdminManagerBase 저장: TC-U-030 ✅ (쿠키 인증 회귀 1건. TC-U-020 은 계획으로 남아 있다)
 
 2026-09-16 에 해소한 갭은 다음과 같다. 순위는 2026-09-15 판 기준이다.
 
@@ -2221,6 +2506,9 @@ createSanitizer(config)(html)
 | CMS-RP-02 | 이름은 일반 객체 입력이지만 실제 입력은 Promise 이다 | TC-A-003 비고 |
 | CMS-AH-05 ~ 07, 09 | 응답 상태 코드와 본문을 검증하지 않는다 | TC-A-006 |
 | CMS-PSF-01 ~ 05 | 서비스 모듈을 import 하지 않아 TC-U-006 과 검증 범위가 겹친다 | 파일 목적 재정의 필요 |
+| CMS-MW-06 | toolkit 래퍼를 mock 한 상태에서 export 가 함수인지만 확인한다 | TC-I-005 의 CMS-RLA-02 가 실제 래퍼로 첫 요청을 처리한다 |
+| CMS-SB-10 ~ 15 | 실패 로그(`logError`)의 메시지와 메타를 단언하지 않는다 | TC-C-001 비고 |
+| CMS-UC-01 ~ 04, CMS-TY-01 | `dist/` 가 없으면 건너뛰므로(`describe.skipIf`), 새로 받은 체크아웃에서 빌드 전에 실행하면 5건이 스킵으로 끝난다 | TC-SM-009·SM-010 전제조건 |
 
 2026-09-16 에 보완한 관찰 항목은 표에서 뺐다.
 
@@ -2233,13 +2521,13 @@ createSanitizer(config)(html)
 ## 리뷰 체크리스트
 
 - [x] 사전 조사 문서의 10개 도메인을 모두 판정했다 (E2E 는 미적용 근거 기록)
-- [x] 40개 테스트 파일이 모두 TC "파일" 칸에 등장한다 (대조표, 누락 0)
+- [x] 50개 테스트 파일이 모두 TC "파일" 칸에 등장한다 (대조표, 누락 0. 2026-10-01 에 `npx vitest list` 파일별 건수와 대조했다)
 - [x] 파일별 테스트 수를 2026-09-16 JSON 리포터 실행 결과로 기록했다 (470건 통과, 실패 0, 스킵 0)
 - [x] 도메인별 파일 필터로 다시 실행해 합계를 확인했다 (Unit 174, Integration 17, API 32, Security 208, Accessibility 19, Smoke 20)
 - [x] 기존 ID 두 계열과 정의 문서가 없는 ID 를 새 TC 로 매핑했다
 - [x] 완료 TC 의 단계는 실제 `it()` 이름과 단언에서 뽑았다
 - [x] 계획 TC 의 단계는 대상 소스의 행 번호를 근거로 작성했다 (2026-09-16 수정으로 바뀐 html-sanitizer·AdminManagerBase·r2-storage·r2-helpers 행 번호를 다시 맞췄다)
-- [x] ⚠️ 교체 필요 1건(TC-I-003)에 교체 계획을 적었다 (TC-SM-001 은 2026-09-16 교체 완료, 교체 이력 기록)
+- [x] ⚠️ 교체 필요였던 TC-SM-001(2026-09-16)과 TC-I-003(2026-10-01)을 교체하고 교체 이력을 기록했다 (현재 ⚠️ 0건)
 - [x] develop `1de7c3a`(0.2.2)까지의 변경을 반영했다 (새 SC/TC 4건, 계획 TC 중 완료 전환 0건, TC-C-003 범위 조정)
 - [x] 2026-09-16 `fix/residual-defects` 변경을 반영했다 (완료 전환 4건: TC-U-027·TC-AC-003·TC-SM-005·TC-SM-001, 새 SC/TC 2건: TC-S-010·TC-S-011, 해결한 결함의 당시 동작을 결함 이력·교체 이력으로 기록)
 - [x] 새로 받은 체크아웃에서 스위트 실행 (TC-SM-005)
@@ -2247,8 +2535,9 @@ createSanitizer(config)(html)
 - [x] 2026-09-28 소비 프로젝트 언급 제거를 반영했다 (TC-SM-002 이전, TC-U-017 단언 교체, 테스트 데이터 중립화, 39개 파일 469건 실측)
 - [x] 2026-09-29 순수 Node ESM 소비 범위를 실측하고 빌드 테스트로 고정했다 (JS 서브패스 31개 중 22개 성공, TC-SM-006 추가, 회귀 주입 확인, 40개 파일 471건 실측)
 - [x] 2026-09-30 `./config` 서브패스를 추가하고 순수 Node 동작·공개 이름·설정 저장소 공유를 빌드 산출물로 검사했다 (JS 서브패스 32개 중 23개 성공, TC-SM-007 추가, 회귀 주입 2건 확인, 40개 파일 474건 실측)
-- [ ] AdminManagerBase 계획 테스트 구현 (TC-AC-003 완료, TC-U-018~021·TC-P-001 남음)
-- [ ] middleware-wrappers 교체 구현
+- [x] 2026-10-01 `refactor/pms-spec-sprint2-4` 변경을 반영했다 (완료 전환 3건: TC-U-022·TC-I-003·TC-C-001, 새 SC/TC 9건: TC-U-028~031·TC-I-005·TC-SM-008~011, TC-SM-006·SM-007 수치 갱신, 소스 분해·이동으로 바뀐 AdminShell·AdminManagerBase·config·r2-storage·wrappers 행 번호를 다시 맞췄다, 50개 파일 559건)
+- [x] middleware-wrappers 교체 구현 (2026-10-01, TC-I-003)
+- [ ] AdminManagerBase 계획 테스트 구현 (TC-AC-003·TC-U-030 완료, TC-U-018~021·TC-P-001 남음)
 - [ ] 접근성 도구 도입 결정과 계획 테스트 구현
 - [ ] 도메인별 실행 스크립트 추가
 - [ ] 커버리지 목표 설정 (현재 미설정)

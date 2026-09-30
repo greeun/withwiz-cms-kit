@@ -1,4 +1,4 @@
-import { stripPathExtension } from './variant-path';
+import { buildVariantKey, stripPathExtension } from './variant-path';
 
 export const IMAGE_VARIANT_SIZES = {
   lg: 1920,
@@ -29,5 +29,5 @@ export function getVariantUrl(url: string, size: VariantSize = 'thumb'): string 
   const path = head.slice(authority.length);
   const base = stripPathExtension(path);
   if (base === path) return url;
-  return `${authority}${base}-${size}.webp${suffix}`;
+  return `${authority}${buildVariantKey(base, size)}${suffix}`;
 }
