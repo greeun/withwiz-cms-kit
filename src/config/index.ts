@@ -247,14 +247,42 @@ export const JWT_SECRET_MIN_LENGTH = 32;
 // 설정 저장소 + 주입 API (prisma 패턴)
 // ──────────────────────────────────────────────────────────────────────────
 
-let _config: CmsConfig = {};
-// setCmsConfig/resetCmsConfig 가 호출될 때마다 증가한다. 설정으로 만든
-// 파생 객체(rate-limit 어댑터 등)가 다시 만들어야 하는지 판단하는 데 쓴다.
-let _configVersion = 0;
+/**
+ * 설정 저장소. 모듈 변수가 아니라 전역(`globalThis`)의 심볼 키에 둔다.
+ *
+ * Next.js 는 `instrumentation.ts` 와 Route Handler 를 서로 다른 번들 범위로
+ * 만들어 같은 패키지 모듈이 두 벌 로드될 수 있다. 모듈 변수에 저장하면
+ * instrumentation 의 `register()` 에서 주입한 설정이 라우트에 보이지 않으므로,
+ * `@withwiz/toolkit` 의 rate-limit 어댑터와 같이 전역에 보관한다.
+ */
+interface CmsConfigStore {
+  config: CmsConfig;
+  /** setCmsConfig/resetCmsConfig 호출 횟수 (설정 파생 객체 캐시 무효화용) */
+  version: number;
+  /** 이미 경고한 미설정 표면 키 */
+  warned: Set<string>;
+}
+
+const STORE_KEY = Symbol.for('@withwiz/cms-kit/config-store');
+
+function store(): CmsConfigStore {
+  const g = globalThis as Record<symbol, CmsConfigStore | undefined>;
+  let s = g[STORE_KEY];
+  if (!s) {
+    s = { config: {}, version: 0, warned: new Set() };
+    g[STORE_KEY] = s;
+  }
+  return s;
+}
+
+/** 현재 병합된 설정 (내부 해석 함수용). */
+function current(): CmsConfig {
+  return store().config;
+}
 
 /** 설정 변경 횟수 (내부용: 설정 파생 객체 캐시 무효화). */
 export function getCmsConfigVersion(): number {
-  return _configVersion;
+  return store().version;
 }
 
 /**
@@ -262,33 +290,36 @@ export function getCmsConfigVersion(): number {
  * 부분 주입을 병합하며, 같은 키 재주입 시 새 값이 우선한다.
  */
 export function setCmsConfig(config: CmsConfig): void {
-  _config = {
-    ..._config,
+  const st = store();
+  const prev = st.config;
+  st.config = {
+    ...prev,
     ...config,
-    brand: { ..._config.brand, ...config.brand },
-    routes: { ..._config.routes, ...config.routes },
-    jwt: { ..._config.jwt, ...config.jwt },
-    sanitizer: { ..._config.sanitizer, ...config.sanitizer },
+    brand: { ...prev.brand, ...config.brand },
+    routes: { ...prev.routes, ...config.routes },
+    jwt: { ...prev.jwt, ...config.jwt },
+    sanitizer: { ...prev.sanitizer, ...config.sanitizer },
     storage: {
-      ..._config.storage,
+      ...prev.storage,
       ...config.storage,
-      r2: { ..._config.storage?.r2, ...config.storage?.r2 },
+      r2: { ...prev.storage?.r2, ...config.storage?.r2 },
     },
-    rateLimit: { ..._config.rateLimit, ...config.rateLimit },
+    rateLimit: { ...prev.rateLimit, ...config.rateLimit },
   };
-  _configVersion++;
+  st.version++;
 }
 
 /** 주입된 설정을 모두 비운다 (테스트/재초기화 용도). */
 export function resetCmsConfig(): void {
-  _config = {};
-  _warnedKeys.clear();
-  _configVersion++;
+  const st = store();
+  st.config = {};
+  st.warned.clear();
+  st.version++;
 }
 
 /** 현재 병합된 raw 설정 (디버깅/테스트 용). */
 export function getCmsConfig(): CmsConfig {
-  return _config;
+  return current();
 }
 
 // ──────────────────────────────────────────────────────────────────────────
@@ -296,15 +327,15 @@ export function getCmsConfig(): CmsConfig {
 // ──────────────────────────────────────────────────────────────────────────
 
 const NS = '@withwiz/cms-kit:';
-const _warnedKeys = new Set<string>();
 
 /**
  * 같은 미설정 표면에 대해 정확히 1회만 `@withwiz/cms-kit:` 네임스페이스 warn 을
  * 발행한다 (spec.md §5/B4). 메시지는 누락된 설정명을 반드시 포함한다.
  */
 export function warnOnceMissingConfig(key: string, message: string): void {
-  if (_warnedKeys.has(key)) return;
-  _warnedKeys.add(key);
+  const warned = store().warned;
+  if (warned.has(key)) return;
+  warned.add(key);
   // 경고 채널 = console.warn (테스트가 spy 하는 표준 채널).
   // eslint-disable-next-line no-console
   console.warn(`${NS} ${message}`);
@@ -332,7 +363,7 @@ export function resolveBrandConfig(suppliedViaProps = false): {
   adminHref: string;
   navItems: CmsNavItem[];
 } {
-  const b = _config.brand ?? {};
+  const b = current().brand ?? {};
   const navConfigured = Array.isArray(b.navItems);
   const brandConfigured = typeof b.brandLabel === 'string';
 
@@ -354,7 +385,7 @@ export function resolveBrandConfig(suppliedViaProps = false): {
 
 /** route/endpoint 맵을 해석한다 (모든 항목 safe-default 존재). */
 export function resolveRouteConfig(): Required<CmsRouteConfig> {
-  const r = _config.routes ?? {};
+  const r = current().routes ?? {};
   return {
     loginPath: r.loginPath ?? DEFAULT_ROUTES.loginPath,
     postLoginRedirect: r.postLoginRedirect ?? DEFAULT_ROUTES.postLoginRedirect,
@@ -377,7 +408,7 @@ export function resolveJwtConfig(): {
   refreshTokenExpiry: string;
   algorithm: NonNullable<CmsJwtConfig['algorithm']>;
 } {
-  const j = _config.jwt ?? {};
+  const j = current().jwt ?? {};
 
   const accessTokenExpiry =
     j.accessTokenExpiry ?? process.env.JWT_EXPIRES_IN ?? DEFAULT_ACCESS_TOKEN_EXPIRY;
@@ -411,7 +442,7 @@ export function resolveJwtConfig(): {
 
 /** sanitizer 신뢰 iframe origin 목록을 해석한다 (safe-default 존재). */
 export function resolveTrustedIframeOrigins(): readonly string[] {
-  const s = _config.sanitizer ?? {};
+  const s = current().sanitizer ?? {};
   return s.trustedIframeOrigins ?? DEFAULT_TRUSTED_IFRAME_ORIGINS;
 }
 
@@ -420,7 +451,7 @@ export function resolveStorageConfig(): {
   inlineKeyPrefixes: readonly string[] | null;
   publicBaseUrl: string | null;
 } {
-  const st = _config.storage ?? {};
+  const st = current().storage ?? {};
   return {
     inlineKeyPrefixes: Array.isArray(st.inlineKeyPrefixes)
       ? st.inlineKeyPrefixes
@@ -432,7 +463,7 @@ export function resolveStorageConfig(): {
 
 /** 주입된 저장소 백엔드. 없으면 null (기본 R2/S3 구현 사용). */
 export function resolveStorageBackend(): CmsStorageBackend | null {
-  const b = _config.storage?.backend;
+  const b = current().storage?.backend;
   return b && typeof b.put === 'function' && typeof b.delete === 'function' ? b : null;
 }
 
@@ -457,7 +488,7 @@ export function resolveR2CredentialsConfig(): {
   bucketName: string | null;
   endpoint: string | null;
 } {
-  const r2 = _config.storage?.r2 ?? {};
+  const r2 = current().storage?.r2 ?? {};
   const pick = (injected: string | undefined, env: string | undefined) =>
     typeof injected === 'string' && injected.length > 0
       ? injected
@@ -486,7 +517,7 @@ export function resolveR2CredentialsConfig(): {
  * 일관되도록 의도된 통합점이다.
  */
 export function resolveR2PublicUrl(): string | null {
-  const st = _config.storage ?? {};
+  const st = current().storage ?? {};
   if (typeof st.publicBaseUrl === 'string' && st.publicBaseUrl.length > 0) {
     return st.publicBaseUrl;
   }
@@ -509,7 +540,7 @@ export const SHARED_ANON_IDENTITY = 'cms-kit:shared-anon';
 
 /** identityExtractor 주입 여부. */
 export function hasIdentityExtractor(): boolean {
-  return typeof _config.rateLimit?.identityExtractor === 'function';
+  return typeof current().rateLimit?.identityExtractor === 'function';
 }
 
 /**
@@ -527,7 +558,7 @@ export function hasIdentityExtractor(): boolean {
  * 등으로 자신의 proxy topology 에 맞는 추출기를 주입해야 한다.
  */
 export function resolveClientIdentity(headers: Headers): string {
-  const rl = _config.rateLimit ?? {};
+  const rl = current().rateLimit ?? {};
   if (typeof rl.identityExtractor === 'function') {
     return rl.identityExtractor(headers);
   }
@@ -544,7 +575,7 @@ export function resolveClientIdentity(headers: Headers): string {
  * 경고만 남긴 채 활성화한다.
  */
 export function resolveRateLimitEnabled(): boolean {
-  const rl = _config.rateLimit ?? {};
+  const rl = current().rateLimit ?? {};
   if (rl.enabled === false) return false;
 
   if (!hasIdentityExtractor()) {
@@ -593,7 +624,7 @@ export function resolveRateLimitAdapterConfig(): {
   limits: Record<CmsRateLimitType, CmsRateLimitWindow>;
   rateLimiters: Record<string, CmsRateLimiter> | null;
 } {
-  const rl = _config.rateLimit ?? {};
+  const rl = current().rateLimit ?? {};
   const limits = { ...DEFAULT_RATE_LIMITS };
   for (const type of Object.keys(DEFAULT_RATE_LIMITS) as CmsRateLimitType[]) {
     const w = rl.limits?.[type];
