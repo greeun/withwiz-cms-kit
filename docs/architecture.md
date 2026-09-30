@@ -136,7 +136,7 @@ setCmsConfig({
 | route/endpoint | `routes` | — | 이전 기본 경로 |
 | JWT | `jwt.secret`·`accessTokenExpiry`·`refreshTokenExpiry`·`algorithm` | `JWT_SECRET`·`JWT_EXPIRES_IN`·`JWT_REFRESH_TOKEN_EXPIRES_IN` | 비밀 없음 → 사용 시점 에러 |
 | sanitizer | `sanitizer.trustedIframeOrigins` | — | YouTube·Vimeo |
-| storage 자격 증명 | `storage.r2.{accountId,accessKeyId,secretAccessKey,bucketName,endpoint}` | `R2_ACCOUNT_ID`·`R2_ACCESS_KEY_ID`·`R2_SECRET_ACCESS_KEY`·`R2_BUCKET_NAME` | 사용 시점 에러 |
+| storage 자격 증명 | `storage.r2.{accountId,accessKeyId,secretAccessKey,bucketName,endpoint,region}` | `R2_ACCOUNT_ID`·`R2_ACCESS_KEY_ID`·`R2_SECRET_ACCESS_KEY`·`R2_BUCKET_NAME` | 사용 시점 에러 |
 | storage 공개 URL | `storage.publicBaseUrl` | `R2_PUBLIC_URL` | `https://<bucket>.r2.dev` (endpoint 주입 시 `<endpoint>/<bucket>`) |
 | storage 백엔드 | `storage.backend` | — | 기본 R2/S3 구현 |
 | 본문 이미지 키 규칙 | `storage.inlineKeyPrefixes` | — | 모든 경로 수집 + 경고 1회 |

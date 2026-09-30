@@ -136,10 +136,28 @@ describe('env boundary (CMS-LC)', () => {
     const { uploadToR2, isR2Enabled } = await import('@withwiz/cms-kit/utils/r2-storage');
     expect(isR2Enabled()).toBe(true);
     const r = await uploadToR2('posts/a.jpg', Buffer.from('x'), 'image/jpeg');
-    const endpoint = (mockS3ClientCtor.mock.calls[0][0] as { endpoint: string }).endpoint;
+    const ctorArgs = mockS3ClientCtor.mock.calls[0][0] as { endpoint: string; region: string; forcePathStyle?: boolean };
+    const endpoint = ctorArgs.endpoint;
     expect(endpoint).toBe('https://s3.example.com');
+    expect(ctorArgs.region).toBe('auto');
+    expect(ctorArgs.forcePathStyle).toBe(true);
     expect(r.url).toBe('https://media.example.com/posts/a.jpg');
     expect(`${endpoint} ${r.url}`).not.toMatch(/r2\.dev|r2\.cloudflarestorage\.com/);
+  });
+
+  it('CMS-LC-07: region 을 주입하면 그 값으로 서명하고, 비밀 키가 바뀌면 클라이언트를 다시 만든다', async () => {
+    const { setCmsConfig } = await import('@withwiz/cms-kit/config');
+    const r2 = { endpoint: 'https://s3.example.com', region: 'ap-northeast-2', accessKeyId: 'k', secretAccessKey: 's1', bucketName: 'b' };
+    setCmsConfig({ storage: { r2 } });
+    const { uploadToR2 } = await import('@withwiz/cms-kit/utils/r2-storage');
+    await uploadToR2('posts/a.jpg', Buffer.from('x'), 'image/jpeg');
+    await uploadToR2('posts/b.jpg', Buffer.from('x'), 'image/jpeg');
+    expect(mockS3ClientCtor).toHaveBeenCalledTimes(1);
+    expect((mockS3ClientCtor.mock.calls[0][0] as { region: string }).region).toBe('ap-northeast-2');
+
+    setCmsConfig({ storage: { r2: { ...r2, secretAccessKey: 's2' } } });
+    await uploadToR2('posts/c.jpg', Buffer.from('x'), 'image/jpeg');
+    expect(mockS3ClientCtor).toHaveBeenCalledTimes(2);
   });
 
   it('CMS-LC-04: endpoint 만 주입하면 공개 URL 은 path-style 로 만들고, 본문 키 추출도 같은 base 를 인정한다', async () => {
@@ -166,9 +184,10 @@ describe('env boundary (CMS-LC)', () => {
     process.env.R2_BUCKET_NAME = 'bucket';
     const { uploadToR2 } = await import('@withwiz/cms-kit/utils/r2-storage');
     const r = await uploadToR2('news/a.jpg', Buffer.from('x'), 'image/jpeg');
-    expect((mockS3ClientCtor.mock.calls[0][0] as { endpoint: string }).endpoint).toBe(
-      'https://acct.r2.cloudflarestorage.com',
-    );
+    const ctorArgs = mockS3ClientCtor.mock.calls[0][0] as { endpoint: string; region: string; forcePathStyle?: boolean };
+    expect(ctorArgs.endpoint).toBe('https://acct.r2.cloudflarestorage.com');
+    expect(ctorArgs.region).toBe('auto');
+    expect(ctorArgs.forcePathStyle).toBeUndefined();
     expect(r.url).toBe('https://bucket.r2.dev/news/a.jpg');
   });
 

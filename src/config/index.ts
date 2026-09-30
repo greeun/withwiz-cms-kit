@@ -99,6 +99,8 @@ export interface CmsR2CredentialsConfig {
    * `accountId` 로 Cloudflare R2 endpoint 를 구성한다 (문서화된 기본값).
    */
   endpoint?: string;
+  /** S3 서명 region. 기본 'auto' (Cloudflare R2). AWS S3 등은 버킷 region 을 지정한다. */
+  region?: string;
 }
 
 /**
@@ -487,6 +489,7 @@ export function resolveR2CredentialsConfig(): {
   secretAccessKey: string | null;
   bucketName: string | null;
   endpoint: string | null;
+  region: string;
 } {
   const r2 = current().storage?.r2 ?? {};
   const pick = (injected: string | undefined, env: string | undefined) =>
@@ -503,6 +506,7 @@ export function resolveR2CredentialsConfig(): {
     bucketName: pick(r2.bucketName, process.env.R2_BUCKET_NAME),
     // endpoint 는 새 설정이라 대응하는 legacy env 가 없다 (주입 전용).
     endpoint: pick(r2.endpoint, undefined),
+    region: pick(r2.region, undefined) ?? 'auto',
   };
 }
 

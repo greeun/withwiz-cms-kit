@@ -136,7 +136,8 @@ deleteFromR2(key): Promise<void>;
 | 주입 키 | 환경변수 | 설명 |
 |---|---|---|
 | `storage.r2.accountId` | `R2_ACCOUNT_ID` | Cloudflare endpoint `<accountId>.r2.cloudflarestorage.com` 구성 |
-| `storage.r2.endpoint` | — | S3 호환 endpoint. 지정하면 `accountId` 가 필요 없다 |
+| `storage.r2.endpoint` | — | S3 호환 endpoint. 지정하면 `accountId` 가 필요 없고 path-style 주소를 쓴다 |
+| `storage.r2.region` | — | S3 서명 region (기본 `auto`) |
 | `storage.r2.accessKeyId` | `R2_ACCESS_KEY_ID` | |
 | `storage.r2.secretAccessKey` | `R2_SECRET_ACCESS_KEY` | |
 | `storage.r2.bucketName` | `R2_BUCKET_NAME` | |

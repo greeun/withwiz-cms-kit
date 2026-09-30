@@ -91,8 +91,9 @@ interface ResolvedR2Credentials {
   bucketName: string;
   /** 주입한 endpoint, 없으면 accountId 로 만든 Cloudflare R2 endpoint */
   endpoint: string;
-  /** endpoint 를 직접 주입했는지 (공개 URL fallback 결정에 쓴다) */
+  /** endpoint 를 직접 주입했는지 (path-style 주소와 공개 URL fallback 결정에 쓴다) */
   customEndpoint: boolean;
+  region: string;
 }
 
 function requireR2Credentials(): ResolvedR2Credentials {
@@ -117,17 +118,21 @@ function requireR2Credentials(): ResolvedR2Credentials {
     bucketName: c.bucketName as string,
     endpoint: c.endpoint ?? `https://${c.accountId}.r2.cloudflarestorage.com`,
     customEndpoint: c.endpoint !== null,
+    region: c.region,
   };
 }
 
 async function getClient(): Promise<{ s3: S3Client; mod: S3Module }> {
   const c = requireR2Credentials();
   const mod = await loadS3();
-  const snapshot = `${c.endpoint}|${c.accessKeyId}`;
+  const snapshot = [c.endpoint, c.region, c.accessKeyId, c.secretAccessKey].join('|');
   if (!client || clientSnapshot !== snapshot) {
     client = new mod.S3Client({
-      region: 'auto',
+      region: c.region,
       endpoint: c.endpoint,
+      // 주입한 S3 호환 endpoint(MinIO 등)는 path-style 주소를 쓴다. 공개 URL
+      // fallback `<endpoint>/<bucket>/<key>` 도 같은 형식이다.
+      ...(c.customEndpoint ? { forcePathStyle: true } : {}),
       credentials: {
         accessKeyId: c.accessKeyId,
         secretAccessKey: c.secretAccessKey,
