@@ -257,6 +257,29 @@ describe('init lifecycle (CMS-LC)', () => {
     }
   });
 
+  it('CMS-LC-14: 다른 번들 범위(모듈 인스턴스)에서 주입한 설정이 보인다 (instrumentation → route)', async () => {
+    const instrumentation = await import('@withwiz/cms-kit/config');
+    instrumentation.setCmsConfig({ storage: { publicBaseUrl: 'https://media.example.com' } });
+
+    vi.resetModules();
+    const route = await import('@withwiz/cms-kit/config');
+    expect(route).not.toBe(instrumentation);
+    expect(route.resolveStorageConfig().publicBaseUrl).toBe('https://media.example.com');
+    expect(route.getCmsConfigVersion()).toBe(instrumentation.getCmsConfigVersion());
+  });
+
+  it('CMS-LC-15: 모듈이 다시 로드되어도 같은 미설정 경고를 반복하지 않는다', async () => {
+    const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    try {
+      (await import('@withwiz/cms-kit/config')).resolveBrandConfig();
+      vi.resetModules();
+      (await import('@withwiz/cms-kit/config')).resolveBrandConfig();
+      expect(warn).toHaveBeenCalledTimes(1);
+    } finally {
+      warn.mockRestore();
+    }
+  });
+
   it('CMS-LC-13: package.json 의 모든 JS subpath 는 설정·env 없이 import 해도 throw 하지 않는다 (AC-4.3.7)', async () => {
     const pkg = JSON.parse(readFileSync(resolve(__dirname, '../package.json'), 'utf-8')) as {
       exports: Record<string, unknown>;
