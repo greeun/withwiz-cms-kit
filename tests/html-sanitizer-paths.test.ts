@@ -424,3 +424,29 @@ describe('html-sanitizer 정규식 경로 기존 제거 목록의 태그 이름 
     expect(sanitize('<object>c</object>')).toBe('c');
   });
 });
+
+describe('createSanitizer requireDomPurify', () => {
+  it('DOMPurify 없이 켜면 정규식 경로로 내려가지 않고 예외를 던진다', () => {
+    const sanitize = createSanitizer({ purify: null, requireDomPurify: true });
+    expect(() => sanitize('<p>x</p>')).toThrow(/DOMPurify/);
+  });
+
+  it('DOMPurify 를 주입하면 켜도 정상 동작한다', () => {
+    const sanitize = createSanitizer({
+      purify: DOMPurify as unknown as DOMPurifyLike,
+      requireDomPurify: true,
+    });
+    expect(sanitize('<p>x</p><script>alert(1)</script>')).toBe('<p>x</p>');
+  });
+
+  it('빈 입력은 켜도 예외 없이 그대로 반환한다', () => {
+    const sanitize = createSanitizer({ purify: null, requireDomPurify: true });
+    expect(sanitize('')).toBe('');
+    expect(sanitize(null)).toBeNull();
+  });
+
+  it('끄면 기존처럼 정규식 경로를 쓴다', () => {
+    const sanitize = createSanitizer({ purify: null });
+    expect(sanitize('<p>x</p><script>alert(1)</script>')).not.toContain('script');
+  });
+});

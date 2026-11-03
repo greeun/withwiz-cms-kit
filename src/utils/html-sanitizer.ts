@@ -162,6 +162,11 @@ export interface SanitizerConfig {
    * - 미지정(`undefined`): `isomorphic-dompurify` 동적 로딩을 시도한다.
    */
   purify?: DOMPurifyLike | null;
+  /**
+   * true 면 DOMPurify 를 쓸 수 없을 때 정규식 폴백으로 내려가지 않고 sanitize 호출에서 예외를 던진다.
+   * 기본 false(기존 동작). ESM·Turbopack 서버 번들에서는 동적 로딩이 실패하므로 `purify` 를 함께 주입한다.
+   */
+  requireDomPurify?: boolean;
 }
 
 // ── DOMPurify 동적 로딩 (선택적 / 실제 사용되는 1차 경로) ──
@@ -506,6 +511,12 @@ export function createSanitizer(
       config.purify === undefined ? tryLoadDomPurify() : config.purify;
     if (purify) {
       return dompurifySanitize(html, purify, trustedOrigins, config);
+    }
+    if (config.requireDomPurify) {
+      throw new Error(
+        '[@withwiz/cms-kit/html-sanitizer] requireDomPurify 가 지정되었지만 DOMPurify 를 사용할 수 없습니다. ' +
+          'createSanitizer({ purify }) 로 인스턴스를 주입하세요.',
+      );
     }
     return regexSanitize(html, trustedOrigins);
   };
